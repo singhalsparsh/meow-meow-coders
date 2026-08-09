@@ -1,8 +1,10 @@
-# Netlify + Next.js 16 uses the automatic OpenNext adapter.
-# It manages the publish directory itself, so `publish` is intentionally omitted.
-[build]
-  command = "npm run build"
+# Netlify + Next.js 16 uses the automatic OpenNext adapter (zero config).
+# Do NOT set a [build] command or publish directory here: the adapter manages
+# the build and the publish directory itself. A custom build command (e.g.
+# `next build`) or a UI-set publish directory prevents the adapter from
+# taking over and results in Netlify serving raw files (404 on every page).
 
+# Only environment tuning lives here — no build/publish overrides.
 [build.environment]
   NODE_VERSION = "22"
   NEXT_TELEMETRY_DISABLED = "1"
