@@ -1,22 +1,19 @@
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { video } from "@/lib/mux";
+import { isOwnUploadUrl } from "@/lib/video";
 
-import Mux from "@mux/mux-node"
-
-const { Video } = new Mux(
-    process.env.MUX_TOKEN_ID!,
-    process.env.MUX_TOKEN_SECRET!,
-)
 export async function DELETE(
     req: Request,
-    { params }: { params: { courseId: string; chapterId: string } }
+    props: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
+    const params = await props.params;
     try {
-        const { userId } = auth()
+        const { userId } = await auth()
 
         if (!userId) {
-            return new NextResponse("Accès non autorisé", { status: 401 });
+            return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const ownCourse = await db.course.findUnique({
@@ -27,7 +24,7 @@ export async function DELETE(
         });
 
         if (!ownCourse) {
-            return new NextResponse("Erreur interne", { status: 401 });
+            return new NextResponse("Internal error", { status: 401 });
         }
 
         const chapter = await db.chapter.findUnique({
@@ -38,7 +35,7 @@ export async function DELETE(
         });
 
         if (!chapter) {
-            return new NextResponse("Non trouvé", { status: 404 });
+            return new NextResponse("Not found", { status: 404 });
         }
 
         if (chapter.videoUrl) {
@@ -49,7 +46,15 @@ export async function DELETE(
             })
 
             if (existingMuxData) {
-                await Video.Assets.del(existingMuxData.assetId)
+                if (existingMuxData.assetId) {
+                    // Mux may be unconfigured (no MUX_TOKEN_ID/SECRET) — never
+                    // let that block deleting the chapter.
+                    try {
+                        await video().Assets.del(existingMuxData.assetId)
+                    } catch (error) {
+                        console.log("[CHAPTER_ID_DELETE_MUX]", error)
+                    }
+                }
                 await db.muxData.delete({
                     where: {
                         id: existingMuxData.id
@@ -83,23 +88,24 @@ export async function DELETE(
         }
 
         return NextResponse.json(deletedChapter)
-        
+
     } catch (error) {
         console.log("CHAPTER_ID_DELETE", error)
-        return new NextResponse("Erreur interne", { status: 500 })
+        return new NextResponse("Internal error", { status: 500 })
     }
 }
 
 export async function PATCH(
     req: Request,
-    { params }: { params: { courseId: string; chapterId: string } }
+    props: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
+    const params = await props.params;
     try {
-        const { userId } = auth()
+        const { userId } = await auth()
         const { isPublished, ...values } = await req.json()
 
         if (!userId) {
-            return new NextResponse("Accès non autorisé", { status: 401 });
+            return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const ownCourse = await db.course.findUnique({
@@ -110,7 +116,7 @@ export async function PATCH(
         });
 
         if (!ownCourse) {
-            return new NextResponse("Erreur interne", { status: 401 });
+            return new NextResponse("Internal error", { status: 401 });
         }
 
         const chapter = await db.chapter.update({
@@ -123,36 +129,56 @@ export async function PATCH(
             }
         })
 
+        // A videoUrl is either an UploadThing upload (the "Upload" mode) or an
+        // external direct / YouTube link (the "Video URL" mode). External links
+        // are stored as-is and played with the built-in player — no Mux ingest.
+        // Only our own UploadThing uploads are sent to Mux for transcoding.
         if (values.videoUrl) {
-            const existingMuxData = await db.muxData.findFirst({
-                where: {
-                    chapterId: params.chapterId
-                }
-            })
-
-            if (existingMuxData) {
-                await Video.Assets.del(existingMuxData.assetId)
-                await db.muxData.delete({
+            const ingestToMux = isOwnUploadUrl(values.videoUrl)
+            try {
+                const existingMuxData = await db.muxData.findFirst({
                     where: {
-                        id: existingMuxData.id
+                        chapterId: params.chapterId
                     }
                 })
-            }
 
-            const asset = await Video.Assets.create({
-                input: values.videoUrl,
-                playback_policy: "public",
-                test: false
-            })
-
-            await db.muxData.create({
-                data: {
-                    chapterId: chapter.id,
-                    assetId: asset.id,
-                    playbackId: asset.playback_ids?.[0]?.id
-
+                if (existingMuxData) {
+                    if (existingMuxData.assetId) {
+                        try {
+                            await video().Assets.del(existingMuxData.assetId)
+                        } catch (error) {
+                            console.log("[COURSES_CHAPTER_ID_MUX_DEL]", error)
+                        }
+                    }
+                    await db.muxData.delete({
+                        where: {
+                            id: existingMuxData.id
+                        }
+                    })
                 }
-            })
+
+                if (ingestToMux) {
+                    const asset = await video().Assets.create({
+                        input: values.videoUrl,
+                        playback_policy: "public",
+                        test: false
+                    })
+
+                    await db.muxData.create({
+                        data: {
+                            chapterId: chapter.id,
+                            assetId: asset.id,
+                            playbackId: asset.playback_ids?.[0]?.id
+                        }
+                    })
+                }
+            } catch (error) {
+                // Mux may be unconfigured (missing MUX_TOKEN_ID / MUX_TOKEN_SECRET)
+                // or the source may not be ingestible. The chapter is already saved
+                // with its videoUrl, so the player falls back to the native <video>.
+                // Don't fail the request just because transcoding did.
+                console.log("[COURSES_CHAPTER_ID]", error)
+            }
         }
 
 
@@ -160,6 +186,6 @@ export async function PATCH(
         return NextResponse.json(chapter)
     } catch (error) {
         console.log("COURSES_CHAPTER_ID", error)
-        return new NextResponse("Erreur interne", { status: 500 })
+        return new NextResponse("Internal error", { status: 500 })
     }
 }

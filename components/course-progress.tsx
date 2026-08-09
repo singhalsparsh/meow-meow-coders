@@ -34,7 +34,7 @@ export const CourseProgress = ({
                 "font-medium mt-2 text-sky-700",
                 colorByVariant[variant || "default"],
                 sizeByVariant[size || "default"],
-            )}>{Math.round(value)}% effectué</p>
+            )}>{Math.round(value)}% complete</p>
         </div>
     )
 }

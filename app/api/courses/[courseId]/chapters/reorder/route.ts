@@ -1,17 +1,15 @@
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-export async function PUT(
-    req: Request,
-    { params }: { params: { courseId: string } }
-) {
+export async function PUT(req: Request, props: { params: Promise<{ courseId: string }> }) {
+    const params = await props.params;
     try {
-        const { userId } = auth()
+        const { userId } = await auth()
         const { list } = await req.json()
 
         if (!userId) {
-            return new NextResponse("Accès non autorisé", { status: 401 });
+            return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const courseOwner = await db.course.findUnique({
@@ -22,7 +20,7 @@ export async function PUT(
         });
 
         if (!courseOwner) {
-            return new NextResponse("Erreur interne", { status: 500 });
+            return new NextResponse("Internal error", { status: 500 });
         }
 
         for (let item of list) {
@@ -36,6 +34,6 @@ export async function PUT(
 
     } catch (error) {
         console.log("[REORDER]", error)
-        return new NextResponse("Erreur interne", { status: 500 });
+        return new NextResponse("Internal error", { status: 500 });
     }
 }

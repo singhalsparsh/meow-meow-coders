@@ -34,11 +34,11 @@ export const AttachmentForm = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await axios.post(`/api/courses/${courseId}/attachments`, values);
-      toast.success("Le cours a été mis à jour");
+      toast.success("Course updated");
       toggleEdit();
       router.refresh();
     } catch {
-      toast.error("Une erreur s'est produite");
+      toast.error("Something went wrong");
     }
   }
 
@@ -46,10 +46,10 @@ export const AttachmentForm = ({
     try {
       setDeletingId(id)
       await axios.delete(`/api/courses/${courseId}/attachments/${id}`)
-      toast.success("Le fichier a été supprimé")
+      toast.success("File deleted")
       router.refresh()
     } catch (error) {
-      toast.error("Une erreur s'est produite")
+      toast.error("Something went wrong")
     } finally {
       setDeletingId(null)
     }
@@ -58,15 +58,15 @@ export const AttachmentForm = ({
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
       <div className="font-medium flex items-center justify-between">
-        Pièces jointes
+        Attachments
         <Button onClick={toggleEdit} variant="ghost">
           {isEditing && (
-            <>Annuler</>
+            <>Cancel</>
           )}
           {!isEditing && (
             <>
               <PlusCircle className="h-4 w-4 mr-2" />
-              Ajouter une pièce jointe
+              Add an attachment
             </>
           )}
 
@@ -75,7 +75,7 @@ export const AttachmentForm = ({
       {!isEditing && (
         <>
           {initialData.attachments.length === 0 && (
-            <p className="text-sm mt-2 text-slate-500 italic">Aucune pièces jointes</p>
+            <p className="text-sm mt-2 text-slate-500 italic">No attachments</p>
           )}
           {initialData.attachments.length > 0 && (
             <div className="space-y-2">
@@ -116,7 +116,7 @@ export const AttachmentForm = ({
             }}
           />
           <div className="text-xs text-muted-foreground mt-4">
-            Ajouter ce dont vos étudiants auront besoin pour compléter le cours.
+            Add anything your students will need to complete the course.
           </div>
         </div>
       )}

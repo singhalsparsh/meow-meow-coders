@@ -1,17 +1,18 @@
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function PUT(
     req: Request,
-    { params }: { params: { courseId: string; chapterId: string; } }
+    props: { params: Promise<{ courseId: string; chapterId: string; }> }
 ) {
+    const params = await props.params;
     try {
-        const { userId } = auth()
+        const { userId } = await auth()
         const { isCompleted } = await req.json()
 
         if (!userId) {
-            return new NextResponse("Non autorisé", { status: 401 })
+            return new NextResponse("Unauthorized", { status: 401 })
         }
 
         const userProgress = await db.userProgress.upsert({
@@ -34,6 +35,6 @@ export async function PUT(
         return NextResponse.json(userProgress)
     } catch (error) {
         console.log("CHAPTER_ID_PROGRESS", error)
-        return new NextResponse("Erreur interne", { status: 500 })
+        return new NextResponse("Internal error", { status: 500 })
     }
 }

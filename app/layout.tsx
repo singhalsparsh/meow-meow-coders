@@ -4,13 +4,13 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/components/providers/toaster-provider";
 import { ConfettiProvider } from "@/components/providers/confetti-provider";
-import { frFR } from "@clerk/localizations";
+import { enUS } from "@clerk/localizations";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Course Crafter",
-  description: "Cours en ligne  : apprenez ce que vous voulez, à votre rythme | Course Crafter",
+  description: "Online courses: learn what you want, at your own pace | Course Crafter",
 };
 
 export default function RootLayout({
@@ -19,8 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider localization={frFR}>
-      <html lang="fr">
+    <ClerkProvider localization={enUS}>
+      {/* lang="en" + translate="no": the UI is English now, and this stops the
+          browser's auto-translate from rewriting the DOM (which previously broke
+          React hydration and caused "removeChild is not a child of this node"). */}
+      <html lang="en" translate="no">
         <body className={inter.className}>
           <ConfettiProvider />
           <ToastProvider />

@@ -1,8 +1,14 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import { useMemo } from "react";
-import "react-quill/dist/quill.snow.css"
+import "quill/dist/quill.snow.css"
+
+// Loaded client-only: Quill touches the DOM and must never be evaluated in the
+// server bundle. See components/quill.tsx for the React-18-safe implementation.
+const QuillEditor = dynamic(
+  () => import("./quill").then((mod) => mod.QuillEditor),
+  { ssr: false }
+)
 
 interface EditorProps {
     onChange: (value: string) => void;
@@ -13,12 +19,9 @@ export const Editor = ({
     onChange,
     value,
 }: EditorProps) => {
-    const ReactQuill = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), [])
-
     return (
         <div className="bg-white">
-            <ReactQuill
-                theme="snow"
+            <QuillEditor
                 value={value}
                 onChange={onChange}
             />

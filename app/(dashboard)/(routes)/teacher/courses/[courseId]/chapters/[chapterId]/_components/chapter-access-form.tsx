@@ -49,25 +49,25 @@ export const ChapterAccessForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values)
-            toast.success("Le chapitre a été mis à jour")
+            toast.success("Chapter updated")
             toggleEdit()
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
 
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
-                Paramètres d'accès
+                Access settings
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Modifier les paramètres d'accès
+                            Edit access settings
                         </>
                     )}
 
@@ -81,9 +81,9 @@ export const ChapterAccessForm = ({
                 )}
                 >
                     {initialData.isFree ? (
-                        <>Ce chapitre est gratuit pour la prévisualisation.</>
+                        <>This chapter is free for preview.</>
                     ) : (
-                        <>Ce chapitre est payant.</>
+                        <>This chapter is paid.</>
                     )}
                 </div>
             ) : (
@@ -105,7 +105,7 @@ export const ChapterAccessForm = ({
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
                                         <FormDescription>
-                                            Cocher cette case si vous souhaitez rendre ce chapitre gratuit pour la prévisualisation
+                                            Check this box if you want to make this chapter free for preview
                                         </FormDescription>
                                     </div>
                                 </FormItem>
@@ -116,7 +116,7 @@ export const ChapterAccessForm = ({
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Enregistrer
+                                Save
                             </Button>
                         </div>
                     </form>

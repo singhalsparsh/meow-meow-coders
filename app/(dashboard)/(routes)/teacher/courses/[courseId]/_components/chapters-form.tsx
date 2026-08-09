@@ -50,11 +50,11 @@ export const ChaptersForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.post(`/api/courses/${courseId}/chapters`, values)
-            toast.success("Le chapitre a été créé")
+            toast.success("Chapter created")
             toggleCreating()
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
 
@@ -64,9 +64,9 @@ export const ChaptersForm = ({
             await axios.put(`/api/courses/${courseId}/chapters/reorder`, {
                 list: updateData
             })
-            toast.success("Chapitres réordonnés")
+            toast.success("Chapters reordered")
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         } finally {
             setIsUpdating(false)
         }
@@ -84,14 +84,14 @@ export const ChaptersForm = ({
                 </div>
             )}
             <div className="font-medium flex items-center justify-between">
-                Chapitres
+                Chapters
                 <Button onClick={toggleCreating} variant="ghost">
                     {isCreating ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <PlusCircle className="h-4 w-4 mr-2" />
-                            Ajouter un chapitre
+                            Add a chapter
                         </>
                     )}
 
@@ -112,7 +112,7 @@ export const ChaptersForm = ({
                                     <FormControl>
                                         <Input
                                             disabled={isSubmitting}
-                                            placeholder="Exemple : Introduction"
+                                            placeholder="e.g. Introduction"
                                             {...field}
                                         />
                                     </FormControl>
@@ -125,29 +125,28 @@ export const ChaptersForm = ({
                             disabled={!isValid || isSubmitting}
                             type="submit"
                         >
-                            Créer
+                            Create
                         </Button>
 
                     </form>
                 </Form>
             )}
 
-            {!isCreating && (
-                <div className={cn(
-                    "text-sm mt-2",
-                    !initialData.chapters.length && "text-slate-500 italic"
-                )}>
-                    {!initialData.chapters.length && "Aucun chapitre"}
-                    <ChaptersList
-                        onEdit={onEdit}
-                        onReorder={onReorder}
-                        items={initialData.chapters || []}
-                    />
-                </div>
-            )}
-            {!isCreating && (
-                <p className="text-xs text-muted-foreground mt-4">Faites glisser et déposez pour réorganiser les chapitres.</p>
-            )}
+            {/* The list stays mounted even while the create form is shown.
+                Unmounting/remounting the @hello-pangea/dnd tree while toggling
+                edit mode can throw "removeChild is not a child of this node". */}
+            <div className={cn(
+                "text-sm mt-2",
+                !initialData.chapters.length && "text-slate-500 italic"
+            )}>
+                {!initialData.chapters.length && "No chapters"}
+                <ChaptersList
+                    onEdit={onEdit}
+                    onReorder={onReorder}
+                    items={initialData.chapters || []}
+                />
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">Drag and drop to reorder the chapters.</p>
         </div>
     )
 }

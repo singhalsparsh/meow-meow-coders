@@ -54,11 +54,11 @@ export const CategoryForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}`, values);
-            toast.success("Cours mis à jour");
+            toast.success("Course updated");
             toggleEdit();
             router.refresh();
         } catch {
-            toast.error("Une erreur s'est produite");
+            toast.error("Something went wrong");
         }
     }
 
@@ -67,14 +67,14 @@ export const CategoryForm = ({
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
-                Catégorie
+                Category
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Modifier
+                            Edit
                         </>
                     )}
                 </Button>
@@ -84,7 +84,7 @@ export const CategoryForm = ({
                     "text-sm mt-2",
                     !initialData.categoryId && "text-slate-500 italic"
                 )}>
-                    {selectedOption?.label || "Aucune catégorie"}
+                    {selectedOption?.label || "No category"}
                 </p>
             )}
             {isEditing && (
@@ -100,7 +100,7 @@ export const CategoryForm = ({
                                 <FormItem>
                                     <FormControl>
                                         <Combobox
-                                            options={...options}
+                                            options={options}
                                             {...field}
                                         />
                                     </FormControl>
@@ -113,7 +113,7 @@ export const CategoryForm = ({
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Enregistrer
+                                Save
                             </Button>
                         </div>
                     </form>

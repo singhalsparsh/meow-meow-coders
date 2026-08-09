@@ -1,16 +1,14 @@
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-export async function PATCH(
-    req: Request,
-    { params }: { params: { courseId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ courseId: string }> }) {
+    const params = await props.params;
     try {
-        const { userId } = auth();
+        const { userId } = await auth();
 
         if (!userId) {
-            return new NextResponse("Accès non autorisé", { status: 401 });
+            return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const course = await db.course.findUnique({
@@ -21,7 +19,7 @@ export async function PATCH(
         })
 
         if (!course) {
-            return new NextResponse("Non trouvé", { status: 404 })
+            return new NextResponse("Not found", { status: 404 })
         }
 
         const unpublishedCourse = await db.course.update({
@@ -38,6 +36,6 @@ export async function PATCH(
 
     } catch (error) {
         console.log("[COURSE_ID_UNPUBLISH]", error)
-        return new NextResponse("Erreur interne", { status: 500 });
+        return new NextResponse("Internal error", { status: 500 });
     }
 }

@@ -46,24 +46,24 @@ export const ChapterTitleForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}/chapters/${chapterId}`, values)
-            toast.success("Chapitre mis à jour")
+            toast.success("Chapter updated")
             toggleEdit()
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
-                Titre
+                Title
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Modifier le titre
+                            Edit title
                         </>
                     )}
 
@@ -87,7 +87,7 @@ export const ChapterTitleForm = ({
                                     <FormControl>
                                         <Input
                                             disabled={isSubmitting}
-                                            placeholder="Exemple : Introduction"
+                                            placeholder="e.g. Introduction"
                                             {...field}
                                         />
                                     </FormControl>
@@ -101,7 +101,7 @@ export const ChapterTitleForm = ({
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Enregistrer
+                                Save
                             </Button>
                         </div>
                     </form>

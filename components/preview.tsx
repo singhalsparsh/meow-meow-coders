@@ -1,9 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import "quill/dist/quill.bubble.css";
 
-import "react-quill/dist/quill.bubble.css";
+// Loaded client-only: Quill touches the DOM and must never be evaluated in the
+// server bundle. See components/quill.tsx for the React-18-safe implementation.
+const QuillPreview = dynamic(
+  () => import("./quill").then((mod) => mod.QuillPreview),
+  { ssr: false }
+);
 
 interface PreviewProps {
     value: string;
@@ -12,13 +17,7 @@ interface PreviewProps {
 export const Preview = ({
     value,
 }: PreviewProps) => {
-    const ReactQuill = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), []);
-
     return (
-        <ReactQuill
-            theme="bubble"
-            value={value}
-            readOnly
-        />
+        <QuillPreview value={value} />
     );
 };

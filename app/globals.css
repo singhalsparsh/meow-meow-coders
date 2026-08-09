@@ -1,3 +1,5 @@
+@import "@uploadthing/react/styles.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,6 +41,14 @@ body,
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+
+    --lp-accent: oklch(0.269 0 0);
+
+    --lp-primary: oklch(0.205 0 0);
+
+    --lp-primary-foreground: oklch(0.985 0 0);
+
+    --lp-timeline-buffered-color: oklch(0.985 0 0 / 0.4);
   }
 
   .dark {
@@ -69,6 +79,14 @@ body,
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    --lp-accent: oklch(0.97 0 0);
+    --lp-primary: oklch(0.205 0 0);
+    --lp-primary-foreground: oklch(0.985 0 0);
+    --lp-timeline-buffered-color: oklch(0.985 0 0 / 0.4);
+  }
+  .theme {
+    --lp-timeline-track-height: 4px;
+    --lp-timeline-track-height-active: 7px;
   }
 }
 
@@ -85,5 +103,3 @@ body,
 .ql-container {
   font-size:16px !important;
 }
-
-@import "~@uploadthing/react/styles.css" 

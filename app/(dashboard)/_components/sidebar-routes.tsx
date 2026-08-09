@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 
 
 const guestRoutes = [
-  { icon: Layout, label: "Tableau de bord", href: "/" },
-  { icon: Compass, label: "Parcourir", href: "/search" },
+  { icon: Layout, label: "Dashboard", href: "/" },
+  { icon: Compass, label: "Browse", href: "/search" },
 ];
 
 const teacherRoutes = [
-  { icon: List, label: "Cours", href: "/teacher/courses" },
-  { icon: BarChart, label: "Statistiques", href: "/teacher/analytics" },
+  { icon: List, label: "Courses", href: "/teacher/courses" },
+  { icon: BarChart, label: "Analytics", href: "/teacher/analytics" },
 ]
 
 export const SidebarRoutes = () => {

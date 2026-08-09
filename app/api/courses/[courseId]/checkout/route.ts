@@ -1,19 +1,17 @@
 import Stripe from "stripe";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 
-export async function POST(
-  req: Request,
-  { params }: { params: { courseId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ courseId: string }> }) {
+  const params = await props.params;
   try {
     const user = await currentUser();
 
     if (!user || !user.id || !user.emailAddresses?.[0]?.emailAddress) {
-      return new NextResponse("Non autorisé", { status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const course = await db.course.findUnique({
@@ -33,11 +31,11 @@ export async function POST(
     });
 
     if (purchase) {
-      return new NextResponse("Déjà acheté", { status: 400 });
+      return new NextResponse("Already purchased", { status: 400 });
     }
 
     if (!course) {
-      return new NextResponse("Non trouvé", { status: 404 });
+      return new NextResponse("Not found", { status: 404 });
     }
 
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [
@@ -64,7 +62,7 @@ export async function POST(
     });
 
     if (!stripeCustomer) {
-      const customer = await stripe.customers.create({
+      const customer = await stripe().customers.create({
         email: user.emailAddresses[0].emailAddress,
       });
 
@@ -76,7 +74,7 @@ export async function POST(
       });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripe().checkout.sessions.create({
       customer: stripeCustomer.stripeCustomerId,
       line_items,
       mode: 'payment',
@@ -91,6 +89,6 @@ export async function POST(
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.log("[COURSE_ID_CHECKOUT]", error);
-    return new NextResponse("Erreur interne", { status: 500 })
+    return new NextResponse("Internal error", { status: 500 })
   }
 }

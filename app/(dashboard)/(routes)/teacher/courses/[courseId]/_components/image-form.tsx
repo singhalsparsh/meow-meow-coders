@@ -19,7 +19,7 @@ interface ImageFormProps {
 
 const formSchema = z.object({
   imageUrl: z.string().min(1, {
-    message: "Une image est requise",
+    message: "An image is required",
   }),
 });
 
@@ -36,11 +36,11 @@ export const ImageForm = ({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await axios.patch(`/api/courses/${courseId}`, values);
-      toast.success("Le cours a été mis à jour");
+      toast.success("Course updated");
       toggleEdit();
       router.refresh();
     } catch {
-      toast.error("Une erreur s'est produite");
+      toast.error("Something went wrong");
     }
   }
 
@@ -50,18 +50,18 @@ export const ImageForm = ({
         Image
         <Button onClick={toggleEdit} variant="ghost">
           {isEditing && (
-            <>Annuler</>
+            <>Cancel</>
           )}
           {!isEditing && !initialData.imageUrl && (
             <>
               <PlusCircle className="h-4 w-4 mr-2" />
-              Ajouter une image
+              Add an image
             </>
           )}
           {!isEditing && initialData.imageUrl && (
             <>
               <Pencil className="h-4 w-4 mr-2" />
-              Modifier l'image
+              Edit image
             </>
           )}
         </Button>
@@ -93,7 +93,7 @@ export const ImageForm = ({
             }}
           />
           <div className="text-xs text-muted-foreground mt-4">
-            Un ratio de 16:9 est recommandé
+            A 16:9 ratio is recommended
           </div>
         </div>
       )}

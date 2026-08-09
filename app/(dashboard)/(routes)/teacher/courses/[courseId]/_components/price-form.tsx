@@ -48,24 +48,24 @@ export const PriceForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}`, values)
-            toast.success("Le cours a été mis à jour")
+            toast.success("Course updated")
             toggleEdit()
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
-                Prix
+                Price
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Modifier le prix
+                            Edit price
                         </>
                     )}
 
@@ -80,7 +80,7 @@ export const PriceForm = ({
                     {initialData.price ?
                         formatPrice(initialData.price)
                         :
-                        "Aucun prix"
+                        "No price"
                     }
                 </p>
             ) : (
@@ -98,7 +98,7 @@ export const PriceForm = ({
                                         <Input
                                             type="number"
                                             disabled={isSubmitting}
-                                            placeholder="Fixez un prix à votre cours"
+                                            placeholder="Set a price for your course"
                                             step="0.01"
                                             {...field}
                                         />
@@ -113,7 +113,7 @@ export const PriceForm = ({
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Enregistrer
+                                Save
                             </Button>
                         </div>
                     </form>

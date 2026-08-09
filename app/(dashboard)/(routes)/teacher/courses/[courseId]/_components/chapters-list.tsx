@@ -93,7 +93,7 @@ export const ChaptersList = ({
                                         <div className="ml-auto pr-2 flex items-center gap-x-2">
                                             {chapter.isFree && (
                                                 <Badge>
-                                                    Gratuit
+                                                    Free
                                                 </Badge>
                                             )}
                                             <Badge
@@ -102,7 +102,7 @@ export const ChaptersList = ({
                                                     chapter.isPublished && "bg-sky-700"
                                                 )}
                                             >
-                                                {chapter.isPublished ? "Publié" : "Brouillon"}
+                                                {chapter.isPublished ? "Published" : "Draft"}
                                             </Badge>
                                             <Pencil
                                                 className="w-4 h-4 cursor-pointer hover:opacity-75 transition"

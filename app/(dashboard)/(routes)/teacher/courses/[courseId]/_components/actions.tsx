@@ -4,7 +4,8 @@ import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { Button } from "@/components/ui/button";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
 import axios from "axios";
-import { Trash } from "lucide-react";
+import { Eye, Trash } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -28,17 +29,17 @@ export const Actions = ({
             setIsLoading(true)
             if (isPublished) {
                 await axios.patch(`/api/courses/${courseId}/unpublish`)
-                toast.success("Le cours est dépublié")
+                toast.success("Course unpublished")
             }
             else {
                 await axios.patch(`/api/courses/${courseId}/publish`)
-                toast.success("Le cours est publié")
+                toast.success("Course published")
                 confetti.onOpen()
             }
 
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         } finally {
             setIsLoading(false)
         }
@@ -48,24 +49,30 @@ export const Actions = ({
         try {
             setIsLoading(true)
             await axios.delete(`/api/courses/${courseId}`)
-            toast.success("Cours supprimé")
+            toast.success("Course deleted")
             router.refresh()
             router.push(`/teacher/courses`)
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         } finally {
             setIsLoading(false)
         }
     }
     return (
         <div className="flex items-center gap-x-2">
+            <Link href={`/courses/${courseId}`}>
+                <Button size="sm" variant="outline" type="button">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview
+                </Button>
+            </Link>
             <Button
                 onClick={onClick}
                 disabled={disabled || isLoading}
                 variant="outline"
                 size="sm"
             >
-                {isPublished ? "Dépublier" : "Publier"}
+                {isPublished ? "Unpublish" : "Publish"}
             </Button>
             <ConfirmModal onConfirm={onDelete}>
                 <Button size="sm" disabled={isLoading}>

@@ -22,7 +22,7 @@ interface TitleFormProps {
 
 const formSchema = z.object({
     title: z.string().min(1, {
-        message: "Veuillez remplir un titre"
+        message: "Please enter a title"
     })
 })
 
@@ -46,24 +46,24 @@ export const TitleForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}`, values)
-            toast.success("Le cours a été mis à jour")
+            toast.success("Course updated")
             toggleEdit()
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
     return (
         <div className="mt-6 border bg-slate-100 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
-                Titre
+                Title
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Modifier le titre
+                            Edit title
                         </>
                     )}
 
@@ -86,7 +86,7 @@ export const TitleForm = ({
                                     <FormControl>
                                         <Input
                                             disabled={isSubmitting}
-                                            placeholder="Exemple : Développement web avancé"
+                                            placeholder="e.g. Advanced web development"
                                             {...field}
                                         />
                                     </FormControl>
@@ -100,7 +100,7 @@ export const TitleForm = ({
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Enregistrer
+                                Save
                             </Button>
                         </div>
                     </form>

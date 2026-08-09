@@ -23,7 +23,7 @@ interface DescriptionFormProps {
 
 const formSchema = z.object({
     description: z.string().min(1, {
-        message: "Veuillez remplir une description"
+        message: "Please enter a description"
     })
 })
 
@@ -49,11 +49,11 @@ export const DescriptionForm = ({
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         try {
             await axios.patch(`/api/courses/${courseId}`, values)
-            toast.success("Le cours a été mis à jour")
+            toast.success("Course updated")
             toggleEdit()
             router.refresh()
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
     return (
@@ -62,11 +62,11 @@ export const DescriptionForm = ({
                 Description
                 <Button onClick={toggleEdit} variant="ghost">
                     {isEditing ? (
-                        <>Annuler</>
+                        <>Cancel</>
                     ) : (
                         <>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Modifier la description
+                            Edit description
                         </>
                     )}
 
@@ -77,7 +77,7 @@ export const DescriptionForm = ({
                 <p className={cn(
                     "text-sm mt-2",
                     !initialData.description && "text-slate-500 italic"
-                )}>{initialData.description || "Aucune description"}</p>
+                )}>{initialData.description || "No description"}</p>
             ) : (
                 <Form {...form}>
                     <form
@@ -92,7 +92,7 @@ export const DescriptionForm = ({
                                     <FormControl>
                                         <Textarea
                                             disabled={isSubmitting}
-                                            placeholder="Exemple : Ce cours porte sur... "
+                                            placeholder="e.g. This course covers... "
                                             {...field}
                                         />
                                     </FormControl>
@@ -106,7 +106,7 @@ export const DescriptionForm = ({
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Enregistrer
+                                Save
                             </Button>
                         </div>
                     </form>

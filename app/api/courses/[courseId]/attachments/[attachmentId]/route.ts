@@ -1,20 +1,21 @@
 import { db } from "@/lib/db"
-import { auth } from "@clerk/nextjs"
+import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
 export async function DELETE(
     req: Request,
-    { params }: {
-        params: {
+    props: {
+        params: Promise<{
             courseId: string, attachmentId: string
-        }
+        }>
     }
 ) {
+    const params = await props.params;
     try {
-        const { userId } = auth()
+        const { userId } = await auth()
 
         if (!userId) {
-            return new NextResponse("Accès non autorisé", { status: 401 })
+            return new NextResponse("Unauthorized", { status: 401 })
         }
 
         const courseOwner = await db.course.findUnique({
@@ -25,7 +26,7 @@ export async function DELETE(
         })
 
         if (!courseOwner) {
-            return new NextResponse("Accès non autorisé", { status: 401 })
+            return new NextResponse("Unauthorized", { status: 401 })
         }
 
         const attachment = await db.attachment.delete({
@@ -39,6 +40,6 @@ export async function DELETE(
 
     } catch (error) {
         console.log("ATTACHMENT_ID", error)
-        return new NextResponse("Erreur interne", { status: 500 })
+        return new NextResponse("Internal error", { status: 500 })
     }
 }

@@ -21,7 +21,7 @@ import { toast } from "react-hot-toast"
 
 const formSchema = z.object({
     title: z.string().min(1, {
-        message: "Un titre est requis"
+        message: "A title is required"
     })
 })
 
@@ -40,17 +40,17 @@ const CreatePage = () => {
         try {
             const response = await axios.post("/api/courses", values)
             router.push(`/teacher/courses/${response.data.id}`)
-            toast.success("Votre cours a été créé")
+            toast.success("Your course has been created")
         } catch (error) {
-            toast.error("Une erreur s'est produite")
+            toast.error("Something went wrong")
         }
     }
 
     return (
         <div className="max-w-5xl mx-auto flex md:items-center md:justify-center h-full p-6">
             <div>
-                <h1 className="text-2xl">Nom du cours</h1>
-                <p className="text-sm text-slate-600">Quel nom souhaitez-vous donner à votre cours ? Ne vous inquiétez pas, vous pouvez le changer plus tard</p>
+                <h1 className="text-2xl">Course name</h1>
+                <p className="text-sm text-slate-600">What name would you like to give your course? Don't worry, you can change it later</p>
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
@@ -62,17 +62,17 @@ const CreatePage = () => {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>
-                                        Titre du cours
+                                        Course title
                                     </FormLabel>
                                     <FormControl>
                                         <Input
                                             disabled={isSubmitting}
-                                            placeholder="Exemple: développement web avancé"
+                                            placeholder="e.g. advanced web development"
                                             {...field}
                                         />
                                     </FormControl>
                                     <FormDescription>
-                                        Que enseignerez-vous dans ce cours ?
+                                        What will you teach in this course?
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -84,14 +84,14 @@ const CreatePage = () => {
                                     variant="ghost"
                                     type="button"
                                 >
-                                    Annuler
+                                    Cancel
                                 </Button>
                             </Link>
                             <Button
                                 disabled={!isValid || isSubmitting}
                                 type="submit"
                             >
-                                Continuer
+                                Continue
                             </Button>
                         </div>
                     </form>

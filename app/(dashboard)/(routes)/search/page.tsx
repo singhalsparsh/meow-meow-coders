@@ -1,6 +1,6 @@
 import { db } from "@/lib/db"
 import { getCourses } from "@/actions/get-courses"
-import { auth } from "@clerk/nextjs"
+import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
 import { Categories } from "./_components/categories"
@@ -8,16 +8,19 @@ import { SearchInput } from "@/components/search-input"
 import { CoursesList } from "@/components/courses-list"
 
 interface SearchPageProps {
-  searchParams: {
+  searchParams: Promise<{
     title: string;
     categoryId: string;
-  }
+  }>
 }
-const SearchPage = async ({
-  searchParams
-}: SearchPageProps) => {
+// This page reads the session (auth) and redirects based on it, so it must
+// always run at request time instead of being statically prerendered.
+export const dynamic = "force-dynamic";
 
-  const { userId } = auth()
+const SearchPage = async (props: SearchPageProps) => {
+  const searchParams = await props.searchParams;
+
+  const { userId } = await auth()
 
   if (!userId) {
     return redirect("/")

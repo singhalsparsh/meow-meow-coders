@@ -24,7 +24,7 @@ export const CourseEnrollButton = ({
             const response = await axios.post(`/api/courses/${courseId}/checkout`)
             window.location.assign(response.data.url);
         } catch (error) {
-            toast.error("Une erreur s'est produite");
+            toast.error("Something went wrong");
         } finally {
             setIsLoading(false);
         }
@@ -37,7 +37,7 @@ export const CourseEnrollButton = ({
             size="sm"
             className="w-full md:w-auto"
         >
-            Débloquez le cours pour {formatPrice(price)}
+            Unlock this course for {formatPrice(price)}
         </Button>
     )
 }
