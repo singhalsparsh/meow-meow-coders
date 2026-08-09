@@ -10,7 +10,7 @@ import { Course } from "@prisma/client";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
-import { FileUpload } from "@/components/file-upload";
+import { Input } from "@/components/ui/input";
 
 interface ImageFormProps {
   initialData: Course
@@ -28,21 +28,33 @@ export const ImageForm = ({
   courseId
 }: ImageFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [imageUrl, setImageUrl] = useState(initialData.imageUrl ?? "");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const toggleEdit = () => setIsEditing((current) => !current);
+  const toggleEdit = () => {
+    setImageUrl(initialData.imageUrl ?? "");
+    setIsEditing((current) => !current);
+  };
 
   const router = useRouter();
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      setIsSaving(true);
       await axios.patch(`/api/courses/${courseId}`, values);
       toast.success("Course updated");
       toggleEdit();
       router.refresh();
     } catch {
       toast.error("Something went wrong");
+    } finally {
+      setIsSaving(false);
     }
   }
+
+  // A simple http(s) URL check so the Save button stays disabled until a real
+  // link is pasted (same pattern as the chapter video URL field).
+  const isValidUrl = /^https?:\/\/.+\..+/.test(imageUrl.trim());
 
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
@@ -84,16 +96,23 @@ export const ImageForm = ({
       )}
       {isEditing && (
         <div>
-          <FileUpload
-            endpoint="courseImage"
-            onChange={(url) => {
-              if (url) {
-                onSubmit({ imageUrl: url });
-              }
-            }}
+          <Input
+            placeholder="https://example.com/image.jpg"
+            value={imageUrl}
+            disabled={isSaving}
+            onChange={(e) => setImageUrl(e.target.value)}
           />
+          <div className="flex items-center gap-x-2 mt-4">
+            <Button
+              type="button"
+              disabled={!isValidUrl || isSaving}
+              onClick={() => onSubmit({ imageUrl: imageUrl.trim() })}
+            >
+              Save
+            </Button>
+          </div>
           <div className="text-xs text-muted-foreground mt-4">
-            A 16:9 ratio is recommended
+            Paste a direct link to an image (JPG, PNG, WebP). A 16:9 ratio is recommended.
           </div>
         </div>
       )}
