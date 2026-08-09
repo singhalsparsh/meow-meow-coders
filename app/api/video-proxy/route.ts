@@ -13,9 +13,14 @@ export const dynamic = "force-dynamic";
 // never exposed to the client. HLS manifests are rewritten so every segment
 // and sub-playlist is also fetched through this proxy.
 
+// Upstream headers we relay to the browser for binary media. `content-length`
+// is deliberately NOT forwarded: we re-wrap the body in a fresh Response and
+// let the platform send it chunked, so a stale length can never truncate the
+// stream mid-video. `content-encoding` IS forwarded so gzip-served files still
+// decode client-side.
 const HEADERS_TO_FORWARD = [
   "content-type",
-  "content-length",
+  "content-encoding",
   "content-range",
   "accept-ranges",
   "content-disposition",

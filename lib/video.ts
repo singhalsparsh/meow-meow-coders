@@ -95,11 +95,15 @@ export const getVideoUrlInfo = (rawUrl?: string | null): VideoUrlInfo => {
   return { isVideo: true, kind: "direct", original: rawUrl };
 };
 
-/** True when a URL can actually be played: a YouTube link or a media file. */
-export const isPlayableVideoUrl = (rawUrl?: string | null): boolean => {
-  const info = getVideoUrlInfo(rawUrl);
-  return info.isVideo && (info.kind === "youtube" || isDirectMediaUrl(rawUrl));
-};
+/**
+ * True when a URL is worth handing to the player. Any http(s) URL qualifies —
+ * the player shows a clear error if the link turns out not to be a video. This
+ * matters because many real "direct video file" links are signed CDN URLs
+ * (S3/CloudFront presigned, expiring tokens, ...) that do not end in a media
+ * extension yet still serve .mp4/.webm.
+ */
+export const isPlayableVideoUrl = (rawUrl?: string | null): boolean =>
+  getVideoUrlInfo(rawUrl).isVideo;
 
 /** True when the url points at an HLS stream (.m3u8). */
 export const isHlsUrl = (rawUrl?: string | null): boolean =>

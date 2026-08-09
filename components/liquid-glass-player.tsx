@@ -361,6 +361,7 @@ export const LiquidGlassPlayer = ({
         playsInline={playsInline}
         controlsList="nodownload noremoteplayback"
         draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
         preload="metadata"
         onClick={(e) => {
           e.stopPropagation();

@@ -16,8 +16,18 @@ import { getMuxPlaybackUrl, getVideoUrlInfo, isHlsUrl } from "@/lib/video";
 // This is deterrence, not DRM: a determined person with the browser's DevTools
 // can always capture the decoded media bytes. It stops the casual download.
 
-const FALLBACK_SECRET = randomBytes(32).toString("hex"); // changes on restart; set VIDEO_PROXY_SECRET in .env for stability
-const SECRET = process.env.VIDEO_PROXY_SECRET || FALLBACK_SECRET;
+// On serverless hosts (Vercel) the chapter page signs a token during SSR and
+// the browser's video fetch can hit a DIFFERENT function instance. A random
+// per-instance secret would make that token fail verification -> 403 -> the
+// video never plays. VIDEO_PROXY_SECRET is ideal; fall back to another stable
+// server-side secret (Clerk / DB credentials are always configured in prod) so
+// direct .mp4 links keep working even when VIDEO_PROXY_SECRET was not set.
+const FALLBACK_SECRET = randomBytes(32).toString("hex"); // last resort only
+const SECRET =
+  process.env.VIDEO_PROXY_SECRET ||
+  process.env.CLERK_SECRET_KEY ||
+  process.env.DATABASE_URL ||
+  FALLBACK_SECRET;
 
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
