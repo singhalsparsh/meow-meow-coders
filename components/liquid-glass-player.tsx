@@ -1,17 +1,7 @@
 "use client";
 
-// Custom video player with a liquid-glass control bar.
-//
-// Plays direct media files (.mp4, .webm, ...) with a native <video> and HLS
-// streams (.m3u8, e.g. Mux playback URLs) with hls.js, falling back to the
-// browser's native HLS (Safari) when hls.js is not needed.
-//
-// When more than one source is given, a "Streams" menu lets the viewer switch
-// between them (e.g. different quality streams of the same video).
-//
-// The whole UI is custom and framed in frosted glass (backdrop-blur, soft
-// translucency, thin light borders) so the browser's default controls and the
-// platform's branding are never shown.
+// Limeplay-inspired video player with shadcn/ui polish.
+// Supports HLS, direct media, multiple sources, and a settings menu.
 
 import Hls from "hls.js";
 import {
@@ -24,13 +14,13 @@ import {
   Play,
   RotateCcw,
   RotateCw,
+  Settings,
   Volume2,
   VolumeX,
 } from "lucide-react";
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -42,7 +32,6 @@ export interface PlayerSource {
   id: string;
   src: string;
   title: string;
-  /** True when the upstream stream is HLS; needed because the proxied URL hides it. */
   hls?: boolean;
 }
 
@@ -51,10 +40,8 @@ interface LiquidGlassPlayerProps {
   title?: string;
   autoPlay?: boolean;
   playsInline?: boolean;
-  /** Called when playback reaches the end of the current stream. */
   onEnded?: () => void;
   className?: string;
-  /** "aspect" keeps a 16:9 box, "fill" stretches to the parent. */
   layout?: "aspect" | "fill";
 }
 
@@ -66,9 +53,7 @@ const formatTime = (seconds: number): string => {
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
   const pad = (n: number) => n.toString().padStart(2, "0");
-  return h > 0
-    ? `${h}:${pad(m)}:${pad(s)}`
-    : `${m}:${pad(s)}`;
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 };
 
 export const LiquidGlassPlayer = ({
@@ -105,12 +90,14 @@ export const LiquidGlassPlayer = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPip, setIsPip] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [menu, setMenu] = useState<null | "streams" | "speed">(null);
+  const [menu, setMenu] = useState<null | "streams" | "speed" | "settings">(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMutedSetting, setIsMutedSetting] = useState(false);
+  const [isAutoplay, setIsAutoplay] = useState(autoPlay);
 
   const activeSource = sources[activeIndex] ?? sources[0];
 
-  // Reset per-stream state whenever the active stream changes.
+  // Reset per-stream state
   useEffect(() => {
     setCurrentTime(0);
     setDuration(0);
@@ -120,7 +107,7 @@ export const LiquidGlassPlayer = ({
     setError(null);
   }, [activeIndex]);
 
-  // (Re)load the active stream: hls.js for HLS, native <video> otherwise.
+  // Load the active stream
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !activeSource) return;
@@ -159,7 +146,6 @@ export const LiquidGlassPlayer = ({
         });
         return cleanup;
       }
-      // Safari / native HLS support.
       video.src = url;
     } else {
       video.src = url;
@@ -170,7 +156,6 @@ export const LiquidGlassPlayer = ({
 
   const video = videoRef.current;
 
-  // Sync UI with the media element's live state.
   const sync = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -187,14 +172,13 @@ export const LiquidGlassPlayer = ({
     setBuffered(Math.min(end, v.duration));
   }, []);
 
-  // Reveal controls on any interaction, auto-hide them while playing.
   const pokeControls = useCallback(() => {
     setControlsVisible(true);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     hideTimerRef.current = setTimeout(() => {
       const v = videoRef.current;
       if (v && !v.paused) setControlsVisible(false);
-    }, 2600);
+    }, 3000);
   }, []);
 
   useEffect(() => {
@@ -207,7 +191,7 @@ export const LiquidGlassPlayer = ({
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) v.play().catch(() => {});
+    if (v.paused) v.play().catch(() => { });
     else v.pause();
   }, []);
 
@@ -247,9 +231,9 @@ export const LiquidGlassPlayer = ({
     const el = containerRef.current;
     if (!el) return;
     if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
     } else {
-      el.requestFullscreen().catch(() => {});
+      el.requestFullscreen().catch(() => { });
     }
   }, []);
 
@@ -257,13 +241,11 @@ export const LiquidGlassPlayer = ({
     const v = videoRef.current;
     if (!v) return;
     if (document.pictureInPictureElement) {
-      document.exitPictureInPicture().catch(() => {});
+      document.exitPictureInPicture().catch(() => { });
     } else if (document.pictureInPictureEnabled) {
-      v.requestPictureInPicture().catch(() => {});
+      v.requestPictureInPicture().catch(() => { });
     }
   }, []);
-
-  // ---- Seek bar pointer handling -------------------------------
 
   const ratioFromEvent = (e: React.PointerEvent<HTMLDivElement>): number => {
     const track = trackRef.current;
@@ -300,8 +282,6 @@ export const LiquidGlassPlayer = ({
     setHoverTime(null);
   };
 
-  // ---- Keyboard shortcuts ---------------------------------------
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === " ") {
       e.preventDefault();
@@ -315,7 +295,6 @@ export const LiquidGlassPlayer = ({
     }
   };
 
-  // Fullscreen + PiP state tracking.
   useEffect(() => {
     const onFs = () => setIsFullscreen(!!document.fullscreenElement);
     const onPip = () => setIsPip(!!document.pictureInPictureElement);
@@ -334,9 +313,6 @@ export const LiquidGlassPlayer = ({
   const hasMultiple = sources.length > 1;
   const showChrome = !error && isReady;
 
-  // Prevent seek bar from being clipped by the glass panel while scrubbing.
-  const progress = isScrubbing ? scrubTime : currentTime;
-
   return (
     <div
       ref={containerRef}
@@ -348,7 +324,7 @@ export const LiquidGlassPlayer = ({
       onContextMenu={(e) => e.preventDefault()}
       className={cn(
         "group relative w-full select-none overflow-hidden bg-black outline-none",
-        !isFullscreen && "rounded-2xl ring-1 ring-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)]",
+        !isFullscreen && "rounded-2xl ring-1 ring-white/5 shadow-2xl",
         layout === "aspect" && "aspect-video",
         layout === "fill" && "h-full w-full",
         className
@@ -357,7 +333,7 @@ export const LiquidGlassPlayer = ({
       <video
         ref={videoRef}
         className="h-full w-full object-contain"
-        autoPlay={autoPlay}
+        autoPlay={isAutoplay}
         playsInline={playsInline}
         controlsList="nodownload noremoteplayback"
         draggable={false}
@@ -396,15 +372,15 @@ export const LiquidGlassPlayer = ({
         onDurationChange={(e) => setDuration(e.currentTarget.duration || 0)}
       />
 
-      {/* Gradient scrims */}
+      {/* Gradient overlay */}
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 transition-opacity duration-300",
+          "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 transition-opacity duration-300",
           !controlsVisible && !isScrubbing && "opacity-0"
         )}
       />
 
-      {/* Title chip */}
+      {/* Title */}
       {(title || hasMultiple) && showChrome && (
         <div
           className={cn(
@@ -413,14 +389,14 @@ export const LiquidGlassPlayer = ({
           )}
         >
           {title && (
-            <span className="max-w-[70%] truncate rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-xl">
+            <span className="max-w-[70%] truncate rounded-full bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
               {title}
             </span>
           )}
           {hasMultiple && (
-            <span className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/80 backdrop-blur-xl">
+            <span className="flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-medium text-white/80 backdrop-blur-sm">
               <Layers className="h-3 w-3" />
-              {activeSource?.title || `Server ${activeIndex + 1}`}
+              {activeSource?.title || `Source ${activeIndex + 1}`}
             </span>
           )}
         </div>
@@ -429,15 +405,15 @@ export const LiquidGlassPlayer = ({
       {/* Loading */}
       {!isReady && !error && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/15 bg-white/10 backdrop-blur-xl">
-            <Loader2 className="h-6 w-6 animate-spin text-white" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm">
+            <Loader2 className="h-5 w-5 animate-spin text-white" />
           </div>
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70 px-6 text-center text-sm text-white/80 backdrop-blur-sm">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 px-6 text-center text-sm text-white/80 backdrop-blur-sm">
           {error}
         </div>
       )}
@@ -448,61 +424,57 @@ export const LiquidGlassPlayer = ({
           type="button"
           onClick={togglePlay}
           aria-label="Play"
-          className="absolute inset-0 z-10 flex items-center justify-center bg-black/0 transition hover:bg-black/20"
+          className="absolute inset-0 z-10 flex items-center justify-center transition hover:bg-black/10"
         >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition hover:scale-105 hover:bg-white/25">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 backdrop-blur-md transition hover:scale-105 hover:bg-white/25">
             <Play className="h-7 w-7 translate-x-0.5 text-white" fill="currentColor" />
           </span>
         </button>
       )}
 
-      {/* Buffering spinner */}
+      {/* Buffering */}
       {showChrome && isWaiting && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-white/80 drop-shadow" />
+          <Loader2 className="h-6 w-6 animate-spin text-white/80" />
         </div>
       )}
 
-      {/* Control bar */}
+      {/* Control bar - shadcn/ui style */}
       {showChrome && (
         <div
           className={cn(
-            "absolute inset-x-3 bottom-3 z-20 select-none rounded-2xl border border-white/15 bg-white/10 px-3 pb-2.5 pt-2 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all duration-300",
-            !controlsVisible && !isScrubbing && "pointer-events-none -translate-y-2 opacity-0"
+            "absolute inset-x-3 bottom-3 z-20 select-none rounded-lg bg-black/60 px-3 pb-2 pt-1.5 backdrop-blur-md transition-all duration-300",
+            !controlsVisible && !isScrubbing && "pointer-events-none translate-y-2 opacity-0"
           )}
         >
           {/* Seek bar */}
           <div
             ref={trackRef}
-            className="group/seek relative -top-1 mx-1 mb-1 h-4 cursor-pointer"
+            className="group/seek relative -top-0.5 mx-1 mb-1 h-4 cursor-pointer"
             onPointerDown={handleSeekDown}
             onPointerMove={handleSeekMove}
             onPointerUp={handleSeekUp}
             onPointerCancel={handleSeekUp}
             onPointerLeave={handleSeekLeave}
           >
-            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/20">
-              {/* Buffered */}
+            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/15">
               <div
                 className="absolute inset-y-0 left-0 rounded-full bg-white/25"
                 style={{ width: `${bufferedPct}%` }}
               />
-              {/* Progress */}
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-400"
+                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400"
                 style={{ width: `${progressPct}%` }}
               />
-              {/* Thumb */}
               <div
-                className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 rounded-full bg-white opacity-0 shadow ring-4 ring-white/20 transition-opacity group-hover/seek:opacity-100"
-                style={{ left: `calc(${progressPct}% - 7px)` }}
+                className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-lg opacity-0 transition-opacity group-hover/seek:opacity-100"
+                style={{ left: `calc(${progressPct}% - 6px)` }}
               />
             </div>
 
-            {/* Hover tooltip */}
             {hoverTime !== null && !isScrubbing && (
               <div
-                className="pointer-events-none absolute -top-8 -translate-x-1/2 rounded-lg border border-white/15 bg-black/60 px-2 py-0.5 text-[11px] font-medium tabular-nums text-white backdrop-blur-xl"
+                className="pointer-events-none absolute -top-8 -translate-x-1/2 rounded bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm"
                 style={{ left: `${hoverPct}%` }}
               >
                 {formatTime(hoverTime)}
@@ -510,23 +482,31 @@ export const LiquidGlassPlayer = ({
             )}
           </div>
 
-          {/* Buttons */}
-          <div className="flex items-center gap-0.5 text-white">
+          {/* Controls row */}
+          <div className="flex items-center gap-1 text-white">
             <IconButton label={isPlaying ? "Pause" : "Play"} onClick={togglePlay}>
-              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </IconButton>
-            <IconButton label="Back 10 seconds" onClick={() => skip(-10)}>
-              <RotateCcw className="h-4 w-4" />
+            <IconButton label="Back 10s" onClick={() => skip(-10)}>
+              <RotateCcw className="h-3.5 w-3.5" />
             </IconButton>
-            <IconButton label="Forward 10 seconds" onClick={() => skip(10)}>
-              <RotateCw className="h-4 w-4" />
+            <IconButton label="Forward 10s" onClick={() => skip(10)}>
+              <RotateCw className="h-3.5 w-3.5" />
             </IconButton>
             <span className="ml-1 px-1 text-xs font-medium tabular-nums text-white/90">
-              {formatTime(progress)} <span className="text-white/50">/</span> {formatTime(duration)}
+              {formatTime(isScrubbing ? scrubTime : currentTime)} <span className="text-white/30">/</span> {formatTime(duration)}
             </span>
 
-            <div className="ml-auto flex items-center gap-0.5">
-              {/* Streams menu */}
+            <div className="ml-auto flex items-center gap-1">
+              {/* Settings Menu */}
+              <IconButton
+                label="Settings"
+                active={menu === "settings"}
+                onClick={() => setMenu(menu === "settings" ? null : "settings")}
+              >
+                <Settings className="h-4 w-4" />
+              </IconButton>
+
               {hasMultiple && (
                 <IconButton
                   label="Streams"
@@ -537,73 +517,133 @@ export const LiquidGlassPlayer = ({
                 </IconButton>
               )}
 
-              {/* Speed menu */}
               <IconButton
-                label="Playback speed"
+                label="Speed"
                 active={menu === "speed"}
                 onClick={() => setMenu(menu === "speed" ? null : "speed")}
               >
                 <span className="text-xs font-semibold">{rate}x</span>
               </IconButton>
 
-              {/* PiP */}
               <IconButton label="Picture in picture" onClick={togglePip}>
-                <PictureInPicture2 className={cn("h-4 w-4", isPip && "text-sky-300")} />
+                <PictureInPicture2 className={cn("h-4 w-4", isPip && "text-blue-400")} />
               </IconButton>
 
-              {/* Volume */}
-              <div className="group/vol flex items-center">
+              {/* Volume control - shadcn slider style */}
+              <div className="flex items-center gap-1 group/vol">
                 <IconButton label={isMuted || volume === 0 ? "Unmute" : "Mute"} onClick={toggleMute}>
                   {isMuted || volume === 0 ? (
-                    <VolumeX className="h-5 w-5" />
+                    <VolumeX className="h-4 w-4" />
                   ) : (
-                    <Volume2 className="h-5 w-5" />
+                    <Volume2 className="h-4 w-4" />
                   )}
                 </IconButton>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => setVol(Number(e.target.value))}
-                  aria-label="Volume"
-                  className="h-1 w-0 cursor-pointer accent-sky-400 transition-all duration-300 group-hover/vol:w-16"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => setVol(Number(e.target.value))}
+                    aria-label="Volume"
+                    className="h-1.5 w-0 cursor-pointer appearance-none rounded-full bg-white/20 transition-all duration-200 group-hover/vol:w-20 focus:w-20 focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                    style={{
+                      background: `linear-gradient(to right, #60a5fa ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) ${(isMuted ? 0 : volume) * 100}%)`,
+                    }}
+                  />
+                </div>
               </div>
 
               <IconButton label={isFullscreen ? "Exit fullscreen" : "Fullscreen"} onClick={toggleFullscreen}>
                 {isFullscreen ? (
-                  <Minimize className="h-5 w-5" />
+                  <Minimize className="h-4 w-4" />
                 ) : (
-                  <Maximize className="h-5 w-5" />
+                  <Maximize className="h-4 w-4" />
                 )}
               </IconButton>
             </div>
           </div>
 
-          {/* Dropdown menus */}
+          {/* Settings Menu */}
+          {menu === "settings" && (
+            <GlassMenu onClose={() => setMenu(null)} className="bottom-full right-0 mb-2 w-52">
+              <div className="space-y-1 p-1">
+                <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
+                  Media Settings
+                </div>
+
+                <SettingToggle
+                  label="Muted"
+                  value={isMutedSetting}
+                  onChange={() => {
+                    setIsMutedSetting(!isMutedSetting);
+                    toggleMute();
+                  }}
+                />
+
+                <SettingToggle
+                  label="Autoplay"
+                  value={isAutoplay}
+                  onChange={() => {
+                    setIsAutoplay(!isAutoplay);
+                    if (!isAutoplay) {
+                      const v = videoRef.current;
+                      if (v) v.play().catch(() => { });
+                    }
+                  }}
+                />
+
+                <div className="border-t border-white/10 my-1" />
+
+                <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white/40">
+                  Presets
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMenu(null)}
+                  className="flex w-full items-center rounded-md px-2 py-1.5 text-xs text-white/80 transition hover:bg-white/10"
+                >
+                  {activeSource?.title || "Current Stream"}
+                </button>
+
+                <div className="border-t border-white/10 my-1" />
+
+                <button
+                  type="button"
+                  onClick={() => setMenu(null)}
+                  className="flex w-full items-center rounded-md px-2 py-1.5 text-xs text-white/60 transition hover:bg-white/10"
+                >
+                  + Add a custom stream
+                </button>
+              </div>
+            </GlassMenu>
+          )}
+
+          {/* Streams Menu */}
           {menu === "streams" && (
-            <GlassMenu onClose={() => setMenu(null)}>
+            <GlassMenu onClose={() => setMenu(null)} className="bottom-full right-0 mb-2 w-44">
               {sources.map((source, index) => (
                 <button
                   key={source.id}
                   type="button"
                   onClick={() => selectSource(index)}
                   className={cn(
-                    "flex w-full items-center justify-between gap-4 rounded-lg px-3 py-1.5 text-left text-xs transition hover:bg-white/10",
-                    index === activeIndex ? "text-sky-300" : "text-white/85"
+                    "flex w-full items-center justify-between gap-4 rounded-md px-3 py-1.5 text-left text-xs transition hover:bg-white/10",
+                    index === activeIndex ? "text-blue-400" : "text-white/80"
                   )}
                 >
-                  <span className="truncate">{source.title || `Server ${index + 1}`}</span>
-                  {index === activeIndex && <span className="text-sky-300">●</span>}
+                  <span className="truncate">{source.title || `Source ${index + 1}`}</span>
+                  {index === activeIndex && <span className="text-blue-400">●</span>}
                 </button>
               ))}
             </GlassMenu>
           )}
 
+          {/* Speed Menu */}
           {menu === "speed" && (
-            <GlassMenu onClose={() => setMenu(null)}>
+            <GlassMenu onClose={() => setMenu(null)} className="bottom-full right-0 mb-2 w-32">
               {SPEEDS.map((s) => (
                 <button
                   key={s}
@@ -615,12 +655,12 @@ export const LiquidGlassPlayer = ({
                     setMenu(null);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-left text-xs transition hover:bg-white/10",
-                    s === rate ? "text-sky-300" : "text-white/85"
+                    "flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left text-xs transition hover:bg-white/10",
+                    s === rate ? "text-blue-400" : "text-white/80"
                   )}
                 >
                   <span>{s}x</span>
-                  {s === rate && <span className="text-sky-300">●</span>}
+                  {s === rate && <span className="text-blue-400">●</span>}
                 </button>
               ))}
             </GlassMenu>
@@ -631,13 +671,46 @@ export const LiquidGlassPlayer = ({
   );
 };
 
-/** A small frosted-glass popover used for the dropdown menus. */
+// Toggle component for settings menu (shadcn switch style)
+const SettingToggle = ({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onChange}
+    className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs text-white/80 transition hover:bg-white/10"
+  >
+    <span>{label}</span>
+    <span
+      className={cn(
+        "relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out",
+        value ? "bg-blue-500" : "bg-white/20"
+      )}
+    >
+      <span
+        className={cn(
+          "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+          value ? "translate-x-4" : "translate-x-0"
+        )}
+      />
+    </span>
+  </button>
+);
+
 const GlassMenu = ({
   children,
   onClose,
+  className,
 }: {
   children: React.ReactNode;
   onClose: () => void;
+  className?: string;
 }) => (
   <>
     <button
@@ -646,13 +719,15 @@ const GlassMenu = ({
       onClick={onClose}
       className="fixed inset-0 z-40 cursor-default"
     />
-    <div className="absolute bottom-full right-0 z-50 mb-2 w-44 overflow-hidden rounded-xl border border-white/15 bg-black/70 p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
+    <div className={cn(
+      "absolute z-50 overflow-hidden rounded-lg bg-black/80 p-1.5 backdrop-blur-lg",
+      className
+    )}>
       {children}
     </div>
   </>
 );
 
-/** A round glass control button. */
 const IconButton = ({
   children,
   label,
@@ -670,8 +745,8 @@ const IconButton = ({
     title={label}
     onClick={onClick}
     className={cn(
-      "flex h-8 w-8 items-center justify-center rounded-lg text-white/90 transition hover:bg-white/15 hover:text-white",
-      active && "bg-white/15 text-white"
+      "flex h-8 w-8 items-center justify-center rounded-md text-white/70 transition hover:bg-white/10 hover:text-white",
+      active && "bg-white/10 text-white"
     )}
   >
     {children}
