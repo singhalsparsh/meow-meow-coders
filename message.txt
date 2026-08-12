@@ -1,0 +1,4 @@
+- Version package.json
+- Fix next.config.js 
+- Correction de la recherche du combobox (categorie)
+- Correction de l'avertiseement "Image with src "/logo.png" was detected as the Largest Contentful Paint (LCP). Please add the "priority" property if this image is above the fold."
