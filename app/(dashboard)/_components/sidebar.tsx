@@ -3,11 +3,11 @@ import { SidebarRoutes } from "./sidebar-routes"
 
 export const Sidebar = () => {
   return (
-    <div className="h-full border-r border-white/20 dark:border-white/5 flex flex-col overflow-y-auto glass-sidebar">
-      <div className="p-6">
+    <div className="h-full flex flex-col overflow-y-auto py-3">
+      <div className="px-3 pb-1">
         <Logo />
       </div>
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full px-3 gap-1">
         <SidebarRoutes />
       </div>
     </div>

@@ -40,7 +40,12 @@ export const getChapter = async ({
       where: {
         id: chapterId,
         ...(isOwner ? {} : { isPublished: true }),
-      }
+      },
+      include: {
+        leetcodeQuestions: {
+          orderBy: { position: "asc" },
+        },
+      },
     });
 
     if (!chapter) {

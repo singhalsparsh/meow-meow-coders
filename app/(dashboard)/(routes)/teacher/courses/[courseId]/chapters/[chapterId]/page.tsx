@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { ChapterTitleForm } from "./_components/chapter-title-form";
 import { ChapterDescriptionForm } from "./_components/chapter-description-form";
 import { ChapterVideoForm } from "./_components/chapter-video-form";
+import { LeetcodeForm } from "./_components/leetcode-form";
 import { Banner } from "@/components/ui/banner";
 import { ChapterActions } from "./_components/chapter-actions";
 
@@ -31,6 +32,9 @@ const ChapterIdPage = async (
         include: {
             muxData: true,
             videoSources: {
+                orderBy: { position: "asc" },
+            },
+            leetcodeQuestions: {
                 orderBy: { position: "asc" },
             },
         },
@@ -133,6 +137,12 @@ const ChapterIdPage = async (
                         <ChapterVideoForm
                             initialData={chapter}
                             playerSources={playerSources}
+                            courseId={params.courseId}
+                            chapterId={params.chapterId}
+                        />
+
+                        <LeetcodeForm
+                            initialData={chapter}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />

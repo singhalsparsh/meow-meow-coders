@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toaster-provider";
 import { ConfettiProvider } from "@/components/providers/confetti-provider";
+import { ContextMenuProvider } from "@/components/context-menu";
 import { enUS } from "@clerk/localizations";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -34,7 +35,9 @@ export default function RootLayout({
           >
             <ConfettiProvider />
             <ToastProvider />
-            {children}
+            <ContextMenuProvider>
+              {children}
+            </ContextMenuProvider>
           </ThemeProvider>
         </body>
       </html>

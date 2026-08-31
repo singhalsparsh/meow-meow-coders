@@ -7,6 +7,7 @@ import { Preview } from "@/components/preview";
 import { Separator } from "@/components/ui/separator";
 import { File } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
+import { LeetcodeQuestions } from "@/components/leetcode-questions";
 
 
 const ChapterIdPage = async (
@@ -105,6 +106,11 @@ const ChapterIdPage = async (
                                     </a>
                                 ))}
                             </div>
+                        </div>
+                    )}
+                    {!!chapter.leetcodeQuestions?.length && (
+                        <div className="glass-card rounded-2xl p-6 mt-4">
+                            <LeetcodeQuestions questions={chapter.leetcodeQuestions} />
                         </div>
                     )}
                 </div>
