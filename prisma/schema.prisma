@@ -62,7 +62,6 @@ model Chapter {
   videoSources VideoSource[]
   leetcodeQuestions LeetCodeQuestion[]
   pdfNotes PdfNote[]
-  codingQuestions CodingQuestion[]
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -132,11 +131,16 @@ model Purchase {
 model LeetCodeQuestion {
   id        String  @id @default(uuid())
   title     String
-  url       String  @db.Text
+  url       String? @db.Text // external link (LeetCode etc.) — null for custom questions
   difficulty String  // Easy, Medium, Hard
   tags      String? // comma-separated tags
   notes     String? @db.Text // teacher notes for students
   position  Int     @default(0)
+
+  // Custom coding question fields (null for LeetCode link questions)
+  problemStatement String? @db.Text
+  testCases        String? @db.Text // JSON array of {input, expectedOutput, explanation?}
+  solution         String? @db.Text
 
   chapterId String
   chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
@@ -162,23 +166,7 @@ model PdfNote {
   @@index([chapterId])
 }
 
-model CodingQuestion {
-  id               String  @id @default(uuid())
-  title            String
-  difficulty       String  // Easy, Medium, Hard
-  problemStatement String  @db.Text
-  testCases        String  @db.Text // JSON array of {input, expectedOutput, explanation?}
-  solution         String? @db.Text
-  position         Int     @default(0)
 
-  chapterId String
-  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([chapterId])
-}
 
 model StripeCustomer {
   id               String @id @default(uuid())

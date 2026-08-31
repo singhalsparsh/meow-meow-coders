@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    const { chapterId, title, url, difficulty, tags, notes } = await req.json();
+    const { chapterId, title, url, difficulty, tags, notes, problemStatement, testCases, solution } = await req.json();
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
@@ -29,10 +29,13 @@ export async function POST(req: Request) {
     const question = await db.leetCodeQuestion.create({
       data: {
         title,
-        url,
+        url: url || null,
         difficulty: difficulty || "Medium",
         tags: tags || null,
         notes: notes || null,
+        problemStatement: problemStatement || null,
+        testCases: testCases || null,
+        solution: solution || null,
         position: (lastQuestion?.position ?? -1) + 1,
         chapterId,
       },
