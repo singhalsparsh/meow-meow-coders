@@ -146,7 +146,7 @@ export function buildPlayerSources(opts: {
     seen.add(raw);
     list.push({
       id: `src-${list.length + 1}`,
-      src: protect ? signVideoUrl(raw) : raw,
+      src: raw,
       title: title?.trim() || "",
       hls: isHlsUrl(raw),
     });
