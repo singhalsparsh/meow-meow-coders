@@ -26,16 +26,27 @@ const SearchPage = async (props: SearchPageProps) => {
     return redirect("/sign-in")
   }
 
-  const categories = await db.category.findMany({
-    orderBy: {
-      name: "asc"
-    }
-  })
+  let categories: any[] = [];
+  let courses: any[] = [];
 
-  const courses = await getCourses({
-    userId,
-    ...searchParams,
-  })
+  try {
+    categories = await db.category.findMany({
+      orderBy: {
+        name: "asc"
+      }
+    })
+  } catch (error) {
+    console.log("[SEARCH_CATEGORIES]", error);
+  }
+
+  try {
+    courses = await getCourses({
+      userId,
+      ...searchParams,
+    })
+  } catch (error) {
+    console.log("[SEARCH_COURSES]", error);
+  }
 
   return (
     <>
