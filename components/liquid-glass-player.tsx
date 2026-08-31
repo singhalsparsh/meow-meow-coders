@@ -323,8 +323,8 @@ export const LiquidGlassPlayer = ({
       onClick={pokeControls}
       onContextMenu={(e) => e.preventDefault()}
       className={cn(
-        "group relative w-full select-none overflow-hidden bg-black outline-none",
-        !isFullscreen && "rounded-2xl ring-1 ring-white/5 shadow-2xl",
+        "group relative w-full select-none overflow-hidden bg-gradient-to-br from-gray-950 via-black to-gray-900 outline-none",
+        !isFullscreen && "rounded-2xl ring-1 ring-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]",
         layout === "aspect" && "aspect-video",
         layout === "fill" && "h-full w-full",
         className
@@ -372,12 +372,15 @@ export const LiquidGlassPlayer = ({
         onDurationChange={(e) => setDuration(e.currentTarget.duration || 0)}
       />
 
-      {/* Gradient overlay */}
+      {/* Gradient overlays */}
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 transition-opacity duration-300",
+          "pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30 transition-opacity duration-300",
           !controlsVisible && !isScrubbing && "opacity-0"
         )}
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/40 to-transparent"
       />
 
       {/* Title */}
@@ -425,10 +428,9 @@ export const LiquidGlassPlayer = ({
           onClick={togglePlay}
           aria-label="Play"
           className="absolute inset-0 z-10 flex items-center justify-center transition hover:bg-black/10"
-        >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 backdrop-blur-md transition hover:scale-105 hover:bg-white/25">
-            <Play className="h-7 w-7 translate-x-0.5 text-white" fill="currentColor" />
-          </span>
+        >              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 backdrop-blur-xl ring-1 ring-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-110 hover:bg-white/20 hover:ring-white/30">
+                <Play className="h-7 w-7 translate-x-0.5 text-white drop-shadow-lg" fill="currentColor" />
+              </span>
         </button>
       )}
 
@@ -443,7 +445,7 @@ export const LiquidGlassPlayer = ({
       {showChrome && (
         <div
           className={cn(
-            "absolute inset-x-3 bottom-3 z-20 select-none rounded-lg bg-black/60 px-3 pb-2 pt-1.5 backdrop-blur-md transition-all duration-300",
+            "absolute inset-x-3 bottom-3 z-20 select-none rounded-xl bg-black/50 px-3 pb-2 pt-1.5 backdrop-blur-xl border border-white/5 transition-all duration-300",
             !controlsVisible && !isScrubbing && "pointer-events-none translate-y-2 opacity-0"
           )}
         >
@@ -457,18 +459,18 @@ export const LiquidGlassPlayer = ({
             onPointerCancel={handleSeekUp}
             onPointerLeave={handleSeekLeave}
           >
-            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-white/15">
+            <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/10">
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-white/25"
+                className="absolute inset-y-0 left-0 rounded-full bg-white/20 transition-all duration-150"
                 style={{ width: `${bufferedPct}%` }}
               />
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400"
+                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400 shadow-[0_0_8px_rgba(99,102,241,0.4)]"
                 style={{ width: `${progressPct}%` }}
               />
               <div
-                className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white shadow-lg opacity-0 transition-opacity group-hover/seek:opacity-100"
-                style={{ left: `calc(${progressPct}% - 6px)` }}
+                className="absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 -translate-x-1/2 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.5)] opacity-0 transition-all duration-200 group-hover/seek:opacity-100 group-hover/seek:scale-110"
+                style={{ left: `${progressPct}%` }}
               />
             </div>
 
@@ -720,7 +722,7 @@ const GlassMenu = ({
       className="fixed inset-0 z-40 cursor-default"
     />
     <div className={cn(
-      "absolute z-50 overflow-hidden rounded-lg bg-black/80 p-1.5 backdrop-blur-lg",
+      "absolute z-50 overflow-hidden rounded-xl bg-black/70 p-1.5 backdrop-blur-2xl border border-white/10 shadow-2xl",
       className
     )}>
       {children}
