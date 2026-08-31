@@ -3,7 +3,6 @@ import { Banner } from "@/components/ui/banner";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { VideoPlayer } from "./_components/video-player";
-import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { Separator } from "@/components/ui/separator";
 import { File } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
@@ -41,8 +40,8 @@ const ChapterIdPage = async (
         return redirect("/")
     }
 
-    const isLocked = !isOwner && !chapter.isFree && !purchase
-    const completeOnEnd = !!purchase && !userProgress?.isCompleted
+    const isLocked = !isOwner && !chapter.isFree
+    const completeOnEnd = !userProgress?.isCompleted
 
 
     return (
@@ -53,12 +52,7 @@ const ChapterIdPage = async (
                     label="You have already completed this chapter"
                 />
             )}
-            {isLocked && (
-                <Banner
-                    variant="warning"
-                    label="You must purchase this course to view the content"
-                />
-            )}
+
             <div className="flex flex-col max-w-4xl mx-auto pb-20">
                 <div className="p-4">
                     <VideoPlayer
@@ -78,17 +72,12 @@ const ChapterIdPage = async (
                         <h2 className="text-2xl font-semibold mb-2">
                             {chapter.title}
                         </h2>
-                        {isOwner ? null : purchase ? (
+                        {isOwner ? null : (
                             <CourseProgressButton
                                 chapterId={params.chapterId}
                                 courseId={params.courseId}
                                 nextChapterId={nextChapter?.id}
                                 isCompleted={!!userProgress?.isCompleted}
-                            />
-                        ) : (
-                            <CourseEnrollButton
-                                courseId={params.courseId}
-                                price={course.price!}
                             />
                         )}
                     </div>

@@ -14,21 +14,11 @@ export const getChapter = async ({
   chapterId,
 }: GetChapterProps) => {
   try {
-    const purchase = await db.purchase.findUnique({
-      where: {
-        userId_courseId: {
-          userId,
-          courseId,
-        }
-      }
-    });
-
     const course = await db.course.findUnique({
       where: {
         id: courseId,
       },
       select: {
-        price: true,
         userId: true,
         isPublished: true,
       }
@@ -62,16 +52,13 @@ export const getChapter = async ({
     let nextChapter: Chapter | null = null;
     let playerSources: ReturnType<typeof buildPlayerSources> = [];
 
-    if (purchase || isOwner) {
-      attachments = await db.attachment.findMany({
-        where: {
-          courseId: courseId
-        }
-      });
-    }
+    attachments = await db.attachment.findMany({
+      where: {
+        courseId: courseId
+      }
+    });
 
-    if (chapter.isFree || purchase || isOwner) {
-      muxData = await db.muxData.findUnique({
+    muxData = await db.muxData.findUnique({
         where: {
           chapterId: chapterId,
         }
@@ -107,7 +94,6 @@ export const getChapter = async ({
           position: "asc",
         }
       });
-    }
 
     const userProgress = await db.userProgress.findUnique({
       where: {
@@ -125,7 +111,7 @@ export const getChapter = async ({
       attachments,
       nextChapter,
       userProgress,
-      purchase,
+      purchase: null,
       isOwner,
       videoUrl: chapter.videoUrl,
       videoSources: playerSources,
