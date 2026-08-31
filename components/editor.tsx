@@ -20,7 +20,7 @@ export const Editor = ({
     value,
 }: EditorProps) => {
     return (
-        <div className="bg-white">
+        <div className="bg-white dark:bg-slate-900">
             <QuillEditor
                 value={value}
                 onChange={onChange}

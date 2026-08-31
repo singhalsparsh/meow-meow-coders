@@ -108,9 +108,9 @@ const ChapterIdPage = async (
                             </div>
                         </div>
                     )}
-                    {!!chapter.leetcodeQuestions?.length && (
+                    {!!(chapter as any).leetcodeQuestions?.length && (
                         <div className="glass-card rounded-2xl p-6 mt-4">
-                            <LeetcodeQuestions questions={chapter.leetcodeQuestions} />
+                            <LeetcodeQuestions questions={(chapter as any).leetcodeQuestions} />
                         </div>
                     )}
                 </div>

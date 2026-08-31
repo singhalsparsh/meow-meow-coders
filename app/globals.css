@@ -302,3 +302,68 @@ main > * {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.18);
 }
+
+/* Quill editor dark mode */
+.dark .ql-toolbar.ql-snow {
+  background: hsl(224, 35%, 10%);
+  border-color: hsl(223, 25%, 14%);
+  color: hsl(210, 40%, 80%);
+}
+
+.dark .ql-container.ql-snow {
+  border-color: hsl(223, 25%, 14%);
+  background: hsl(224, 35%, 8%);
+  color: hsl(210, 40%, 90%);
+}
+
+.dark .ql-editor.ql-blank::before {
+  color: hsl(215, 18%, 45%);
+}
+
+.dark .ql-snow .ql-stroke {
+  stroke: hsl(215, 18%, 55%);
+}
+
+.dark .ql-snow .ql-fill {
+  fill: hsl(215, 18%, 55%);
+}
+
+.dark .ql-snow .ql-picker-label {
+  color: hsl(210, 40%, 80%);
+}
+
+.dark .ql-snow .ql-picker-options {
+  background: hsl(224, 35%, 10%);
+  border-color: hsl(223, 25%, 14%);
+}
+
+.dark .ql-snow .ql-picker-item {
+  color: hsl(210, 40%, 80%);
+}
+
+.dark .ql-snow a {
+  color: hsl(213, 94%, 68%);
+}
+
+.dark .ql-snow .ql-active .ql-stroke {
+  stroke: hsl(213, 94%, 68%);
+}
+
+.dark .ql-snow .ql-active .ql-fill {
+  fill: hsl(213, 94%, 68%);
+}
+
+.dark .ql-snow .ql-active {
+  color: hsl(213, 94%, 68%);
+}
+
+.dark .ql-editor pre,
+.dark .ql-editor code {
+  background: hsl(223, 25%, 12%);
+  color: hsl(210, 40%, 85%);
+}
+
+/* Ensure shadcn table borders work in dark mode */
+.dark [data-state] {
+  color: hsl(210, 40%, 98%);
+}

@@ -41,15 +41,21 @@ export const getChapter = async ({
         id: chapterId,
         ...(isOwner ? {} : { isPublished: true }),
       },
-      include: {
-        leetcodeQuestions: {
-          orderBy: { position: "asc" },
-        },
-      },
     });
 
     if (!chapter) {
       throw new Error("Chapter or course not found");
+    }
+
+    // Fetch leetcode questions separately so a missing table doesn't block chapter loading
+    let leetcodeQuestions: any[] = [];
+    try {
+      leetcodeQuestions = await db.leetCodeQuestion.findMany({
+        where: { chapterId },
+        orderBy: { position: "asc" },
+      });
+    } catch {
+      // Table may not exist yet
     }
 
     let muxData = null;
@@ -86,6 +92,9 @@ export const getChapter = async ({
         videoUrl: chapter.videoUrl,
         fallbackTitle: chapter.title,
       });
+
+      // Attach leetcode questions to the chapter object for the student-facing pages
+      (chapter as any).leetcodeQuestions = leetcodeQuestions;
 
       nextChapter = await db.chapter.findFirst({
         where: {

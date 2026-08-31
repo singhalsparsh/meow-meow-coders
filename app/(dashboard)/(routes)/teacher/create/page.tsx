@@ -50,7 +50,7 @@ const CreatePage = () => {
         <div className="max-w-5xl mx-auto flex md:items-center md:justify-center h-full p-6">
             <div>
                 <h1 className="text-2xl">Course name</h1>
-                <p className="text-sm text-slate-600">What name would you like to give your course? Don't worry, you can change it later</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">What name would you like to give your course? Don't worry, you can change it later</p>
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}

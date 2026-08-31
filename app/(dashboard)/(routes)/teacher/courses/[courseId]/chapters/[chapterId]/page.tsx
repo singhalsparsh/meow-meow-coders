@@ -34,15 +34,24 @@ const ChapterIdPage = async (
             videoSources: {
                 orderBy: { position: "asc" },
             },
-            leetcodeQuestions: {
-                orderBy: { position: "asc" },
-            },
         },
     });
 
     if (!chapter) {
         return redirect("/")
     }
+
+    // Fetch leetcode questions separately so a missing table doesn't block chapter loading
+    let leetcodeQuestions: any[] = [];
+    try {
+        leetcodeQuestions = await db.leetCodeQuestion.findMany({
+            where: { chapterId: params.chapterId },
+            orderBy: { position: "asc" },
+        });
+    } catch {
+        // Table may not exist yet
+    }
+    (chapter as any).leetcodeQuestions = leetcodeQuestions;
 
     // A chapter counts as having a video when it has a primary video OR at
     // least one streaming URL.
@@ -94,7 +103,7 @@ const ChapterIdPage = async (
                                 <h1 className="text-2xl font-medium">
                                     Chapter creation
                                 </h1>
-                                <span className="text-sm text-slate-700">
+                                <span className="text-sm text-slate-700 dark:text-slate-400">
                                     Completed fields {completionText}
                                 </span>
                             </div>
@@ -142,7 +151,7 @@ const ChapterIdPage = async (
                         />
 
                         <LeetcodeForm
-                            initialData={chapter}
+                            initialData={{ leetcodeQuestions: (chapter as any).leetcodeQuestions ?? [] }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />

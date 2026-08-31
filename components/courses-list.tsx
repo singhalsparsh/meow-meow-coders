@@ -32,7 +32,7 @@ export const CoursesList = ({
       </div>
       {items.length === 0 && (
         <div className="flex items-center justify-center h-96 w-full bg-no-repeat bg-cover bg-center rounded-xl" style={{ backgroundImage: "url('/no_courses.webp')" }}>
-          <div className="bg-slate-50 text-center text-xl border-slate-700 border-2 p-2 mt-10 z-0  drop-shadow-md rounded animate-[pulse_2s_ease-in-out_infinite]">
+          <div className="bg-slate-50 dark:bg-slate-800/50 text-center text-xl border-slate-700 dark:border-slate-600 border-2 p-2 mt-10 z-0 drop-shadow-md rounded animate-[pulse_2s_ease-in-out_infinite] text-foreground">
             No courses found
           </div>
         </div>

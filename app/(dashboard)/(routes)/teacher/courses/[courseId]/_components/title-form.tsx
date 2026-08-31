@@ -54,7 +54,7 @@ export const TitleForm = ({
         }
     }
     return (
-        <div className="mt-6 border bg-slate-100 rounded-md p-4">
+        <div className="mt-6 border bg-slate-100 dark:bg-slate-800/50 rounded-md p-4">
             <div className="font-medium flex items-center justify-between">
                 Title
                 <Button onClick={toggleEdit} variant="ghost">
@@ -70,8 +70,7 @@ export const TitleForm = ({
                 </Button>
 
             </div>
-            {!isEditing ? (
-                <p className="text-sm mt-2">{initialData.title}</p>
+            {!isEditing ? (                        <p className="text-sm mt-2 text-foreground">{initialData.title}</p>
             ) : (
                 <Form {...form}>
                     <form
