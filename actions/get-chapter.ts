@@ -61,6 +61,7 @@ export const getChapter = async ({
     let muxData = null;
     let attachments: Attachment[] = [];
     let nextChapter: Chapter | null = null;
+    let previousChapter: Chapter | null = null;
     let playerSources: ReturnType<typeof buildPlayerSources> = [];
 
     attachments = await db.attachment.findMany({
@@ -121,6 +122,19 @@ export const getChapter = async ({
         }
       });
 
+      previousChapter = await db.chapter.findFirst({
+        where: {
+          courseId: courseId,
+          isPublished: true,
+          position: {
+            lt: chapter?.position,
+          }
+        },
+        orderBy: {
+          position: "desc",
+        }
+      });
+
     const userProgress = await db.userProgress.findUnique({
       where: {
         userId_chapterId: {
@@ -136,6 +150,7 @@ export const getChapter = async ({
       muxData,
       attachments,
       nextChapter,
+      previousChapter,
       userProgress,
       purchase: null,
       isOwner,
@@ -150,6 +165,7 @@ export const getChapter = async ({
       muxData: null,
       attachments: [],
       nextChapter: null,
+      previousChapter: null,
       userProgress: null,
       purchase: null,
       isOwner: false,

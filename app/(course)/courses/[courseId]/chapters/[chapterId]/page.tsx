@@ -7,6 +7,7 @@ import { Preview } from "@/components/preview";
 import { Separator } from "@/components/ui/separator";
 import { File } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
+import { ChapterNav } from "./_components/chapter-nav";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
 
@@ -29,6 +30,7 @@ const ChapterIdPage = async (
         muxData,
         attachments,
         nextChapter,
+        previousChapter,
         userProgress,
         purchase,
         isOwner,
@@ -120,6 +122,11 @@ const ChapterIdPage = async (
                         </div>
                     )}
                 </div>
+                <ChapterNav
+                    courseId={params.courseId}
+                    previousChapter={previousChapter ? { id: previousChapter.id, title: previousChapter.title } : null}
+                    nextChapter={nextChapter ? { id: nextChapter.id, title: nextChapter.title } : null}
+                />
             </div>
         </div>
     )
