@@ -323,8 +323,8 @@ export const LiquidGlassPlayer = ({
       onClick={pokeControls}
       onContextMenu={(e) => e.preventDefault()}
       className={cn(
-        "group relative w-full select-none overflow-hidden bg-gradient-to-br from-gray-950 via-black to-gray-900 outline-none",
-        !isFullscreen && "rounded-2xl ring-1 ring-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]",
+        "group relative w-full select-none overflow-hidden bg-gradient-to-br from-gray-950 via-[#0a0a14] to-gray-900 outline-none",
+        !isFullscreen && "rounded-2xl ring-1 ring-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(99,102,241,0.08)]",
         layout === "aspect" && "aspect-video",
         layout === "fill" && "h-full w-full",
         className
@@ -392,12 +392,12 @@ export const LiquidGlassPlayer = ({
           )}
         >
           {title && (
-            <span className="max-w-[70%] truncate rounded-full bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+            <span className="max-w-[70%] truncate rounded-full bg-black/30 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-md border border-white/[0.08]">
               {title}
             </span>
           )}
           {hasMultiple && (
-            <span className="flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-medium text-white/80 backdrop-blur-sm">
+            <span className="flex items-center gap-1.5 rounded-full bg-black/30 px-2.5 py-1 text-[11px] font-medium text-white/70 backdrop-blur-md border border-white/[0.08]">
               <Layers className="h-3 w-3" />
               {activeSource?.title || `Source ${activeIndex + 1}`}
             </span>
@@ -408,7 +408,7 @@ export const LiquidGlassPlayer = ({
       {/* Loading */}
       {!isReady && !error && (
         <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/30 backdrop-blur-xl ring-1 ring-white/10 shadow-[0_0_30px_rgba(0,0,0,0.4)]">
             <Loader2 className="h-5 w-5 animate-spin text-white" />
           </div>
         </div>
@@ -428,7 +428,7 @@ export const LiquidGlassPlayer = ({
           onClick={togglePlay}
           aria-label="Play"
           className="absolute inset-0 z-10 flex items-center justify-center transition hover:bg-black/10"
-        >              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 backdrop-blur-xl ring-1 ring-white/20 shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-110 hover:bg-white/20 hover:ring-white/30">
+        >              <span className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-white/[0.08] backdrop-blur-2xl ring-1 ring-white/[0.15] shadow-[0_0_40px_rgba(255,255,255,0.06),0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-110 hover:bg-white/[0.14] hover:ring-white/[0.25] hover:shadow-[0_0_60px_rgba(255,255,255,0.1)]">
                 <Play className="h-7 w-7 translate-x-0.5 text-white drop-shadow-lg" fill="currentColor" />
               </span>
         </button>
@@ -445,7 +445,7 @@ export const LiquidGlassPlayer = ({
       {showChrome && (
         <div
           className={cn(
-            "absolute inset-x-3 bottom-3 z-20 select-none rounded-xl bg-black/50 px-3 pb-2 pt-1.5 backdrop-blur-xl border border-white/5 transition-all duration-300",
+            "absolute inset-x-3 bottom-3 z-20 select-none rounded-2xl bg-black/40 px-3 pb-2 pt-1.5 backdrop-blur-2xl border border-white/[0.08] shadow-[0_4px_24px_rgba(0,0,0,0.4)] transition-all duration-300",
             !controlsVisible && !isScrubbing && "pointer-events-none translate-y-2 opacity-0"
           )}
         >
@@ -682,12 +682,11 @@ const SettingToggle = ({
   label: string;
   value: boolean;
   onChange: () => void;
-}) => (
-  <button
-    type="button"
-    onClick={onChange}
-    className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs text-white/80 transition hover:bg-white/10"
-  >
+}) => (    <button
+      type="button"
+      onClick={onChange}
+      className="flex w-full items-center justify-between rounded-xl px-2 py-1.5 text-xs text-white/80 transition-all duration-200 hover:bg-white/[0.08]"
+    >
     <span>{label}</span>
     <span
       className={cn(
@@ -722,7 +721,7 @@ const GlassMenu = ({
       className="fixed inset-0 z-40 cursor-default"
     />
     <div className={cn(
-      "absolute z-50 overflow-hidden rounded-xl bg-black/70 p-1.5 backdrop-blur-2xl border border-white/10 shadow-2xl",
+      "absolute z-50 overflow-hidden rounded-2xl bg-black/60 p-1.5 backdrop-blur-3xl border border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_60px_rgba(0,0,0,0.3)]",
       className
     )}>
       {children}
@@ -747,8 +746,8 @@ const IconButton = ({
     title={label}
     onClick={onClick}
     className={cn(
-      "flex h-8 w-8 items-center justify-center rounded-md text-white/70 transition hover:bg-white/10 hover:text-white",
-      active && "bg-white/10 text-white"
+      "flex h-8 w-8 items-center justify-center rounded-xl text-white/60 transition-all duration-200 hover:bg-white/[0.12] hover:text-white hover:scale-105",
+      active && "bg-white/[0.12] text-white"
     )}
   >
     {children}

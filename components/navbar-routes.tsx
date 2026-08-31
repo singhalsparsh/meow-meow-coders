@@ -20,10 +20,6 @@ export const NavbarRoutes = () => {
     const isCoursePage = pathname?.includes('/courses')
     const isSearchPage = pathname === "/search"
 
-    // Clerk's user is undefined on the server and during the very first client
-    // render. Rendering auth-gated content before mounting causes a hydration
-    // mismatch ("Expected server HTML to contain a matching text node"). So the
-    // teacher button only renders AFTER the component has mounted.
     const [mounted, setMounted] = useState(false)
     useEffect(() => {
         setMounted(true)
@@ -52,8 +48,12 @@ export const NavbarRoutes = () => {
                     </Link>
 
                 ) : null}
-                <ThemeToggle />
-                <UserButton />
+                <div className="glass-pill rounded-full p-1">
+                  <ThemeToggle />
+                </div>
+                <div className="glass-pill rounded-full p-1">
+                  <UserButton />
+                </div>
             </div>
         </>
     )

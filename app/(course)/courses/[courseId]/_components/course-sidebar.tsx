@@ -27,8 +27,7 @@ export const CourseSidebar = async ({
     return redirect("/");
   }
 
-  return (
-    <div className="h-full border-r flex flex-col overflow-y-auto bg-white dark:bg-slate-900 shadow-sm">
+  return (      <div className="h-full border-r border-white/20 dark:border-white/5 flex flex-col overflow-y-auto glass-sidebar">
       <div className="p-8 flex flex-col border-b">
         <h1 className="font-semibold">
           {course.title}
