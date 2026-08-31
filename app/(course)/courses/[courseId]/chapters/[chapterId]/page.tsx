@@ -43,7 +43,7 @@ const ChapterIdPage = async (
         return redirect("/")
     }
 
-    const isLocked = !isOwner && !chapter.isFree
+    const isLocked = false // All content is free for logged-in users
     const completeOnEnd = !userProgress?.isCompleted
 
 
