@@ -7,6 +7,7 @@ import Link from "next/link"
 
 import { LogOut } from "lucide-react"
 import { SearchInput } from "./search-input"
+import { ThemeToggle } from "./theme-toggle"
 import { isTeacher, hasTeacherRole } from "@/lib/teacher"
 import { useEffect, useState } from "react"
 
@@ -37,7 +38,7 @@ export const NavbarRoutes = () => {
                     <SearchInput />
                 </div>
             )}
-            <div className="flex gap-x-2 ml-auto">
+            <div className="flex gap-x-2 ml-auto items-center">
                 {isTeacherPage || isCoursePage ? (
                     <Link href="/">
                         <Button size="sm" variant="ghost">
@@ -51,6 +52,7 @@ export const NavbarRoutes = () => {
                     </Link>
 
                 ) : null}
+                <ThemeToggle />
                 <UserButton />
             </div>
         </>

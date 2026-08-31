@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toaster-provider";
 import { ConfettiProvider } from "@/components/providers/confetti-provider";
 import { enUS } from "@clerk/localizations";
@@ -23,11 +24,18 @@ export default function RootLayout({
       {/* lang="en" + translate="no": the UI is English now, and this stops the
           browser's auto-translate from rewriting the DOM (which previously broke
           React hydration and caused "removeChild is not a child of this node"). */}
-      <html lang="en" translate="no">
+      <html lang="en" translate="no" suppressHydrationWarning>
         <body className={inter.className}>
-          <ConfettiProvider />
-          <ToastProvider />
-          {children}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ConfettiProvider />
+            <ToastProvider />
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

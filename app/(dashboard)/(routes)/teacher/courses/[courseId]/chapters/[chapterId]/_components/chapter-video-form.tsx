@@ -111,7 +111,7 @@ export const ChapterVideoForm = ({
   }
 
   return (
-    <div className="mt-6 border bg-slate-100 rounded-md p-4">
+    <div className="mt-6 border bg-slate-100 dark:bg-slate-800/50 dark:border-slate-700/50 rounded-md p-4">
       <div className="font-medium flex items-center justify-between">
         Video
         <Button onClick={toggleEdit} variant="ghost" disabled={isSaving}>
@@ -136,7 +136,7 @@ export const ChapterVideoForm = ({
       {/* Display mode */}
       {!isEditing && (
         !playerSources || playerSources.length === 0 ? (
-          <div className="flex items-center justify-center h-60 bg-slate-200 rounded-md">
+          <div className="flex items-center justify-center h-60 bg-slate-200 dark:bg-slate-800 rounded-md">
             <Video className="h-10 w-10 text-slate-500" />
           </div>
         ) : (
@@ -216,9 +216,9 @@ export const ChapterVideoForm = ({
       )}
 
       {/* Streaming URLs — multiple playable options for the same video */}
-      <div className="mt-4 border-t border-slate-200 pt-4">
+      <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-slate-700">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Streaming URLs
             <span className="ml-2 text-xs font-normal text-muted-foreground">
               Add alternative streams (quality, mirror, HLS/MP4) — viewers can switch between them
