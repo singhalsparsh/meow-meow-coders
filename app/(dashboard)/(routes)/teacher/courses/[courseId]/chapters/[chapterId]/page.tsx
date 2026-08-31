@@ -9,6 +9,8 @@ import { ChapterTitleForm } from "./_components/chapter-title-form";
 import { ChapterDescriptionForm } from "./_components/chapter-description-form";
 import { ChapterVideoForm } from "./_components/chapter-video-form";
 import { LeetcodeForm } from "./_components/leetcode-form";
+import { PdfNotesForm } from "./_components/pdf-notes-form";
+import { CodingQuestionsForm } from "./_components/coding-questions-form";
 import { Banner } from "@/components/ui/banner";
 import { ChapterActions } from "./_components/chapter-actions";
 
@@ -52,6 +54,30 @@ const ChapterIdPage = async (
         // Table may not exist yet
     }
     (chapter as any).leetcodeQuestions = leetcodeQuestions;
+
+    // Fetch PDF notes separately
+    let pdfNotes: any[] = [];
+    try {
+        pdfNotes = await db.pdfNote.findMany({
+            where: { chapterId: params.chapterId },
+            orderBy: { position: "asc" },
+        });
+    } catch {
+        // Table may not exist yet
+    }
+    (chapter as any).pdfNotes = pdfNotes;
+
+    // Fetch coding questions separately
+    let codingQuestions: any[] = [];
+    try {
+        codingQuestions = await db.codingQuestion.findMany({
+            where: { chapterId: params.chapterId },
+            orderBy: { position: "asc" },
+        });
+    } catch {
+        // Table may not exist yet
+    }
+    (chapter as any).codingQuestions = codingQuestions;
 
     // A chapter counts as having a video when it has a primary video OR at
     // least one streaming URL.
@@ -146,6 +172,18 @@ const ChapterIdPage = async (
                         <ChapterVideoForm
                             initialData={chapter}
                             playerSources={playerSources}
+                            courseId={params.courseId}
+                            chapterId={params.chapterId}
+                        />
+
+                        <PdfNotesForm
+                            initialData={{ pdfNotes: (chapter as any).pdfNotes ?? [] }}
+                            courseId={params.courseId}
+                            chapterId={params.chapterId}
+                        />
+
+                        <CodingQuestionsForm
+                            initialData={{ codingQuestions: (chapter as any).codingQuestions ?? [] }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />

@@ -93,8 +93,32 @@ export const getChapter = async ({
         fallbackTitle: chapter.title,
       });
 
-      // Attach leetcode questions to the chapter object for the student-facing pages
+      // Fetch PDF notes
+    let pdfNotes: any[] = [];
+    try {
+      pdfNotes = await db.pdfNote.findMany({
+        where: { chapterId },
+        orderBy: { position: "asc" },
+      });
+    } catch {
+      // Table may not exist yet
+    }
+
+    // Fetch coding questions
+    let codingQuestions: any[] = [];
+    try {
+      codingQuestions = await db.codingQuestion.findMany({
+        where: { chapterId },
+        orderBy: { position: "asc" },
+      });
+    } catch {
+      // Table may not exist yet
+    }
+
+      // Attach extra data to the chapter object for the student-facing pages
       (chapter as any).leetcodeQuestions = leetcodeQuestions;
+      (chapter as any).pdfNotes = pdfNotes;
+      (chapter as any).codingQuestions = codingQuestions;
 
       nextChapter = await db.chapter.findFirst({
         where: {

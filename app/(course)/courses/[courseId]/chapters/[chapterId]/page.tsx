@@ -8,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { File } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
+import { PdfNotes } from "@/components/pdf-notes";
+import { CodingQuestions } from "@/components/coding-questions";
 
 
 const ChapterIdPage = async (
@@ -106,6 +108,16 @@ const ChapterIdPage = async (
                                     </a>
                                 ))}
                             </div>
+                        </div>
+                    )}
+                    {!!(chapter as any).pdfNotes?.length && (
+                        <div className="glass-card rounded-2xl p-6 mt-4">
+                            <PdfNotes notes={(chapter as any).pdfNotes} />
+                        </div>
+                    )}
+                    {!!(chapter as any).codingQuestions?.length && (
+                        <div className="mt-4">
+                            <CodingQuestions questions={(chapter as any).codingQuestions} />
                         </div>
                     )}
                     {!!(chapter as any).leetcodeQuestions?.length && (
