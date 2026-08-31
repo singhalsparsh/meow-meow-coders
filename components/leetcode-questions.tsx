@@ -61,8 +61,8 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-3">
-        <Code2 className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-medium text-muted-foreground">
+        <Code2 className="h-4 w-4 text-muted-foreground wiggle-hover" />
+        <h3 className="text-sm font-medium text-muted-foreground animated-underline">
           Practice Questions ({questions.length})
         </h3>
       </div>
@@ -78,7 +78,7 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
         }
 
         return (
-          <div key={q.id} className={cn("glass-card rounded-2xl overflow-hidden transition-all duration-200", isExpanded && "ring-1 ring-slate-200 dark:ring-slate-700")}>
+          <div key={q.id} className={cn("glass-card rounded-2xl overflow-hidden transition-all duration-300 card-pop", isExpanded && "ring-1 ring-sky-200 dark:ring-sky-700/50 shadow-lg")}>
             {/* Header */}
             <button
               onClick={() => {

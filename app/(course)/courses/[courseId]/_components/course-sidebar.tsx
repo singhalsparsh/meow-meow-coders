@@ -27,28 +27,34 @@ export const CourseSidebar = async ({
     return redirect("/");
   }
 
-  return (      <div className="h-full border-r border-white/20 dark:border-white/5 flex flex-col overflow-y-auto glass-sidebar">
-      <div className="p-8 flex flex-col border-b">
-        <h1 className="font-semibold">
+  return (
+    <div className="h-full flex flex-col overflow-y-auto py-3">
+      <div className="px-4 pb-4 pt-2">
+        <h1 className="font-semibold text-base truncate px-3">
           {course.title}
         </h1>
-        <div className="mt-10">
+        <div className="mt-4 px-3">
           <CourseProgress
             variant="success"
             value={progressCount}
           />
         </div>
       </div>
-      <div className="flex flex-col w-full">
-        {course.chapters.map((chapter) => (
-          <CourseSidebarItem
+      <div className="flex flex-col w-full px-3 gap-1 flex-1">
+        {course.chapters.map((chapter, index) => (
+          <div
             key={chapter.id}
-            id={chapter.id}
-            label={chapter.title}
-            isCompleted={!!chapter.userProgress?.[0]?.isCompleted}
-            courseId={course.id}
-            isLocked={false}
-          />
+            className="animate-in fade-in slide-in-from-left-2"
+            style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'backwards' }}
+          >
+            <CourseSidebarItem
+              id={chapter.id}
+              label={chapter.title}
+              isCompleted={!!chapter.userProgress?.[0]?.isCompleted}
+              courseId={course.id}
+              isLocked={false}
+            />
+          </div>
         ))}
       </div>
     </div>

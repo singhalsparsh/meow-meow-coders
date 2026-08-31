@@ -62,7 +62,7 @@ export const VideoPlayer = ({
     }
 
     return (
-        <div className="relative aspect-video">
+        <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg dark:shadow-2xl dark:shadow-black/30 pop-in">
             {isLocked && (
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-800 flex-col gap-y-2 text-secondary">
                     <Lock className="h-8 w-8" />

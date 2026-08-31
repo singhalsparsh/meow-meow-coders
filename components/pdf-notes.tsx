@@ -46,8 +46,8 @@ export const PdfNotes = ({ notes }: PdfNotesProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
-        <FileText className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-medium text-muted-foreground">
+        <FileText className="h-4 w-4 text-muted-foreground wiggle-hover" />
+        <h3 className="text-sm font-medium text-muted-foreground animated-underline">
           PDF Notes ({notes.length})
         </h3>
       </div>
@@ -58,7 +58,7 @@ export const PdfNotes = ({ notes }: PdfNotesProps) => {
 
         return (
           <div key={note.id} className="space-y-3">
-            <div className="flex items-center gap-3 p-4 glass-card rounded-2xl group">
+            <div className="flex items-center gap-3 p-4 glass-card rounded-2xl group card-pop">
               <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex-shrink-0">
                 <FileText className="h-4 w-4 text-sky-600 dark:text-sky-400" />
               </div>

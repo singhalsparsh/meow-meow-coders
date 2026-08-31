@@ -56,7 +56,7 @@ const ChapterIdPage = async (
                 />
             )}
 
-            <div className="flex flex-col max-w-5xl mx-auto pb-20">
+            <div className="flex flex-col max-w-5xl mx-auto pb-20 stagger-children">
                 <div className="p-4 md:p-6">
                     <VideoPlayer
                         chapterId={params.chapterId}
@@ -71,7 +71,7 @@ const ChapterIdPage = async (
                     />
                 </div>
                 <div className="px-4 md:px-6">
-                    <div className="glass-card rounded-2xl p-6">
+                    <div className="glass-card rounded-2xl p-6 card-pop">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
                             <h2 className="text-2xl font-bold tracking-tight">
                                 {chapter.title}
@@ -100,7 +100,7 @@ const ChapterIdPage = async (
                                         target="_blank"
                                         key={attachment.id}
                                         href={attachment.url}
-                                        className="flex items-center gap-3 p-3 w-full glass-btn rounded-xl text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/40"
+                                        className="flex items-center gap-3 p-3 w-full glass-btn rounded-xl text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-md wiggle-hover"
                                     >
                                         <File className="h-4 w-4 flex-shrink-0" />
                                         <p className="text-sm truncate">{attachment.name}</p>

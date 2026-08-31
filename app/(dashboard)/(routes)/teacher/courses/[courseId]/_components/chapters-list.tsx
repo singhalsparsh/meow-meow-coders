@@ -72,7 +72,8 @@ export const ChaptersList = ({
                             <Draggable key={chapter.id} draggableId={chapter.id} index={index}>
                                 {(provided) => (
                                     <div className={cn(
-                                        "flex items-center gap-x-2 bg-slate-200 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 border text-slate-700 dark:text-slate-200 rounded-md mb-4 text-sm",
+                                        "flex items-center gap-x-2 bg-slate-200 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 border text-slate-700 dark:text-slate-200 rounded-xl mb-4 text-sm transition-all duration-200",
+                                        "hover:shadow-md hover:scale-[1.005]",
                                         chapter.isPublished && "bg-sky-100 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300"
                                     )}
                                         ref={provided.innerRef}

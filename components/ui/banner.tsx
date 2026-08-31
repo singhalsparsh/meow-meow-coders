@@ -34,7 +34,7 @@ export const Banner = ({
   const Icon = iconMap[variant || "warning"];
 
   return  (
-    <div className={cn(bannerVariants({ variant }))}>
+    <div className={cn(bannerVariants({ variant }), "animate-in slide-in-from-top-2 fade-in duration-300")}>
       <Icon className="h-4 w-4 mr-2" />
       {label}
     </div>

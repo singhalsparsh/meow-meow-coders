@@ -56,7 +56,7 @@ export const IconBadge = ({
     size,
 }: IconBadgeProps) => {
     return (
-        <div className={cn(backgroundVariants({ variant, size }))}>
+        <div className={cn(backgroundVariants({ variant, size }), "transition-transform duration-200 hover:scale-110")}>
             <Icon className={cn(iconVariants({ variant, size }))} />
         </div>
     )

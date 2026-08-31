@@ -59,7 +59,7 @@ export const CourseProgressButton = ({
       disabled={isLoading}
       type="button"
       variant={isCompleted ? "outline" : "success"}
-      className="w-full md:w-auto"
+      className="w-full md:w-auto transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg pop"
     >
       {isCompleted ? "Mark as incomplete" : "Mark as complete"}
       <Icon className="h-4 w-4 ml-2" />

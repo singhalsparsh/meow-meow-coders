@@ -56,19 +56,21 @@ const CourseLayout = async (
 
   return (
     <div className="h-full">
-      <div className="h-[80px] md:pl-80 fixed inset-y-0 w-full z-50">
+      <div className="h-[80px] md:pl-[300px] fixed inset-y-0 w-full z-50">
         <CourseNavbar
           course={course}
           progressCount={progressCount}
         />
       </div>
-      <div className="hidden md:flex h-full w-80 flex-col fixed inset-y-0 z-50">
-        <CourseSidebar
-          course={course}
-          progressCount={progressCount}
-        />
+      <div className="hidden md:flex h-[calc(100%-24px)] w-72 flex-col fixed top-3 left-3 bottom-3 z-50">
+        <div className="h-full rounded-3xl overflow-hidden glass-sidebar shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-shadow duration-300 hover:shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+          <CourseSidebar
+            course={course}
+            progressCount={progressCount}
+          />
+        </div>
       </div>
-      <main className="md:pl-80 pt-[80px] h-full">
+      <main className="md:pl-[300px] pt-[80px] h-full bg-page-gradient">
         {children}
       </main>
     </div>

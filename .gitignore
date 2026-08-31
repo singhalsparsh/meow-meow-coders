@@ -40,3 +40,6 @@ next-env.d.ts
 limeplay-vp.json
 ERRORS.md
 migrate-clerk.mjs
+
+# clerk configuration (can include secrets)
+/.clerk/
