@@ -193,6 +193,8 @@ enum DsaTopic {
   GRAPHS
   DYNAMIC_PROGRAMMING
   SORTING_SEARCHING
+  FUNDAMENTAL
+  OTHER
 }
 
 enum SubmissionVerdict {

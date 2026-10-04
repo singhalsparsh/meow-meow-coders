@@ -16,7 +16,9 @@ export type DsaTopic =
   | "TREES"
   | "GRAPHS"
   | "DYNAMIC_PROGRAMMING"
-  | "SORTING_SEARCHING";
+  | "SORTING_SEARCHING"
+  | "FUNDAMENTAL"
+  | "OTHER";
 
 export type SubmissionVerdict =
   | "ACCEPTED"
@@ -42,6 +44,8 @@ export const TOPIC_LABEL: Record<DsaTopic, string> = {
   GRAPHS: "Graphs",
   DYNAMIC_PROGRAMMING: "Dynamic Programming",
   SORTING_SEARCHING: "Sorting & Searching",
+  FUNDAMENTAL: "Fundamentals",
+  OTHER: "Other",
 };
 
 export const ALL_TOPICS: DsaTopic[] = [
@@ -55,6 +59,8 @@ export const ALL_TOPICS: DsaTopic[] = [
   "GRAPHS",
   "DYNAMIC_PROGRAMMING",
   "SORTING_SEARCHING",
+  "FUNDAMENTAL",
+  "OTHER",
 ];
 
 export const ALL_DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
