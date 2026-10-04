@@ -8,6 +8,7 @@ const VALID_DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 const VALID_TOPICS: DsaTopic[] = [
     "ARRAYS", "VECTORS", "STRINGS", "LINKED_LISTS", "STACKS", "QUEUES",
     "TREES", "GRAPHS", "DYNAMIC_PROGRAMMING", "SORTING_SEARCHING",
+    "FUNDAMENTAL", "OTHER",
 ];
 
 interface TestCaseInput {
