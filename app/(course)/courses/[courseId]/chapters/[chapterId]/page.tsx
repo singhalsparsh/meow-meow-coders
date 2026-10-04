@@ -10,6 +10,9 @@ import { CourseProgressButton } from "./_components/course-progress-button";
 import { ChapterNav } from "./_components/chapter-nav";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
+import { Code2 } from "lucide-react";
+import { db } from "@/lib/db";
+import { CodingWorkspace } from "@/components/coding-workspace/coding-workspace";
 
 
 const ChapterIdPage = async (
@@ -40,6 +43,28 @@ const ChapterIdPage = async (
             chapterId: params.chapterId,
             courseId: params.courseId
         })
+
+    // In-browser DSA problem attached to this chapter (public cases only;
+    // hidden cases are fetched on Submit from the submission-suite endpoint).
+    let codingProblem: any = null;
+    try {
+        codingProblem = await db.codingProblem.findUnique({
+            where: { chapterId: params.chapterId },
+            include: {
+                testCases: {
+                    where: { isHidden: false },
+                    orderBy: { order: "asc" },
+                },
+                submissions: {
+                    where: { userId },
+                    orderBy: { createdAt: "desc" },
+                    take: 50,
+                },
+            },
+        });
+    } catch {
+        // Table may not exist yet
+    }
 
     if (!chapter || !course) {
         return redirect("/")
@@ -119,6 +144,22 @@ const ChapterIdPage = async (
                     {!!(chapter as any).leetcodeQuestions?.length && (
                         <div className="glass-card rounded-2xl p-6 mt-4">
                             <LeetcodeQuestions questions={(chapter as any).leetcodeQuestions} />
+                        </div>
+                    )}
+                    {!!codingProblem && (
+                        <div className="glass-card rounded-2xl p-6 mt-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Code2 className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="text-sm font-medium text-muted-foreground animated-underline">
+                                    Coding Challenge
+                                </h3>
+                            </div>
+                            <CodingWorkspace
+                                problem={codingProblem}
+                                submissions={codingProblem.submissions}
+                                courseId={params.courseId}
+                                chapterId={params.chapterId}
+                            />
                         </div>
                     )}
                 </div>

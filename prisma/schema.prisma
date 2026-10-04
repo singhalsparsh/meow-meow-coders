@@ -62,6 +62,7 @@ model Chapter {
   videoSources VideoSource[]
   leetcodeQuestions LeetCodeQuestion[]
   pdfNotes PdfNote[]
+  codingProblem CodingProblem?
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -175,4 +176,90 @@ model StripeCustomer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum DsaTopic {
+  ARRAYS
+  VECTORS
+  STRINGS
+  LINKED_LISTS
+  STACKS
+  QUEUES
+  TREES
+  GRAPHS
+  DYNAMIC_PROGRAMMING
+  SORTING_SEARCHING
+}
+
+enum SubmissionVerdict {
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  COMPILE_ERROR
+  RUNTIME_ERROR
+}
+
+model CodingProblem {
+  id              String      @id @default(uuid())
+  chapterId       String      @unique
+  chapter         Chapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  title           String
+  difficulty      Difficulty  @default(EASY)
+  topic           DsaTopic    @default(ARRAYS)
+
+  description     String      @db.Text
+  constraints     String?     @db.Text
+
+  // Starter code provided to the student in Monaco Editor
+  starterCode     String      @db.Text
+
+  // Hidden wrapper code containing class definitions (e.g., ListNode, TreeNode),
+  // input parsing, driver logic, and test harness execution
+  driverCode      String?     @db.Text
+
+  timeLimitMs     Int         @default(2000)
+
+  testCases       TestCase[]
+  submissions     ProblemSubmission[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model TestCase {
+  id              String        @id @default(uuid())
+  problemId       String
+  problem         CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  input           String        @db.Text
+  expectedOutput  String        @db.Text
+  explanation     String?       @db.Text
+  isHidden        Boolean       @default(false)
+  order           Int           @default(0)
+
+  createdAt       DateTime      @default(now())
+}
+
+model ProblemSubmission {
+  id              String             @id @default(uuid())
+  userId          String
+  problemId       String
+  problem         CodingProblem      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  code            String             @db.Text
+  status          SubmissionVerdict
+  passedCount     Int
+  totalCount      Int
+  runtimeMs       Float?
+
+  createdAt       DateTime           @default(now())
+
+  @@index([userId, problemId])
 }

@@ -10,6 +10,7 @@ import { ChapterDescriptionForm } from "./_components/chapter-description-form";
 import { ChapterVideoForm } from "./_components/chapter-video-form";
 import { LeetcodeForm } from "./_components/leetcode-form";
 import { PdfNotesForm } from "./_components/pdf-notes-form";
+import { CodingProblemForm } from "./_components/coding-problem-form";
 import { Banner } from "@/components/ui/banner";
 import { ChapterActions } from "./_components/chapter-actions";
 
@@ -65,6 +66,18 @@ const ChapterIdPage = async (
         // Table may not exist yet
     }
     (chapter as any).pdfNotes = pdfNotes;
+
+    // Fetch the attached coding problem separately so a missing table does not
+    // block the chapter editor.
+    let codingProblem: any = null;
+    try {
+        codingProblem = await db.codingProblem.findUnique({
+            where: { chapterId: params.chapterId },
+            include: { testCases: { orderBy: { order: "asc" } } },
+        });
+    } catch {
+        // Table may not exist yet
+    }
 
     // A chapter counts as having a video when it has a primary video OR at
     // least one streaming URL.
@@ -171,6 +184,12 @@ const ChapterIdPage = async (
 
                         <LeetcodeForm
                             initialData={{ leetcodeQuestions: (chapter as any).leetcodeQuestions ?? [] }}
+                            courseId={params.courseId}
+                            chapterId={params.chapterId}
+                        />
+
+                        <CodingProblemForm
+                            initialData={{ problem: codingProblem }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />
