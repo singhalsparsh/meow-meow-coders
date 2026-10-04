@@ -18,6 +18,8 @@ const VALID_VERDICTS: SubmissionVerdict[] = [
 // asked to persist rather than trusting it blindly: the verdict must be a real
 // enum value and the reported counts must line up with the problem's actual test
 // suite. Only a genuinely complete pass marks the chapter complete.
+//
+// The body carries `problemId` because a chapter may hold several problems.
 export async function POST(
     req: Request,
     props: { params: Promise<{ courseId: string; chapterId: string }> }
@@ -31,8 +33,11 @@ export async function POST(
         }
 
         const body = await req.json();
-        const { code, status, passedCount, totalCount, runtimeMs } = body ?? {};
+        const { problemId, code, status, passedCount, totalCount, runtimeMs } = body ?? {};
 
+        if (typeof problemId !== "string" || !problemId.trim()) {
+            return new NextResponse("problemId is required", { status: 400 });
+        }
         if (typeof code !== "string" || !code.trim()) {
             return new NextResponse("Code is required", { status: 400 });
         }
@@ -43,8 +48,10 @@ export async function POST(
             return new NextResponse("Invalid counts", { status: 400 });
         }
 
-        const problem = await db.codingProblem.findUnique({
-            where: { chapterId: params.chapterId },
+        // Scope to the chapter so a submission can't be attached to a problem
+        // the student isn't looking at.
+        const problem = await db.codingProblem.findFirst({
+            where: { id: problemId.trim(), chapterId: params.chapterId },
             select: { id: true, testCases: { select: { id: true } } },
         });
 
@@ -95,7 +102,10 @@ export async function POST(
 
         return NextResponse.json({ ...submission, isAccepted });
     } catch (error) {
-        console.log("[CODING_PROBLEM_SUBMIT]", error);
-        return new NextResponse("Internal error", { status: 500 });
+        console.error("[CODING_PROBLEM_SUBMIT]", error);
+        return new NextResponse(
+            error instanceof Error ? error.message : "Internal error",
+            { status: 500 }
+        );
     }
 }

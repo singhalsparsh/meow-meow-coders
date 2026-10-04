@@ -67,12 +67,13 @@ const ChapterIdPage = async (
     }
     (chapter as any).pdfNotes = pdfNotes;
 
-    // Fetch the attached coding problem separately so a missing table does not
-    // block the chapter editor.
-    let codingProblem: any = null;
+    // Fetch the chapter's coding problems separately so a missing table does not
+    // block the chapter editor. A chapter may hold several problems.
+    let codingProblems: any[] = [];
     try {
-        codingProblem = await db.codingProblem.findUnique({
+        codingProblems = await db.codingProblem.findMany({
             where: { chapterId: params.chapterId },
+            orderBy: { position: "asc" },
             include: { testCases: { orderBy: { order: "asc" } } },
         });
     } catch {
@@ -189,7 +190,7 @@ const ChapterIdPage = async (
                         />
 
                         <CodingProblemForm
-                            initialData={{ problem: codingProblem }}
+                            initialData={{ problems: codingProblems }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />

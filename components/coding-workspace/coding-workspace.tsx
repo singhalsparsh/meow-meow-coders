@@ -140,7 +140,7 @@ export function CodingWorkspace({
     setSubmitting(true);
     try {
       const { data: suite } = await axios.get(
-        `/api/courses/${courseId}/chapters/${chapterId}/problem/submission-suite`
+        `/api/courses/${courseId}/chapters/${chapterId}/problem/submission-suite?problemId=${problem.id}`
       );
 
       const cases: JudgeTestCase[] = (suite.testCases ?? []).map(
@@ -165,6 +165,7 @@ export function CodingWorkspace({
       const { data } = await axios.post(
         `/api/courses/${courseId}/chapters/${chapterId}/problem/submit`,
         {
+          problemId: problem.id,
           code,
           status: result.verdict,
           passedCount: result.passedCount,

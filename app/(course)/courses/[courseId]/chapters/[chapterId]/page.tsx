@@ -46,10 +46,11 @@ const ChapterIdPage = async (
 
     // In-browser DSA problem attached to this chapter (public cases only;
     // hidden cases are fetched on Submit from the submission-suite endpoint).
-    let codingProblem: any = null;
+    let codingProblems: any[] = [];
     try {
-        codingProblem = await db.codingProblem.findUnique({
+        codingProblems = await db.codingProblem.findMany({
             where: { chapterId: params.chapterId },
+            orderBy: { position: "asc" },
             include: {
                 testCases: {
                     where: { isHidden: false },
@@ -146,22 +147,22 @@ const ChapterIdPage = async (
                             <LeetcodeQuestions questions={(chapter as any).leetcodeQuestions} />
                         </div>
                     )}
-                    {!!codingProblem && (
-                        <div className="glass-card rounded-2xl p-6 mt-4">
+                    {codingProblems.map((problem, index) => (
+                        <div key={problem.id} className="glass-card rounded-2xl p-6 mt-4">
                             <div className="flex items-center gap-2 mb-3">
                                 <Code2 className="h-4 w-4 text-muted-foreground" />
                                 <h3 className="text-sm font-medium text-muted-foreground animated-underline">
-                                    Coding Challenge
+                                    {"Coding Challenge" + (codingProblems.length > 1 ? " " + (index + 1) : "")}
                                 </h3>
                             </div>
                             <CodingWorkspace
-                                problem={codingProblem}
-                                submissions={codingProblem.submissions}
+                                problem={problem}
+                                submissions={problem.submissions}
                                 courseId={params.courseId}
                                 chapterId={params.chapterId}
                             />
                         </div>
-                    )}
+                    ))}
                 </div>
                 <ChapterNav
                     courseId={params.courseId}

@@ -59,10 +59,10 @@ model Chapter {
 
   muxData MuxData?
 
-  videoSources VideoSource[]
+  videoSources      VideoSource[]
   leetcodeQuestions LeetCodeQuestion[]
-  pdfNotes PdfNote[]
-  codingProblem CodingProblem?
+  pdfNotes          PdfNote[]
+  codingProblems    CodingProblem[]
 
   courseId String
   course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -85,13 +85,13 @@ model MuxData {
 }
 
 model VideoSource {
-  id        String   @id @default(uuid())
-  src       String   @db.Text
-  title     String?
-  position  Int      @default(0)
+  id       String  @id @default(uuid())
+  src      String  @db.Text
+  title    String?
+  position Int     @default(0)
 
   chapterId String
-  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -111,8 +111,8 @@ model UserProgress {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([chapterId])
   @@unique([userId, chapterId])
+  @@index([chapterId])
 }
 
 model Purchase {
@@ -130,13 +130,13 @@ model Purchase {
 }
 
 model LeetCodeQuestion {
-  id        String  @id @default(uuid())
-  title     String
-  url       String? @db.Text // external link (LeetCode etc.) — null for custom questions
-  difficulty String  // Easy, Medium, Hard
-  tags      String? // comma-separated tags
-  notes     String? @db.Text // teacher notes for students
-  position  Int     @default(0)
+  id         String  @id @default(uuid())
+  title      String
+  url        String? @db.Text // external link (LeetCode etc.) — null for custom questions
+  difficulty String // Easy, Medium, Hard
+  tags       String? // comma-separated tags
+  notes      String? @db.Text // teacher notes for students
+  position   Int     @default(0)
 
   // Custom coding question fields (null for LeetCode link questions)
   problemStatement String? @db.Text
@@ -166,8 +166,6 @@ model PdfNote {
 
   @@index([chapterId])
 }
-
-
 
 model StripeCustomer {
   id               String @id @default(uuid())
@@ -206,60 +204,65 @@ enum SubmissionVerdict {
 }
 
 model CodingProblem {
-  id              String      @id @default(uuid())
-  chapterId       String      @unique
-  chapter         Chapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  id        String  @id @default(uuid())
+  chapterId String
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
-  title           String
-  difficulty      Difficulty  @default(EASY)
-  topic           DsaTopic    @default(ARRAYS)
+  title      String
+  difficulty Difficulty @default(EASY)
+  topic      DsaTopic   @default(ARRAYS)
 
-  description     String      @db.Text
-  constraints     String?     @db.Text
+  description String  @db.Text
+  constraints String? @db.Text
 
   // Starter code provided to the student in Monaco Editor
-  starterCode     String      @db.Text
+  starterCode String @db.Text
 
   // Hidden wrapper code containing class definitions (e.g., ListNode, TreeNode),
   // input parsing, driver logic, and test harness execution
-  driverCode      String?     @db.Text
+  driverCode String? @db.Text
 
-  timeLimitMs     Int         @default(2000)
+  timeLimitMs Int @default(2000)
 
-  testCases       TestCase[]
-  submissions     ProblemSubmission[]
+  // Ordering within a chapter, now that a chapter may hold several problems.
+  position Int @default(0)
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  testCases   TestCase[]
+  submissions ProblemSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([chapterId])
 }
 
 model TestCase {
-  id              String        @id @default(uuid())
-  problemId       String
-  problem         CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  id        String        @id @default(uuid())
+  problemId String
+  problem   CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
-  input           String        @db.Text
-  expectedOutput  String        @db.Text
-  explanation     String?       @db.Text
-  isHidden        Boolean       @default(false)
-  order           Int           @default(0)
+  input          String  @db.Text
+  expectedOutput String  @db.Text
+  explanation    String? @db.Text
+  isHidden       Boolean @default(false)
+  order          Int     @default(0)
 
-  createdAt       DateTime      @default(now())
+  createdAt DateTime @default(now())
 }
 
 model ProblemSubmission {
-  id              String             @id @default(uuid())
-  userId          String
-  problemId       String
-  problem         CodingProblem      @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  id        String        @id @default(uuid())
+  userId    String
+  problemId String
+  problem   CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
-  code            String             @db.Text
-  status          SubmissionVerdict
-  passedCount     Int
-  totalCount      Int
-  runtimeMs       Float?
+  code        String            @db.Text
+  status      SubmissionVerdict
+  passedCount Int
+  totalCount  Int
+  runtimeMs   Float?
 
-  createdAt       DateTime           @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId, problemId])
 }
