@@ -225,7 +225,9 @@ async function handleRequest(request: JudgeRequest) {
           language: "CPP",
           fileName: "solution.cpp",
           // Keep the student code reading like a driver-invoked compile.
-          compileArgs: ["-std=gnu++20", "-O2", "-ferror-limit=20"],
+          // The WASM clang build rejects `-ferror-limit` ("unknown argument"),
+          // so it is intentionally omitted here.
+          compileArgs: ["-std=gnu++20", "-O2"],
         })
       );
 
