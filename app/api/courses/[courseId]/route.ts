@@ -35,7 +35,7 @@ export async function DELETE(req: Request, props: { params: Promise<{ courseId: 
                 // Mux may be unconfigured (no MUX_TOKEN_ID/SECRET) — never
                 // let that block deleting the course.
                 try {
-                    await video().Assets.del(chapter.muxData.assetId)
+                    await (await video()).Assets.del(chapter.muxData.assetId)
                 } catch (error) {
                     console.log("[COURSE_ID_DELETE_MUX]", error)
                 }

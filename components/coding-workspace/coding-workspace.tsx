@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CheckCheck, Loader2, Play, RotateCcw } from "lucide-react";
+import { CheckCheck, ChevronDown, Code2, Loader2, Play, RotateCcw } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,9 @@ export function CodingWorkspace({
   const [isMobile, setIsMobile] = useState(false);
   const [leftWidth, setLeftWidth] = useState(42);
   const [editorHeight, setEditorHeight] = useState(58);
+  // Collapsed by default so the tall workspace only mounts once the learner
+  // opts in; otherwise it pushes the rest of the chapter far down the page.
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const judge = useCppJudge();
   const confetti = useConfettiStore();
@@ -243,6 +246,32 @@ export function CodingWorkspace({
 
   const loading = judge.status === "loading";
 
+  // Collapsed: show a compact summary row. The heavy editor + WASM toolchain
+  // only mount once the learner expands the challenge.
+  if (!isExpanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsExpanded(true)}
+        className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 p-4 text-left transition-all duration-200 hover:border-sky-300 hover:shadow-md dark:hover:border-sky-700"
+      >
+        <div className="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-xl bg-sky-100 dark:bg-sky-500/15">
+          <Code2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate text-sm font-semibold">{problem.title}</h3>
+            <DifficultyBadge difficulty={problem.difficulty} />
+          </div>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            Click to open the coding challenge
+          </p>
+        </div>
+        <ChevronDown className="h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-y-0.5" />
+      </button>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
@@ -261,6 +290,14 @@ export function CodingWorkspace({
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsExpanded(false)}
+            variant="ghost"
+            size="sm"
+          >
+            <ChevronDown className="h-3.5 w-3.5 rotate-180 sm:mr-1.5" />
+            <span className="hidden sm:inline">Collapse</span>
+          </Button>
           <Button
             onClick={handleReset}
             variant="ghost"

@@ -1,19 +1,18 @@
-import Mux from "@mux/mux-node";
+// The Mux SDK throws on import ("Cannot read properties of undefined (reading
+// 'prototype')") when MUX_TOKEN_ID / MUX_TOKEN_SECRET are absent, and it is
+// imported at module scope by several API routes — which made `next build`
+// fail while collecting route configuration. Deferring the import to first use
+// keeps the build green; the error only surfaces when a video is processed.
+let videoClient: any | null = null;
 
-let videoClient: ReturnType<typeof createVideoClient> | null = null;
-
-// Lazy singleton: constructed only when a route actually needs to talk to
-// Mux (video ingest / delete). Constructing at module scope used to make the
-// route modules throw — and `next build` fail — whenever MUX_TOKEN_ID /
-// MUX_TOKEN_SECRET were absent from the environment. With this, the error
-// surfaces only when a video is actually processed.
-function createVideoClient() {
+async function createVideoClient() {
   const tokenId = process.env.MUX_TOKEN_ID;
   const tokenSecret = process.env.MUX_TOKEN_SECRET;
   if (!tokenId || !tokenSecret) {
     throw new Error("MUX_TOKEN_ID and MUX_TOKEN_SECRET are not set");
   }
+  const { default: Mux } = await import("@mux/mux-node");
   return new Mux(tokenId, tokenSecret).Video;
 }
 
-export const video = () => (videoClient ??= createVideoClient());
+export const video = async () => (videoClient ??= await createVideoClient());

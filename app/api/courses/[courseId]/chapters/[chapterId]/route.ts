@@ -50,7 +50,7 @@ export async function DELETE(
                     // Mux may be unconfigured (no MUX_TOKEN_ID/SECRET) — never
                     // let that block deleting the chapter.
                     try {
-                        await video().Assets.del(existingMuxData.assetId)
+                        await (await video()).Assets.del(existingMuxData.assetId)
                     } catch (error) {
                         console.log("[CHAPTER_ID_DELETE_MUX]", error)
                     }
@@ -145,7 +145,7 @@ export async function PATCH(
                 if (existingMuxData) {
                     if (existingMuxData.assetId) {
                         try {
-                            await video().Assets.del(existingMuxData.assetId)
+                            await (await video()).Assets.del(existingMuxData.assetId)
                         } catch (error) {
                             console.log("[COURSES_CHAPTER_ID_MUX_DEL]", error)
                         }
@@ -158,7 +158,7 @@ export async function PATCH(
                 }
 
                 if (ingestToMux) {
-                    const asset = await video().Assets.create({
+                    const asset = await (await video()).Assets.create({
                         input: values.videoUrl,
                         playback_policy: "public",
                         test: false
