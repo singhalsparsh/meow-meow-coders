@@ -22,8 +22,12 @@ import { DifficultyBadge, TopicBadge } from "./badges";
 interface CodingWorkspaceProps {
   problem: CodingProblemPayload;
   submissions: ProblemSubmissionPayload[];
-  courseId: string;
-  chapterId: string;
+  // Base URL for this problem's API: a chapter passes its route, a test passes
+  // its own. The workspace is agnostic to which kind of assessment owns it.
+  apiBase: string;
+  // Fired when a submission is fully accepted. A test uses this to mark the
+  // problem solved in its own scoring; a lesson ignores it.
+  onAccepted?: () => void;
 }
 
 const MOBILE_BREAKPOINT = "(max-width: 768px)";
@@ -31,8 +35,8 @@ const MOBILE_BREAKPOINT = "(max-width: 768px)";
 export function CodingWorkspace({
   problem,
   submissions: initialSubmissions,
-  courseId,
-  chapterId,
+  apiBase,
+  onAccepted,
 }: CodingWorkspaceProps) {
   const storageKey = `cpp-code:${problem.id}`;
 
@@ -143,7 +147,7 @@ export function CodingWorkspace({
     setSubmitting(true);
     try {
       const { data: suite } = await axios.get(
-        `/api/courses/${courseId}/chapters/${chapterId}/problem/submission-suite?problemId=${problem.id}`
+        `${apiBase}/problem/submission-suite?problemId=${problem.id}`
       );
 
       const cases: JudgeTestCase[] = (suite.testCases ?? []).map(
@@ -166,7 +170,7 @@ export function CodingWorkspace({
       if (!result) return;
 
       const { data } = await axios.post(
-        `/api/courses/${courseId}/chapters/${chapterId}/problem/submit`,
+        `${apiBase}/problem/submit`,
         {
           problemId: problem.id,
           code,
@@ -192,7 +196,8 @@ export function CodingWorkspace({
 
       if (data.isAccepted) {
         confetti.onOpen();
-        toast.success("Accepted — chapter complete!");
+        toast.success("Accepted!");
+        onAccepted?.();
       } else {
         toast.error(VERDICT_LABEL[result.verdict]);
       }

@@ -63,8 +63,7 @@ interface CodingProblemDraft {
 
 interface CodingProblemFormProps {
   initialData: { problems: CodingProblemDraft[] };
-  courseId: string;
-  chapterId: string;
+  apiBase: string;
 }
 
 const DEFAULT_STARTER_CODE = `#include <iostream>
@@ -120,8 +119,7 @@ const blankProblem = (): CodingProblemDraft => ({
 
 export const CodingProblemForm = ({
   initialData,
-  courseId,
-  chapterId,
+  apiBase,
 }: CodingProblemFormProps) => {
   const router = useRouter();
 
@@ -155,7 +153,7 @@ export const CodingProblemForm = ({
     try {
       setBusyId(id);
       await axios.delete(
-        `/api/courses/${courseId}/chapters/${chapterId}/problem`,
+        `${apiBase}/problem`,
         { data: { id } }
       );
       toast.success("Problem deleted");
@@ -273,8 +271,7 @@ export const CodingProblemForm = ({
                 <ProblemEditor
                   key={pid}
                   draft={problem}
-                  courseId={courseId}
-                  chapterId={chapterId}
+                  apiBase={apiBase}
                   onCancel={() => {
                     if (isNew) {
                       setProblems((prev) => prev.filter((p) => (p.id as string) !== pid));
@@ -299,16 +296,14 @@ export const CodingProblemForm = ({
 
 interface ProblemEditorProps {
   draft: CodingProblemDraft;
-  courseId: string;
-  chapterId: string;
+  apiBase: string;
   onCancel: () => void;
   onSaved: (saved: CodingProblemDraft) => void;
 }
 
 const ProblemEditor = ({
   draft,
-  courseId,
-  chapterId,
+  apiBase,
   onCancel,
   onSaved,
 }: ProblemEditorProps) => {
@@ -364,7 +359,7 @@ const ProblemEditor = ({
     try {
       setSaving(true);
       const { data } = await axios.post(
-        `/api/courses/${courseId}/chapters/${chapterId}/problem`,
+        `${apiBase}/problem`,
         {
           // Omit the temp id on create; send the real id to update.
           ...(isNew ? {} : { id: form.id }),

@@ -160,8 +160,7 @@ const ChapterIdPage = async (
                             <CodingWorkspace
                                 problem={problem}
                                 submissions={problem.submissions}
-                                courseId={params.courseId}
-                                chapterId={params.chapterId}
+                                apiBase={`/api/courses/${params.courseId}/chapters/${params.chapterId}`}
                             />
                         </div>
                     ))}

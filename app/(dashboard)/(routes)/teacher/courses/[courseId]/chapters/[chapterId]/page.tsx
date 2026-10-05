@@ -191,8 +191,7 @@ const ChapterIdPage = async (
 
                         <CodingProblemForm
                             initialData={{ problems: codingProblems }}
-                            courseId={params.courseId}
-                            chapterId={params.chapterId}
+                            apiBase={`/api/courses/${params.courseId}/chapters/${params.chapterId}`}
                         />
                     </div>
                 </div>

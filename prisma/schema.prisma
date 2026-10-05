@@ -215,8 +215,13 @@ enum SubmissionVerdict {
 
 model CodingProblem {
   id        String  @id @default(uuid())
-  chapterId String
-  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  // A problem lives in exactly one place: a chapter lesson, or a standalone
+  // test. Both columns are nullable but the API always sets exactly one.
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  testId    String?
+  test      Test?    @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   title      String
   difficulty Difficulty @default(EASY)
@@ -244,6 +249,7 @@ model CodingProblem {
   updatedAt DateTime @updatedAt
 
   @@index([chapterId])
+  @@index([testId])
 }
 
 model TestCase {
@@ -275,4 +281,94 @@ model ProblemSubmission {
   createdAt DateTime @default(now())
 
   @@index([userId, problemId])
+}
+
+// ---------------------------------------------------------------------------
+// Standalone tests: a test is a self-contained assessment, independent of any
+// course/chapter. It mixes auto-graded MCQs (single- or multi-correct) with the
+// same coding problems used in lessons, graded by the same in-browser judge.
+
+model Test {
+  id          String  @id @default(uuid())
+  userId      String
+  title       String  @db.Text
+  description String? @db.Text
+  isPublished Boolean @default(false)
+
+  mcqs     TestMcq[]
+  problems CodingProblem[]
+  attempts TestAttempt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// One multiple-choice question. `correctOptionIds` holds the ids of the correct
+// options: exactly one entry => single-correct, several => multi-correct.
+model TestMcq {
+  id     String @id @default(uuid())
+  testId String
+  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  question         String   @db.Text
+  options          Json
+  correctOptionIds Json
+  explanation      String?  @db.Text
+  position         Int      @default(0)
+
+  answers TestAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([testId])
+}
+
+enum TestAttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+}
+
+// A learner`s sitting of one test. One per (test, user): re-opening a test
+// resumes the in-progress attempt rather than starting a new one.
+model TestAttempt {
+  id     String @id @default(uuid())
+  testId String
+  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  userId String
+
+  status      TestAttemptStatus @default(IN_PROGRESS)
+  score       Float             @default(0)
+  maxScore    Float             @default(0)
+  startedAt   DateTime          @default(now())
+  submittedAt DateTime?
+
+  answers TestAnswer[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([testId, userId])
+  @@index([testId])
+}
+
+// A graded answer to one MCQ within an attempt. Coding problems are not stored
+// here: their verdict comes from ProblemSubmission (same judge as lessons).
+model TestAnswer {
+  id        String @id @default(uuid())
+  attemptId String
+  attempt   TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  mcqId           String?
+  mcq             TestMcq?   @relation(fields: [mcqId], references: [id], onDelete: Cascade)
+  selectedOptionIds Json?
+  isCorrect       Boolean    @default(false)
+  awardedPoints   Float      @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([attemptId, mcqId])
+  @@index([attemptId])
 }
