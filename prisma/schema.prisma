@@ -57,6 +57,13 @@ model Chapter {
   isPublished Boolean @default(false)
   isFree      Boolean @default(false)
 
+  // Sub-lessons: a chapter with parentId = null is a top-level topic; a chapter
+  // with a parentId is a sub-lesson nested under it. Only one level of
+  // nesting is allowed; the API rejects a deeper chain.
+  parentId    String?
+  parent      Chapter?  @relation("SubChapters", fields: [parentId], references: [id], onDelete: Cascade)
+  subChapters Chapter[] @relation("SubChapters")
+
   muxData MuxData?
 
   videoSources      VideoSource[]
@@ -73,6 +80,7 @@ model Chapter {
   updatedAt DateTime @updatedAt
 
   @@index([courseId])
+  @@index([parentId])
 }
 
 model MuxData {

@@ -13,6 +13,9 @@ interface CourseMobileSidebarProps {
   course: Course & {
     chapters: (Chapter & {
       userProgress: UserProgress[] | null;
+      subChapters: (Chapter & {
+        userProgress: UserProgress[] | null;
+      })[];
     })[];
   };
   progressCount: number;

@@ -6,7 +6,7 @@ export async function POST(req: Request, props: { params: Promise<{ courseId: st
     const params = await props.params;
     try {
         const { userId } = await auth()
-        const { title } = await req.json()
+        const { title, parentId } = await req.json()
 
         if (!userId) {
             return new NextResponse("Unauthorized", { status: 401 });
@@ -24,9 +24,31 @@ export async function POST(req: Request, props: { params: Promise<{ courseId: st
             return new NextResponse("Internal error", { status: 500 });
         }
 
+        // Only one level of nesting is supported: a sub-lesson must attach to a
+        // top-level topic, never to another sub-lesson.
+        if (parentId) {
+            const parent = await db.chapter.findUnique({
+                where: {
+                    id: parentId,
+                    courseId: params.courseId,
+                },
+            });
+
+            if (!parent) {
+                return new NextResponse("Parent chapter not found", { status: 404 });
+            }
+
+            if (parent.parentId) {
+                return new NextResponse("Sub-lessons cannot be nested further", { status: 400 });
+            }
+        }
+
+        // Position counts up within the sibling group sharing the same parentId
+        // (null for top-level topics), so ordering is independent per group.
         const lastChapter = await db.chapter.findFirst({
             where: {
                 courseId: params.courseId,
+                parentId: parentId ?? null,
             },
             orderBy: {
                 position: "desc"
@@ -39,8 +61,8 @@ export async function POST(req: Request, props: { params: Promise<{ courseId: st
             data: {
                 title,
                 courseId: params.courseId,
+                parentId: parentId ?? null,
                 position: newPosition
-
             }
         })
 

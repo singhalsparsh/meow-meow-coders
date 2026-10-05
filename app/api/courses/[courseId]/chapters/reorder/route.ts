@@ -23,10 +23,15 @@ export async function PUT(req: Request, props: { params: Promise<{ courseId: str
             return new NextResponse("Internal error", { status: 500 });
         }
 
+        // Each item may carry a parentId so a chapter can be dragged between
+        // the top-level group (parentId = null) and a topic's sub-lesson list.
         for (let item of list) {
             await db.chapter.update({
                 where: { id: item.id },
-                data: { position: item.position }
+                data: {
+                    position: item.position,
+                    parentId: item.parentId ?? null,
+                }
             })
         }
 

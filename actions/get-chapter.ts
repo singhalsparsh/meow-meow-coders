@@ -109,31 +109,35 @@ export const getChapter = async ({
       (chapter as any).leetcodeQuestions = leetcodeQuestions;
       (chapter as any).pdfNotes = pdfNotes;
 
-      nextChapter = await db.chapter.findFirst({
+      // Chapters may be nested one level deep, and position is scoped to a
+      // sibling group, so previous/next must be derived from the flattened
+      // topic -> sub-lesson order rather than by comparing raw positions.
+      const allChapters = await db.chapter.findMany({
         where: {
           courseId: courseId,
           isPublished: true,
-          position: {
-            gt: chapter?.position,
-          }
         },
         orderBy: {
           position: "asc",
         }
       });
 
-      previousChapter = await db.chapter.findFirst({
-        where: {
-          courseId: courseId,
-          isPublished: true,
-          position: {
-            lt: chapter?.position,
-          }
-        },
-        orderBy: {
-          position: "desc",
-        }
-      });
+      const orderedChapters = allChapters
+        .filter((item) => item.parentId === null)
+        .flatMap((topic) => [
+          topic,
+          ...allChapters.filter((item) => item.parentId === topic.id),
+        ]);
+
+      const currentIndex = orderedChapters.findIndex((item) => item.id === chapterId);
+
+      nextChapter = currentIndex >= 0 && currentIndex < orderedChapters.length - 1
+        ? orderedChapters[currentIndex + 1]
+        : null;
+
+      previousChapter = currentIndex > 0
+        ? orderedChapters[currentIndex - 1]
+        : null;
 
     const userProgress = await db.userProgress.findUnique({
       where: {

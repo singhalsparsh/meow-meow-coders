@@ -14,11 +14,11 @@ import { toast } from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
-import { ChaptersList } from "./chapters-list"
+import { ChaptersList, ChapterWithSubs } from "./chapters-list"
 
 
 interface ChaptersFormProps {
-    initialData: Course & { chapters: Chapter[] };
+    initialData: Course & { chapters: ChapterWithSubs[] };
     courseId: string
 }
 
@@ -32,6 +32,7 @@ export const ChaptersForm = ({
 }: ChaptersFormProps) => {
     const [isCreating, setIsCreating] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [addingSubFor, setAddingSubFor] = useState<string | null>(null)
     const toggleCreating = () => {
         setIsCreating((current) => !current)
     }
@@ -52,13 +53,32 @@ export const ChaptersForm = ({
             await axios.post(`/api/courses/${courseId}/chapters`, values)
             toast.success("Chapter created")
             toggleCreating()
+            form.reset()
             router.refresh()
         } catch (error) {
             toast.error("Something went wrong")
         }
     }
 
-    const onReorder = async (updateData: { id: string; position: number }[]) => {
+    const onAddSubChapter = async (parentId: string) => {
+        const title = window.prompt("Sub-lesson title")
+        if (!title) {
+            setAddingSubFor(null)
+            return
+        }
+        try {
+            setAddingSubFor(parentId)
+            await axios.post(`/api/courses/${courseId}/chapters`, { title, parentId })
+            toast.success("Sub-lesson created")
+            router.refresh()
+        } catch (error) {
+            toast.error("Something went wrong")
+        } finally {
+            setAddingSubFor(null)
+        }
+    }
+
+    const onReorder = async (updateData: { id: string; position: number; parentId: string | null }[]) => {
         try {
             setIsUpdating(true)
             await axios.put(`/api/courses/${courseId}/chapters/reorder`, {
@@ -146,6 +166,23 @@ export const ChaptersForm = ({
                     items={initialData.chapters || []}
                 />
             </div>
+            {/* Sub-lesson creation: one affordance per top-level topic. */}
+            {initialData.chapters.length > 0 && (
+                <div className="mt-4 space-y-1">
+                    {initialData.chapters.map((chapter) => (
+                        <button
+                            key={chapter.id}
+                            type="button"
+                            disabled={addingSubFor === chapter.id}
+                            onClick={() => onAddSubChapter(chapter.id)}
+                            className="flex items-center text-xs text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition disabled:opacity-50"
+                        >
+                            <PlusCircle className="h-3 w-3 mr-1.5" />
+                            {addingSubFor === chapter.id ? "Adding..." : `Add sub-lesson to "${chapter.title}"`}
+                        </button>
+                    ))}
+                </div>
+            )}
             <p className="text-xs text-muted-foreground mt-4">Drag and drop to reorder the chapters.</p>
         </div>
     )

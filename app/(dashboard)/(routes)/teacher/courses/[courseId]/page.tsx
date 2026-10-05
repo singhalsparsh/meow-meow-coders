@@ -32,8 +32,18 @@ const CourseIdPage = async (
         },
         include: {
             chapters: {
+                where: {
+                    parentId: null,
+                },
                 orderBy: {
                     position: "asc"
+                },
+                include: {
+                    subChapters: {
+                        orderBy: {
+                            position: "asc"
+                        }
+                    }
                 }
             },
             attachments: {

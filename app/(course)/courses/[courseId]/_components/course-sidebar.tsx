@@ -12,6 +12,9 @@ interface CourseSidebarProps {
   course: Course & {
     chapters: (Chapter & {
       userProgress: UserProgress[] | null;
+      subChapters: (Chapter & {
+        userProgress: UserProgress[] | null;
+      })[];
     })[]
   };
   progressCount: number;
@@ -54,6 +57,21 @@ export const CourseSidebar = async ({
               courseId={course.id}
               isLocked={false}
             />
+            {chapter.subChapters?.length > 0 && (
+              <div className="flex flex-col gap-1 mt-0.5">
+                {chapter.subChapters.map((subChapter) => (
+                  <div key={subChapter.id} className="pl-5">
+                    <CourseSidebarItem
+                      id={subChapter.id}
+                      label={subChapter.title}
+                      isCompleted={!!subChapter.userProgress?.[0]?.isCompleted}
+                      courseId={course.id}
+                      isLocked={false}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
