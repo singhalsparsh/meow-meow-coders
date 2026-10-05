@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { File } from "lucide-react";
 import { CourseProgressButton } from "./_components/course-progress-button";
 import { ChapterNav } from "./_components/chapter-nav";
+import { ScrollToTop } from "./_components/scroll-to-top";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
 import { Code2 } from "lucide-react";
@@ -77,6 +78,7 @@ const ChapterIdPage = async (
 
     return (
         <div className="min-h-screen bg-page-gradient">
+            <ScrollToTop />
             {userProgress?.isCompleted && (
                 <Banner
                     variant="success"
