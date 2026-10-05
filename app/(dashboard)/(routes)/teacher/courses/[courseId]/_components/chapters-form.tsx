@@ -6,7 +6,7 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Loader2, PlusCircle } from "lucide-react"
-import { Chapter, Course } from "@prisma/client"
+import { Course } from "@prisma/client"
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
@@ -152,9 +152,6 @@ export const ChaptersForm = ({
                 </Form>
             )}
 
-            {/* The list stays mounted even while the create form is shown.
-                Unmounting/remounting the @hello-pangea/dnd tree while toggling
-                edit mode can throw "removeChild is not a child of this node". */}
             <div className={cn(
                 "text-sm mt-2",
                 !initialData.chapters.length && "text-slate-500 italic"
@@ -163,27 +160,12 @@ export const ChaptersForm = ({
                 <ChaptersList
                     onEdit={onEdit}
                     onReorder={onReorder}
+                    onAddSub={onAddSubChapter}
+                    addingSubFor={addingSubFor}
                     items={initialData.chapters || []}
                 />
             </div>
-            {/* Sub-lesson creation: one affordance per top-level topic. */}
-            {initialData.chapters.length > 0 && (
-                <div className="mt-4 space-y-1">
-                    {initialData.chapters.map((chapter) => (
-                        <button
-                            key={chapter.id}
-                            type="button"
-                            disabled={addingSubFor === chapter.id}
-                            onClick={() => onAddSubChapter(chapter.id)}
-                            className="flex items-center text-xs text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition disabled:opacity-50"
-                        >
-                            <PlusCircle className="h-3 w-3 mr-1.5" />
-                            {addingSubFor === chapter.id ? "Adding..." : `Add sub-lesson to "${chapter.title}"`}
-                        </button>
-                    ))}
-                </div>
-            )}
-            <p className="text-xs text-muted-foreground mt-4">Drag and drop to reorder the chapters.</p>
+            <p className="text-xs text-muted-foreground mt-4">Use the arrows to reorder. Press the + button on a topic to add a sub-lesson under it.</p>
         </div>
     )
 }
