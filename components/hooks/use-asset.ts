@@ -516,12 +516,24 @@ export function assetFeature(): MediaFeature<
             }
 
             if (media.autoplay && media.paused) {
-              if (get().asset.isFirstLoad) {
-                if (options?.autoplayFirst) {
+              try {
+                if (get().asset.isFirstLoad) {
+                  if (options?.autoplayFirst) {
+                    await get().playback.play()
+                  }
+                } else {
                   await get().playback.play()
                 }
-              } else {
-                await get().playback.play()
+              } catch (autoplayError) {
+                // Browsers block unmuted autoplay (NotAllowedError). This is
+                // not a load failure — the media loaded fine; the user can
+                // press play to start it. Don't let it trip error recovery.
+                if (
+                  !(autoplayError instanceof DOMException) ||
+                  autoplayError.name !== "NotAllowedError"
+                ) {
+                  throw autoplayError
+                }
               }
             }
 
