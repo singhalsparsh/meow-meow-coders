@@ -130,7 +130,9 @@ export function buildPlayerSources(opts: {
   fallbackTitle?: string | null;
   protect?: boolean;
 }): ProtectedSource[] {
-  const protect = opts.protect !== false;
+  // Proxy is disabled by default: we play the entered video URL directly to
+  // avoid spending server resources. Opt in with `protect: true` if wanted.
+  const protect = opts.protect === true;
   const list: ProtectedSource[] = [];
   const seen = new Set<string>();
 
