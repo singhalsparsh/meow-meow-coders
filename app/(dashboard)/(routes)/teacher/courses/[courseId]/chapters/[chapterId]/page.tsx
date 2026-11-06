@@ -2,7 +2,14 @@ import { IconBadge } from "@/components/icon-badge";
 import { db } from "@/lib/db";
 import { buildPlayerSources } from "@/lib/video-proxy";
 import { auth } from "@clerk/nextjs/server";
-import { ArrowLeft, LayoutDashboard, Video } from "lucide-react";
+import {
+  ArrowLeft,
+  BrainCircuit,
+  Code2,
+  FileText,
+  LayoutDashboard,
+  Video,
+} from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChapterTitleForm } from "./_components/chapter-title-form";
@@ -177,18 +184,30 @@ const ChapterIdPage = async (
                             chapterId={params.chapterId}
                         />
 
+                        <div className="mt-6 flex items-center gap-x-2">
+                            <IconBadge icon={FileText} />
+                            <h2 className="text-xl">PDF notes</h2>
+                        </div>
                         <PdfNotesForm
                             initialData={{ pdfNotes: (chapter as any).pdfNotes ?? [] }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />
 
+                        <div className="mt-6 flex items-center gap-x-2">
+                            <IconBadge icon={BrainCircuit} />
+                            <h2 className="text-xl">Extra practice questions</h2>
+                        </div>
                         <LeetcodeForm
                             initialData={{ leetcodeQuestions: (chapter as any).leetcodeQuestions ?? [] }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
                         />
 
+                        <div className="mt-6 flex items-center gap-x-2">
+                            <IconBadge icon={Code2} />
+                            <h2 className="text-xl">Coding problems</h2>
+                        </div>
                         <CodingProblemForm
                             initialData={{ problems: codingProblems }}
                             apiBase={`/api/courses/${params.courseId}/chapters/${params.chapterId}`}

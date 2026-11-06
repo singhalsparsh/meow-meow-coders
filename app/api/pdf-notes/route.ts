@@ -2,14 +2,33 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+function deriveTitle(url: string): string {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split("/").filter(Boolean);
+    let last = parts[parts.length - 1] ?? "";
+    last = decodeURIComponent(last).replace(/\.(pdf|PDF)$/, "");
+    if (last) return last.replace(/[-_]+/g, " ");
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
-    const { chapterId, title, url } = await req.json();
+    const { chapterId, url } = await req.json();
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
+
+    if (typeof url !== "string" || !url.trim()) {
+      return new NextResponse("URL is required", { status: 400 });
+    }
+
+    const title = typeof url === "string" ? deriveTitle(url.trim()) : "PDF Notes";
 
     const chapter = await db.chapter.findUnique({
       where: { id: chapterId },

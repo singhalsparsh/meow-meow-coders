@@ -151,7 +151,7 @@ export const ContextMenuProvider = ({ children }: { children: React.ReactNode })
             ref={menuRef}
             className={cn(
               "fixed min-w-[220px] py-2 rounded-2xl",
-              "bg-white/70 dark:bg-[#0f1423]/70",
+              "bg-white/70 dark:bg-[#1b1b1b]/80",
               "backdrop-blur-2xl",
               "border border-white/30 dark:border-white/[0.08]",
               "shadow-[0_8px_40px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.05)]",

@@ -259,8 +259,8 @@ export const MarkdownWriter = ({
   };
 
   return (
-    <div className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-700">
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-slate-50 px-1.5 py-1 dark:border-slate-700 dark:bg-slate-900">
+    <div className="overflow-hidden rounded-md border border-slate-200 dark:border-zinc-700">
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-slate-50 px-1.5 py-1 dark:border-zinc-700 dark:bg-zinc-900">
         {tools.map((tool) => (
           <button
             key={tool.label}
@@ -279,7 +279,7 @@ export const MarkdownWriter = ({
           className={cn(
             "ml-auto rounded p-1.5 transition-colors",
             preview
-              ? "bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-white"
+              ? "bg-slate-200 text-slate-900 dark:bg-zinc-800 dark:text-white"
               : "text-slate-500 hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
           )}
         >
@@ -287,7 +287,7 @@ export const MarkdownWriter = ({
         </button>
       </div>
       {preview ? (
-        <div className="min-h-[120px] rounded-b-md bg-white/60 p-3 text-sm text-slate-700 dark:bg-slate-900/50 dark:text-slate-200">
+        <div className="min-h-[120px] rounded-b-md bg-white/60 p-3 text-sm text-slate-700 dark:bg-zinc-900/50 dark:text-slate-200">
           <pre className="whitespace-pre-wrap font-mono text-xs">{value || "Nothing to preview yet."}</pre>
         </div>
       ) : (
@@ -298,7 +298,7 @@ export const MarkdownWriter = ({
           placeholder={placeholder}
           spellCheck={false}
           style={{ minHeight: `${minHeight}px` }}
-          className="block w-full resize-y bg-white px-3 py-2 font-mono text-xs text-slate-800 outline-none placeholder:text-slate-400 dark:bg-slate-950 dark:text-slate-200 dark:placeholder:text-slate-600"
+          className="block w-full resize-y bg-white px-3 py-2 font-mono text-xs text-slate-800 outline-none placeholder:text-slate-400 dark:bg-zinc-950 dark:text-slate-200 dark:placeholder:text-slate-600"
         />
       )}
     </div>

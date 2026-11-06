@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight,
@@ -242,7 +243,7 @@ export const CodingProblemForm = ({
             return (
               <div
                 key={pid}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 overflow-hidden"
+                className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white/40 dark:bg-zinc-800/30 overflow-hidden"
               >
                 <div className="flex items-center gap-2 p-2.5">
                   <button
@@ -251,7 +252,7 @@ export const CodingProblemForm = ({
                     className="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-75 transition"
                   >
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0">
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-700 text-muted-foreground shrink-0">
                       Q{index + 1}
                     </span>
                     <span className="text-sm font-medium truncate">
@@ -295,45 +296,50 @@ export const CodingProblemForm = ({
         </div>
       </div>
 
-      {/* Full-page modal editor — one question at a time */}
-      {activeProblem && (
-        <div
-          className="fixed inset-0 z-[60] overflow-y-auto bg-black/60 p-4 sm:p-8"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) closeEditor();
-          }}
-        >
-          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-950">
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3 dark:border-slate-700 dark:bg-slate-950">
-              <div className="flex items-center gap-2 min-w-0">
-                <Code2 className="h-4 w-4 text-muted-foreground shrink-0" />
-                <h3 className="truncate text-sm font-semibold">
-                  {activeProblem.title.trim() || "New coding question"}
-                </h3>
+      {/* Full-page modal editor — one question at a time. Rendered through a
+          portal to document.body so page-level transforms (the global
+          `main > *` entrance animation) can't shrink/offset `position: fixed`
+          into a small corner. */}
+      {activeProblem &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[80] overflow-y-auto bg-black/60 p-4 sm:p-8"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) closeEditor();
+            }}
+          >
+            <div className="mx-auto my-4 w-full max-w-5xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-zinc-700 dark:bg-zinc-950">
+              <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3 dark:border-zinc-700 dark:bg-zinc-950">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Code2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <h3 className="truncate text-sm font-semibold">
+                    {activeProblem.title.trim() || "New coding question"}
+                  </h3>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeEditor}
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={closeEditor}
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="px-5 pb-6 pt-3">
+                <ProblemEditor
+                  key={activeProblem.id}
+                  draft={activeProblem}
+                  apiBase={apiBase}
+                  onCancel={closeEditor}
+                  onSaved={(saved) => handleSaved(activeProblem.id as string, saved)}
+                />
+              </div>
             </div>
-            <div className="px-5 pb-6 pt-3">
-              <ProblemEditor
-                key={activeProblem.id}
-                draft={activeProblem}
-                apiBase={apiBase}
-                onCancel={closeEditor}
-                onSaved={(saved) => handleSaved(activeProblem.id as string, saved)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };
@@ -582,7 +588,7 @@ const ProblemEditor = ({
                 (what the student sees)
               </span>
             </label>
-            <div className="h-[220px] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-950">
+            <div className="h-[220px] rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-700 bg-slate-950">
               <CodeEditor
                 value={form.starterCode}
                 onChange={(v) => update("starterCode", v)}
@@ -595,13 +601,13 @@ const ProblemEditor = ({
               Driver / Wrapper Code{" "}
               <span className="font-normal opacity-70">
                 (hidden — inject with{" "}
-                <code className="text-[10px] bg-slate-200 dark:bg-slate-700 px-1 rounded">
+                <code className="text-[10px] bg-slate-200 dark:bg-zinc-700 px-1 rounded">
                   {"{{USER_CODE}}"}
                 </code>
                 )
               </span>
             </label>
-            <div className="h-[220px] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-950">
+            <div className="h-[220px] rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-700 bg-slate-950">
               <CodeEditor
                 value={form.driverCode}
                 onChange={(v) => update("driverCode", v)}
@@ -635,7 +641,7 @@ const ProblemEditor = ({
           {form.testCases.map((tc, index) => (
             <div
               key={tc.id}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/40 p-3 space-y-2"
+              className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white/50 dark:bg-zinc-800/40 p-3 space-y-2"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-muted-foreground">

@@ -31,39 +31,39 @@ export const PdfNotesForm = ({
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [notes, setNotes] = useState(initialData.pdfNotes);
-  const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const toggleAdd = () => {
     setIsAdding(!isAdding);
     if (!isAdding) {
-      setTitle("");
       setUrl("");
     }
   };
 
   const onSubmit = async () => {
     try {
-      if (!title.trim() || !url.trim()) {
-        toast.error("Title and URL are required");
+      if (!url.trim()) {
+        toast.error("PDF URL is required");
         return;
       }
 
+      setAdding(true);
       const res = await axios.post("/api/pdf-notes", {
         chapterId,
-        title: title.trim(),
         url: url.trim(),
       });
 
       setNotes([...notes, res.data]);
-      setTitle("");
       setUrl("");
       setIsAdding(false);
       toast.success("PDF note added");
       router.refresh();
     } catch {
       toast.error("Something went wrong");
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -99,22 +99,19 @@ export const PdfNotesForm = ({
       </div>
 
       {isAdding && (
-        <div className="mt-4 space-y-3 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+        <div className="mt-4 space-y-3 p-4 rounded-xl bg-white/50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700">
           <Input
-            placeholder="Title (e.g. Week 1 Lecture Notes)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <Input
-            placeholder="PDF URL (e.g. https://drive.google.com/file/d/...)"
+            placeholder="PDF URL (e.g. https://drive.google.com/file/d/...) or any direct PDF link"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            autoFocus
           />
           <p className="text-xs text-muted-foreground">
-            Paste a direct link to a PDF file. Works with Google Drive, Dropbox, or any direct PDF URL.
+            Just paste the PDF link — a title is picked automatically. Works with
+            Google Drive, Dropbox, or any direct PDF URL.
           </p>
-          <Button onClick={onSubmit} size="sm">
-            Add PDF Note
+          <Button onClick={onSubmit} size="sm" disabled={adding}>
+            {adding ? "Adding…" : "Add PDF Note"}
           </Button>
         </div>
       )}

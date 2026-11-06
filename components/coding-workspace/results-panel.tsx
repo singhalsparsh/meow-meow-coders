@@ -148,7 +148,13 @@ export function ResultsPanel({
 
           <div className="flex-1 overflow-y-auto p-3">
             {!result ? (
-              <EmptyConsole problem={problem} />
+              <SampleConsole
+                problem={problem}
+                activeId={activeId}
+                onRun={() => {
+                  if (activeId) onRunCase(activeId);
+                }}
+              />
             ) : result.compileError ? (
               <CompileError output={result.compileError} />
             ) : !activeResult ? (
@@ -177,17 +183,62 @@ function activeId2(current: string, tabs: { id: string }[]) {
   return tabs.some((t) => t.id === current) ? current : tabs[0]?.id ?? "";
 }
 
-function EmptyConsole({ problem }: { problem: CodingProblemPayload }) {
+function SampleConsole({
+  problem,
+  activeId,
+  onRun,
+}: {
+  problem: CodingProblemPayload;
+  activeId: string | null;
+  onRun: () => void;
+}) {
+  const tc = problem.testCases.find((t) => t.id === activeId) ?? problem.testCases[0];
+
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 py-8 text-center">
-      <Terminal className="h-8 w-8 text-muted-foreground/50" />
-      <p className="text-sm text-muted-foreground">
-        Press <span className="font-medium text-foreground">Run</span> to test
-        your code against the sample cases.
-      </p>
-      <p className="text-xs text-muted-foreground/70">
-        Time limit: {problem.timeLimitMs} ms per case
-      </p>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-medium text-foreground">Sample test case</p>
+          <p className="text-xs text-muted-foreground">
+            Time limit: {problem.timeLimitMs} ms
+          </p>
+        </div>
+        <Button
+          type="button"
+          onClick={onRun}
+          variant="outline"
+          size="sm"
+          className="h-7"
+        >
+          <Play className="h-3 w-3 mr-1" />
+          Run
+        </Button>
+      </div>
+
+      {tc ? (
+        <>
+          <Field label="Input">
+            <Pre>{tc.input || "(empty)"}</Pre>
+          </Field>
+          <Field label="Expected Output">
+            <Pre>{tc.expectedOutput || "(empty)"}</Pre>
+          </Field>
+          {tc.explanation && (
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Explanation: </span>
+              {tc.explanation}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Edit the input after your first run, then press Run to test your
+            solution against it.
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          No sample cases are provided for this problem.
+        </p>
+      )}
     </div>
   );
 }

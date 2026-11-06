@@ -183,7 +183,7 @@ export const LeetcodeForm = ({
       <div className="font-medium flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Code2 className="h-4 w-4 text-muted-foreground" />
-          <span>Questions</span>
+          <span>Extra Practice Questions</span>
         </div>
         <Button onClick={toggleAdd} variant="ghost" size="sm">
           {isAdding ? "Cancel" : (
@@ -197,7 +197,7 @@ export const LeetcodeForm = ({
 
       {/* Add form */}
       {isAdding && (
-        <div className="mt-4 space-y-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+        <div className="mt-4 space-y-4 p-4 rounded-xl bg-white/50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700">
           {/* Type toggle */}
           <div className="flex gap-2">
             <Button
@@ -298,7 +298,7 @@ export const LeetcodeForm = ({
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Test Cases</label>
                 <div className="space-y-3">
                   {customForm.testCases.map((tc, index) => (
-                    <div key={index} className="p-3 rounded-lg bg-white/30 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 space-y-2">
+                    <div key={index} className="p-3 rounded-lg bg-white/30 dark:bg-zinc-900/50 border border-slate-200 dark:border-zinc-700/50 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-muted-foreground">Test Case {index + 1}</span>
                         {customForm.testCases.length > 1 && (
@@ -365,7 +365,7 @@ export const LeetcodeForm = ({
             }
 
             return (
-              <div key={q.id} className="rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 overflow-hidden group">
+              <div key={q.id} className="rounded-xl bg-white/50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/50 overflow-hidden group">
                 <div className="flex items-center gap-3 p-3 hover:shadow-sm transition-all">
                   {custom && (
                     <button
@@ -411,7 +411,7 @@ export const LeetcodeForm = ({
 
                 {/* Expanded custom question details */}
                 {custom && isExpanded && (
-                  <div className="px-3 pb-3 space-y-3 border-t border-slate-200 dark:border-slate-700/50">
+                  <div className="px-3 pb-3 space-y-3 border-t border-slate-200 dark:border-zinc-700/50">
                     <div className="mt-3">
                       <h4 className="text-xs font-medium text-muted-foreground mb-1">Problem</h4>
                       <p className="text-sm whitespace-pre-wrap">{q.problemStatement}</p>
@@ -421,7 +421,7 @@ export const LeetcodeForm = ({
                         <h4 className="text-xs font-medium text-muted-foreground mb-1">Test Cases</h4>
                         <div className="space-y-2">
                           {parsedTestCases.map((tc, i) => (
-                            <div key={i} className="p-2 rounded-lg bg-white/30 dark:bg-slate-900/50 text-xs font-mono space-y-1">
+                            <div key={i} className="p-2 rounded-lg bg-white/30 dark:bg-zinc-900/50 text-xs font-mono space-y-1">
                               <div><span className="text-muted-foreground">Input:</span> {tc.input}</div>
                               <div><span className="text-muted-foreground">Output:</span> {tc.expectedOutput}</div>
                               {tc.explanation && <div><span className="text-muted-foreground">Note:</span> {tc.explanation}</div>}
@@ -433,7 +433,7 @@ export const LeetcodeForm = ({
                     {q.solution && (
                       <div>
                         <h4 className="text-xs font-medium text-muted-foreground mb-1">Solution</h4>
-                        <pre className="p-2 rounded-lg bg-white/30 dark:bg-slate-900/50 text-xs font-mono whitespace-pre-wrap overflow-x-auto">{q.solution}</pre>
+                        <pre className="p-2 rounded-lg bg-white/30 dark:bg-zinc-900/50 text-xs font-mono whitespace-pre-wrap overflow-x-auto">{q.solution}</pre>
                       </div>
                     )}
                   </div>
