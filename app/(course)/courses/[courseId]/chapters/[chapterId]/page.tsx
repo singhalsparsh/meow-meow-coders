@@ -36,9 +36,12 @@ const ChapterIdPage = async (
 
     // In-browser DSA problem attached to this chapter (public cases only;
     // hidden cases are fetched on Submit from the submission-suite endpoint).
+    // Rows are mapped to plain serializable objects (no Dates) before being
+    // passed to the client LessonShell — raw Prisma rows with Date fields
+    // cannot be serialized into client-component props and make the page error.
     let codingProblems: any[] = [];
     try {
-        codingProblems = await db.codingProblem.findMany({
+        const rows = await db.codingProblem.findMany({
             where: { chapterId: params.chapterId },
             orderBy: { position: "asc" },
             include: {
@@ -53,9 +56,63 @@ const ChapterIdPage = async (
                 },
             },
         });
+
+        codingProblems = rows.map((p) => ({
+            id: p.id,
+            chapterId: p.chapterId ?? "",
+            title: p.title,
+            difficulty: p.difficulty,
+            topic: p.topic,
+            description: p.description,
+            constraints: p.constraints,
+            solution: p.solution,
+            starterCode: p.starterCode,
+            driverCode: p.driverCode,
+            timeLimitMs: p.timeLimitMs,
+            position: p.position,
+            testCases: p.testCases.map((tc) => ({
+                id: tc.id,
+                input: tc.input,
+                expectedOutput: tc.expectedOutput,
+                explanation: tc.explanation,
+                isHidden: tc.isHidden,
+                order: tc.order,
+            })),
+            submissions: p.submissions.map((s) => ({
+                id: s.id,
+                status: s.status,
+                passedCount: s.passedCount,
+                totalCount: s.totalCount,
+                runtimeMs: s.runtimeMs,
+                createdAt: s.createdAt.toISOString(),
+            })),
+        }));
     } catch {
         // Table may not exist yet
     }
+
+    // Same story for PDF notes and extra-practice questions attached to the
+    // raw chapter object — flatten to plain serializable objects.
+    const pdfNotes = ((chapter as any).pdfNotes || []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        url: n.url,
+        position: n.position,
+    }));
+    const leetcodeQuestions = ((chapter as any).leetcodeQuestions || []).map(
+        (q: any) => ({
+            id: q.id,
+            title: q.title,
+            url: q.url,
+            difficulty: q.difficulty,
+            tags: q.tags,
+            notes: q.notes,
+            position: q.position,
+            problemStatement: q.problemStatement,
+            testCases: q.testCases,
+            solution: q.solution,
+        })
+    );
 
     if (!chapter || !course) {
         return redirect("/")
@@ -91,8 +148,8 @@ const ChapterIdPage = async (
                 isLocked={isLocked}
                 completeOnEnd={completeOnEnd}
                 attachments={attachments.map((a) => ({ id: a.id, name: a.name, url: a.url }))}
-                pdfNotes={(chapter as any).pdfNotes || []}
-                leetcodeQuestions={(chapter as any).leetcodeQuestions || []}
+                pdfNotes={pdfNotes}
+                leetcodeQuestions={leetcodeQuestions}
                 codingProblems={codingProblems}
             />
         </div>
