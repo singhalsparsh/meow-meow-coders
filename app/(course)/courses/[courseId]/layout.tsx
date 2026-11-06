@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
+import { getProgress } from "@/actions/get-progress";
 import {
   findStaticCourse,
   type StaticChapterTree,
@@ -30,50 +31,76 @@ const CourseLayout = async (
     return redirect("/")
   }
 
-  // Course content is static; only per-user progress is read from the DB.
-  const course = findStaticCourse(params.courseId);
+  const staticCourse = findStaticCourse(params.courseId);
 
-  if (!course) {
-    return redirect("/");
-  }
+  let courseTree: StaticCourseTree;
+  let progressCount: number;
 
-  // Full published lesson tree: top-level topics -> sub-lessons.
-  const topics = course.chapters.filter(
-    (ch) => ch.parentId === null && ch.isPublished,
-  );
-  const chapterIds: string[] = [];
-  const treeChapters: StaticChapterTree[] = topics.map((topic) => {
-    chapterIds.push(topic.id);
-    const subChapters = course.chapters
-      .filter((sub) => sub.parentId === topic.id && sub.isPublished)
-      .map((sub) => ({ ...sub, userProgress: null }));
-    for (const sub of subChapters) chapterIds.push(sub.id);
-    return { ...topic, userProgress: null, subChapters };
-  });
+  if (staticCourse) {
+    // Static path: content from the snapshot, only per-user progress from the DB.
+    const topics = staticCourse.chapters.filter(
+      (ch) => ch.parentId === null && ch.isPublished,
+    );
+    const chapterIds: string[] = [];
+    const treeChapters: StaticChapterTree[] = topics.map((topic) => {
+      chapterIds.push(topic.id);
+      const subChapters = staticCourse.chapters
+        .filter((sub) => sub.parentId === topic.id && sub.isPublished)
+        .map((sub) => ({ ...sub, userProgress: null }));
+      for (const sub of subChapters) chapterIds.push(sub.id);
+      return { ...topic, userProgress: null, subChapters };
+    });
 
-  // One small per-user query for the whole course instead of a big join.
-  const completedRows = await db.userProgress.findMany({
-    where: { userId, chapterId: { in: chapterIds }, isCompleted: true },
-    select: { chapterId: true },
-  });
-  const completed = new Set(completedRows.map((r) => r.chapterId));
+    const completedRows = await db.userProgress.findMany({
+      where: { userId, chapterId: { in: chapterIds }, isCompleted: true },
+      select: { chapterId: true },
+    });
+    const completed = new Set(completedRows.map((r) => r.chapterId));
 
-  const courseTree: StaticCourseTree = {
-    ...course,
-    chapters: treeChapters.map((topic) => ({
-      ...topic,
-      userProgress: completed.has(topic.id) ? [{ isCompleted: true }] : null,
-      subChapters: topic.subChapters.map((sub) => ({
-        ...sub,
-        userProgress: completed.has(sub.id) ? [{ isCompleted: true }] : null,
+    courseTree = {
+      ...staticCourse,
+      chapters: treeChapters.map((topic) => ({
+        ...topic,
+        userProgress: completed.has(topic.id) ? [{ isCompleted: true }] : null,
+        subChapters: topic.subChapters.map((sub) => ({
+          ...sub,
+          userProgress: completed.has(sub.id) ? [{ isCompleted: true }] : null,
+        })),
       })),
-    })),
-  };
+    };
 
-  const progressCount =
-    chapterIds.length === 0
-      ? 0
-      : Math.round((completed.size / chapterIds.length) * 100);
+    progressCount =
+      chapterIds.length === 0
+        ? 0
+        : Math.round((completed.size / chapterIds.length) * 100);
+  } else {
+    // Fallback: course is not yet in the static snapshot (newly created /
+    // edited), so load it from the DB with the original join + progress query.
+    const dbCourse = await db.course.findUnique({
+      where: { id: params.courseId },
+      include: {
+        chapters: {
+          where: { isPublished: true, parentId: null },
+          include: {
+            userProgress: { where: { userId } },
+            subChapters: {
+              where: { isPublished: true },
+              include: { userProgress: { where: { userId } } },
+              orderBy: { position: "asc" },
+            },
+          },
+          orderBy: { position: "asc" },
+        },
+      },
+    });
+
+    if (!dbCourse) {
+      return redirect("/");
+    }
+
+    progressCount = await getProgress(userId, dbCourse.id);
+    courseTree = dbCourse as unknown as StaticCourseTree;
+  }
 
   return (
     <CourseLayoutShell

@@ -19,14 +19,81 @@ const ProblemPage = async (
     return redirect("/");
   }
 
-  // Problem + chapter content are static; only per-user submissions hit the DB.
-  const problem = findCodingProblem(params.problemId);
+  // Problem + chapter content are static when present in the snapshot;
+  // newly created/edited problems fall back to the DB. Submissions are always
+  // per-user, so they come from the DB in both cases.
+  let payload: CodingProblemPayload | null = null;
+  let chapterTitle: string | undefined;
 
-  if (!problem) {
-    return redirect(`/courses/${params.courseId}/chapters/${params.chapterId}`);
+  const staticProblem = findCodingProblem(params.problemId);
+
+  if (staticProblem) {
+    const chapter = findStaticChapter(params.courseId, params.chapterId);
+    chapterTitle = chapter?.title;
+    payload = {
+      id: staticProblem.id,
+      chapterId: staticProblem.chapterId,
+      title: staticProblem.title,
+      difficulty: staticProblem.difficulty,
+      topic: staticProblem.topic,
+      description: staticProblem.description,
+      constraints: staticProblem.constraints,
+      solution: staticProblem.solution,
+      starterCode: staticProblem.starterCode,
+      driverCode: staticProblem.driverCode,
+      timeLimitMs: staticProblem.timeLimitMs,
+      testCases: staticProblem.testCases.map((tc) => ({
+        id: tc.id,
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+        explanation: tc.explanation,
+        isHidden: tc.isHidden,
+        order: tc.order,
+      })),
+    };
+  } else {
+    const problem = await db.codingProblem.findUnique({
+      where: { id: params.problemId },
+      include: {
+        testCases: {
+          where: { isHidden: false },
+          orderBy: { order: "asc" },
+        },
+      },
+    });
+
+    if (!problem) {
+      return redirect(`/courses/${params.courseId}/chapters/${params.chapterId}`);
+    }
+
+    const chapter = await db.chapter.findUnique({
+      where: { id: params.chapterId },
+      select: { title: true },
+    });
+    chapterTitle = chapter?.title ?? undefined;
+
+    payload = {
+      id: problem.id,
+      chapterId: problem.chapterId ?? "",
+      title: problem.title,
+      difficulty: problem.difficulty,
+      topic: problem.topic,
+      description: problem.description,
+      constraints: problem.constraints,
+      solution: problem.solution,
+      starterCode: problem.starterCode,
+      driverCode: problem.driverCode,
+      timeLimitMs: problem.timeLimitMs,
+      testCases: problem.testCases.map((tc) => ({
+        id: tc.id,
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+        explanation: tc.explanation,
+        isHidden: tc.isHidden,
+        order: tc.order,
+      })),
+    };
   }
-
-  const chapter = findStaticChapter(params.courseId, params.chapterId);
 
   const submissions: ProblemSubmissionPayload[] = await db.problemSubmission
     .findMany({
@@ -46,28 +113,6 @@ const ProblemPage = async (
     )
     .catch(() => []);
 
-  const payload: CodingProblemPayload = {
-    id: problem.id,
-    chapterId: problem.chapterId,
-    title: problem.title,
-    difficulty: problem.difficulty,
-    topic: problem.topic,
-    description: problem.description,
-    constraints: problem.constraints,
-    solution: problem.solution,
-    starterCode: problem.starterCode,
-    driverCode: problem.driverCode,
-    timeLimitMs: problem.timeLimitMs,
-    testCases: problem.testCases.map((tc) => ({
-      id: tc.id,
-      input: tc.input,
-      expectedOutput: tc.expectedOutput,
-      explanation: tc.explanation,
-      isHidden: tc.isHidden,
-      order: tc.order,
-    })),
-  };
-
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col">
       <div className="flex items-center gap-3 border-b border-border bg-card px-4 sm:px-6 h-12 flex-shrink-0">
@@ -77,13 +122,13 @@ const ProblemPage = async (
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline truncate max-w-[180px]">
-            {chapter?.title ?? "Lesson"}
+            {chapterTitle ?? "Lesson"}
           </span>
         </Link>
         <div className="flex items-center gap-2 min-w-0">
           <Code2 className="h-4 w-4 text-primary flex-shrink-0" />
           <h1 className="truncate text-sm font-semibold text-foreground">
-            {problem.title}
+            {payload.title}
           </h1>
         </div>
       </div>

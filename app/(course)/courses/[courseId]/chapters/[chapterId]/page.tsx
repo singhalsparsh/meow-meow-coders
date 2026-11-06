@@ -1,5 +1,6 @@
 import { getChapter } from "@/actions/get-chapter";
 import { getChapterCodingProblems } from "@/lib/content";
+import { db } from "@/lib/db";
 import { Banner } from "@/components/ui/banner";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
@@ -18,16 +19,62 @@ const ChapterIdPage = async (
         return redirect("/")
     }
 
-    // Chapter content (video/attachments/notes/questions) is static; only the
-    // per-user progress comes from the DB (via getChapter). Coding problems are
-    // also static here — hidden test cases are fetched by the submit endpoint.
+    // Chapter content (video/attachments/notes/questions) is static for content
+    // in the snapshot; newly created/edited chapters fall back to the DB (via
+    // getChapter's contentSource). Coding problems follow the same rule.
     const chapterData = await getChapter({
         userId,
         chapterId: params.chapterId,
         courseId: params.courseId,
     });
 
-    const codingProblems = getChapterCodingProblems(params.chapterId);
+    const { contentSource } = chapterData;
+
+    let codingProblems: any[];
+    if (contentSource === "static") {
+        codingProblems = getChapterCodingProblems(params.chapterId);
+    } else if (chapterData.chapter) {
+        // DB fallback: chapter is not in the static snapshot. Public cases only;
+        // hidden cases are fetched on Submit by the submission-suite endpoint.
+        codingProblems = await db.codingProblem
+            .findMany({
+                where: { chapterId: params.chapterId },
+                orderBy: { position: "asc" },
+                include: {
+                    testCases: {
+                        where: { isHidden: false },
+                        orderBy: { order: "asc" },
+                    },
+                },
+            })
+            .then((rows) =>
+                rows.map((p) => ({
+                    id: p.id,
+                    chapterId: p.chapterId ?? "",
+                    title: p.title,
+                    difficulty: p.difficulty,
+                    topic: p.topic,
+                    description: p.description,
+                    constraints: p.constraints,
+                    solution: p.solution,
+                    starterCode: p.starterCode,
+                    driverCode: p.driverCode,
+                    timeLimitMs: p.timeLimitMs,
+                    position: p.position,
+                    testCases: p.testCases.map((tc) => ({
+                        id: tc.id,
+                        input: tc.input,
+                        expectedOutput: tc.expectedOutput,
+                        explanation: tc.explanation,
+                        isHidden: tc.isHidden,
+                        order: tc.order,
+                    })),
+                })),
+            )
+            .catch(() => []);
+    } else {
+        codingProblems = [];
+    }
 
     const {
         chapter,

@@ -1,7 +1,15 @@
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
+import { db } from "@/lib/db";
 import { findStaticCourse } from "@/lib/content"
+
+type CourseRedirectSource = {
+  id: string;
+  userId: string;
+  isPublished: boolean;
+  chapters: { id: string; isPublished: boolean }[];
+};
 
 const CourseIdPage = async (
     props: {
@@ -11,8 +19,18 @@ const CourseIdPage = async (
     const params = await props.params;
     const { userId } = await auth()
 
-    // Course content is static — no DB read needed here.
-    const course = findStaticCourse(params.courseId)
+    // Course content is static; only fall back to the DB for content that is
+    // not yet in the static snapshot (newly created / edited courses).
+    let course: CourseRedirectSource | null = findStaticCourse(params.courseId) ?? null;
+
+    if (!course) {
+        course = await db.course.findUnique({
+            where: { id: params.courseId },
+            include: {
+                chapters: { orderBy: { position: "asc" } },
+            },
+        });
+    }
 
     if (!course) {
         return redirect("/")
