@@ -53,34 +53,34 @@ body,
   }
 
   .dark {
-    /* Neutral, monochrome dark palette */
-    --background: 220 18% 7%;
-    --foreground: 214 15% 95%;
+    /* Neutral, monochrome dark palette — true black/gray, no navy tint */
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
 
-    --card: 220 16% 10%;
-    --card-foreground: 214 15% 95%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 220 18% 9%;
-    --popover-foreground: 214 15% 95%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 214 15% 96%;
-    --primary-foreground: 220 20% 8%;
+    --primary: 0 0% 96%;
+    --primary-foreground: 0 0% 8%;
 
-    --secondary: 222 14% 16%;
-    --secondary-foreground: 214 15% 92%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 222 14% 15%;
-    --muted-foreground: 218 12% 62%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 62%;
 
-    --accent: 222 14% 17%;
-    --accent-foreground: 214 15% 92%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 92%;
 
     --destructive: 0 60% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 12% 18%;
-    --input: 220 12% 18%;
-    --ring: 214 15% 96%;
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 0 0% 96%;
 
     --lp-accent: oklch(0.97 0 0);
     --lp-primary: oklch(0.205 0 0);
@@ -171,7 +171,7 @@ body,
 
 /* Subtle gradient background — soft, neutral elevation */
 .dark .bg-page-gradient {
-  background: linear-gradient(180deg, hsl(226, 30%, 10%) 0%, hsl(226, 30%, 8%) 45%, hsl(226, 30%, 8%) 100%);
+  background: linear-gradient(180deg, hsl(0, 0%, 6%) 0%, hsl(0, 0%, 4%) 45%, hsl(0, 0%, 4%) 100%);
 }
 
 .bg-page-gradient {
@@ -445,64 +445,64 @@ main > * {
   background: rgba(255, 255, 255, 0.18);
 }
 
-/* Quill editor dark mode */
+/* Quill editor dark mode — neutral black surfaces */
 .dark .ql-toolbar.ql-snow {
-  background: hsl(224, 35%, 10%);
-  border-color: hsl(223, 25%, 14%);
-  color: hsl(210, 40%, 80%);
+  background: hsl(0, 0%, 9%);
+  border-color: hsl(0, 0%, 12%);
+  color: hsl(0, 0%, 80%);
 }
 
 .dark .ql-container.ql-snow {
-  border-color: hsl(223, 25%, 14%);
-  background: hsl(224, 35%, 8%);
-  color: hsl(210, 40%, 90%);
+  border-color: hsl(0, 0%, 12%);
+  background: hsl(0, 0%, 6%);
+  color: hsl(0, 0%, 90%);
 }
 
 .dark .ql-editor.ql-blank::before {
-  color: hsl(215, 18%, 45%);
+  color: hsl(0, 0%, 45%);
 }
 
 .dark .ql-snow .ql-stroke {
-  stroke: hsl(215, 18%, 55%);
+  stroke: hsl(0, 0%, 55%);
 }
 
 .dark .ql-snow .ql-fill {
-  fill: hsl(215, 18%, 55%);
+  fill: hsl(0, 0%, 55%);
 }
 
 .dark .ql-snow .ql-picker-label {
-  color: hsl(210, 40%, 80%);
+  color: hsl(0, 0%, 80%);
 }
 
 .dark .ql-snow .ql-picker-options {
-  background: hsl(224, 35%, 10%);
-  border-color: hsl(223, 25%, 14%);
+  background: hsl(0, 0%, 9%);
+  border-color: hsl(0, 0%, 12%);
 }
 
 .dark .ql-snow .ql-picker-item {
-  color: hsl(210, 40%, 80%);
+  color: hsl(0, 0%, 80%);
 }
 
 .dark .ql-snow a {
-  color: hsl(213, 94%, 68%);
+  color: hsl(0, 0%, 70%);
 }
 
 .dark .ql-snow .ql-active .ql-stroke {
-  stroke: hsl(213, 94%, 68%);
+  stroke: hsl(0, 0%, 90%);
 }
 
 .dark .ql-snow .ql-active .ql-fill {
-  fill: hsl(213, 94%, 68%);
+  fill: hsl(0, 0%, 90%);
 }
 
 .dark .ql-snow .ql-active {
-  color: hsl(213, 94%, 68%);
+  color: hsl(0, 0%, 90%);
 }
 
 .dark .ql-editor pre,
 .dark .ql-editor code {
-  background: hsl(223, 25%, 12%);
-  color: hsl(210, 40%, 85%);
+  background: hsl(0, 0%, 10%);
+  color: hsl(0, 0%, 85%);
 }
 
 /* Ensure shadcn table borders work in dark mode */

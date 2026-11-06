@@ -7,8 +7,6 @@ import {
   ChevronDown,
   ChevronRight,
   Code2,
-  Eye,
-  EyeOff,
   Pencil,
   Plus,
   RotateCcw,
@@ -17,9 +15,9 @@ import {
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import ReactMarkdown from "react-markdown";
 
 import { cn } from "@/lib/utils";
+import { MarkdownWriter } from "./markdown-writer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -311,7 +309,6 @@ const ProblemEditor = ({
 
   const [form, setForm] = useState<CodingProblemDraft>(draft);
   const [saving, setSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
 
   const update = <K extends keyof CodingProblemDraft>(
     key: K,
@@ -477,59 +474,29 @@ const ProblemEditor = ({
           </div>
         </div>
 
-        {/* Description (markdown) */}
+        {/* Description (markdown writer) */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-muted-foreground">
-              Description (Markdown) <span className="text-red-500">*</span>
-            </label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPreview((v) => !v)}
-            >
-              {showPreview ? (
-                <>
-                  <EyeOff className="h-3.5 w-3.5 mr-1" /> Hide preview
-                </>
-              ) : (
-                <>
-                  <Eye className="h-3.5 w-3.5 mr-1" /> Preview
-                </>
-              )}
-            </Button>
-          </div>
-          {showPreview ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/50 p-3">
-              {form.description.trim() ? (
-                <ReactMarkdown>{form.description}</ReactMarkdown>
-              ) : (
-                <p className="text-sm italic text-muted-foreground">
-                  Nothing to preview yet.
-                </p>
-              )}
-            </div>
-          ) : (
-            <Textarea
-              value={form.description}
-              onChange={(e) => update("description", e.target.value)}
-              placeholder="Describe the problem in Markdown. Use ```cpp blocks for examples."
-              className="min-h-[120px] font-mono text-xs"
-            />
-          )}
+          <label className="text-xs font-medium text-muted-foreground">
+            Description <span className="text-red-500">*</span>
+          </label>
+          <MarkdownWriter
+            value={form.description}
+            onChange={(v) => update("description", v)}
+            placeholder="Describe the problem. Use the toolbar to add arrays, images, powers, code blocks, tables, and more."
+            minHeight={160}
+          />
         </div>
 
         {/* Constraints */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
-            Constraints (Markdown)
+            Constraints
           </label>
-          <Textarea
+          <MarkdownWriter
             value={form.constraints}
-            onChange={(e) => update("constraints", e.target.value)}
+            onChange={(v) => update("constraints", v)}
             placeholder={"1 <= n <= 10^5\n-10^9 <= nums[i] <= 10^9"}
-            className="min-h-[70px] font-mono text-xs"
+            minHeight={90}
           />
         </div>
 

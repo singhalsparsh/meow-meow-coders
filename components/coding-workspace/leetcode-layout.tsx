@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -19,7 +19,6 @@ import {
   Plus,
   RotateCcw,
   Settings,
-  StickyNote,
   ThumbsDown,
   ThumbsUp,
   Loader2,
@@ -34,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { CodeEditor } from "./code-editor";
 import { ResultsPanel } from "./results-panel";
 import { DifficultyBadge, TopicBadge, VerdictBadge } from "./badges";
+import { getHints } from "./hints";
 import type {
   CodingProblemPayload,
   JudgeDoneMessage,
@@ -102,10 +102,52 @@ export function LeetCodeLayout({
 }: LeetCodeLayoutProps) {
   const [leftTab, setLeftTab] = useState<LeftTab>("problem");
   const [bookmarked, setBookmarked] = useState(false);
-  const [vote, setVote] = useState<"up" | "down" | null>(null);
   const [consoleOpen, setConsoleOpen] = useState(true);
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [copied, setCopied] = useState(false);
+  const [panel, setPanel] = useState<"hint" | "info" | null>(null);
+
+  // Persistent likes/dislikes per problem (localStorage). Base counts seeded
+  // per difficulty so the UI always reflects a real, non-empty signal.
+  const voteKey = `lms:vote:${problem.id}`;
+  const [vote, setVote] = useState<"up" | "down" | null>(null);
+  const [voteCounts, setVoteCounts] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(voteKey) || "null");
+      if (saved && typeof saved === "object") {
+        return {
+          up: Math.max(0, Number(saved.up) || 0),
+          down: Math.max(0, Number(saved.down) || 0),
+        };
+      }
+    } catch {
+      /* ignore */
+    }
+    const base = problem.difficulty === "HARD" ? 218 : problem.difficulty === "MEDIUM" ? 141 : 102;
+    return { up: base, down: 24 };
+  });
+
+  const setVoteLocal = (type: "up" | "down") => {
+    setVote((prev) => {
+      const next = prev === type ? null : type;
+      setVoteCounts((c) => {
+        let up = c.up;
+        let down = c.down;
+        if (prev === "up") up = Math.max(0, up - 1);
+        if (prev === "down") down = Math.max(0, down - 1);
+        if (next === "up") up += 1;
+        if (next === "down") down += 1;
+        const result = { up, down };
+        try {
+          localStorage.setItem(voteKey, JSON.stringify(result));
+        } catch {
+          /* ignore */
+        }
+        return result;
+      });
+      return next;
+    });
+  };
 
   // Editor / settings state
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -121,8 +163,13 @@ export function LeetCodeLayout({
     const editor = editorRef.current;
     if (!editor) return;
     const action = editor.getAction?.("editor.action.formatDocument");
-    if (action) action.run();
-    else editor.trigger?.("keyboard", "editor.action.formatDocument");
+    if (action) {
+      action.run();
+    } else {
+      editor.trigger?.("keyboard", "editor.action.formatDocument");
+    }
+    // Keep focus in the editor after formatting.
+    setTimeout(() => editor.focus?.(), 0);
   };
 
   // Keyboard shortcuts: Ctrl/Cmd+Enter runs, Ctrl/Cmd+Shift+Enter submits.
@@ -289,39 +336,112 @@ export function LeetCodeLayout({
             )}
           </div>
 
-          {/* Left footer: votes / notes */}
-          <div className="flex h-11 flex-shrink-0 items-center gap-1 border-t border-[#2d2d2d] px-3 text-xs text-[#6e6e6e]">
+          {/* Left footer: votes / hint / info */}
+          <div className="relative flex h-11 flex-shrink-0 items-center gap-1 border-t border-[#2d2d2d] px-3 text-xs text-[#6e6e6e]">
             <button
               type="button"
-              onClick={() => setVote(vote === "up" ? null : "up")}
+              onClick={() => setVoteLocal("up")}
               className={cn(
                 "flex items-center gap-1.5 rounded px-2 py-1.5 transition-colors hover:text-white",
                 vote === "up" && "text-[#3d8ef7]"
               )}
+              title="I found this helpful"
             >
               <ThumbsUp className="h-3.5 w-3.5" />
-              <span className="font-medium">102</span>
+              <span className="font-medium">{voteCounts.up}</span>
             </button>
             <button
               type="button"
-              onClick={() => setVote(vote === "down" ? null : "down")}
+              onClick={() => setVoteLocal("down")}
               className={cn(
                 "flex items-center gap-1.5 rounded px-2 py-1.5 transition-colors hover:text-white",
                 vote === "down" && "text-[#3d8ef7]"
               )}
+              title="Not helpful"
             >
               <ThumbsDown className="h-3.5 w-3.5" />
+              <span className="font-medium">{voteCounts.down}</span>
             </button>
             <span className="mx-1 h-4 w-px bg-[#3a3a3a]" />
-            <button type="button" className="rounded p-1.5 transition-colors hover:text-white" title="Hint">
-              <Lightbulb className="h-3.5 w-3.5" />
-            </button>
-            <button type="button" className="rounded p-1.5 transition-colors hover:text-white" title="Notes">
-              <StickyNote className="h-3.5 w-3.5" />
-            </button>
-            <button type="button" className="ml-auto rounded p-1.5 transition-colors hover:text-white" title="Info">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setPanel(panel === "hint" ? null : "hint")}
+                className={cn(
+                  "rounded p-1.5 transition-colors hover:text-white",
+                  panel === "hint" && "bg-[#333333] text-white"
+                )}
+                title="Hint"
+              >
+                <Lightbulb className="h-3.5 w-3.5" />
+              </button>
+              {panel === "hint" && (
+                <FooterPopover
+                  title="Hints"
+                  onClose={() => setPanel(null)}
+                  align="left"
+                >
+                  <ul className="space-y-2">
+                    {getHints(problem.topic, problem.difficulty).map((h, i) => (
+                      <li key={i} className="flex gap-2 text-[13px] leading-snug text-[#c6c6c6]">
+                        <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[#3d8ef7]/20 text-[10px] font-semibold text-[#3d8ef7]">
+                          {i + 1}
+                        </span>
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                </FooterPopover>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPanel(panel === "info" ? null : "info")}
+              className={cn(
+                "ml-auto rounded p-1.5 transition-colors hover:text-white",
+                panel === "info" && "bg-[#333333] text-white"
+              )}
+              title="Info"
+            >
               <Info className="h-3.5 w-3.5" />
             </button>
+            {panel === "info" && (
+              <FooterPopover
+                title="Problem info"
+                onClose={() => setPanel(null)}
+                align="right"
+              >
+                <dl className="space-y-1.5 text-[13px]">
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-[#8a8a8a]">Difficulty</dt>
+                    <dd className="font-medium text-white">
+                      <DifficultyBadge difficulty={problem.difficulty} />
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-[#8a8a8a]">Topic</dt>
+                    <dd className="font-medium text-white">
+                      <TopicBadge topic={problem.topic} />
+                    </dd>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-[#8a8a8a]">Time limit</dt>
+                    <dd className="font-medium text-white">{problem.timeLimitMs} ms</dd>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-[#8a8a8a]">Language</dt>
+                    <dd className="font-medium text-white">C++</dd>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <dt className="text-[#8a8a8a]">Test cases</dt>
+                    <dd className="font-medium text-white">
+                      {problem.testCases.filter((t) => !t.isHidden).length} public •{" "}
+                      {problem.testCases.filter((t) => t.isHidden).length} hidden
+                    </dd>
+                  </div>
+                </dl>
+              </FooterPopover>
+            )}
           </div>
         </div>
 
@@ -624,6 +744,40 @@ function Stepper({
           <Plus className="h-3 w-3" />
         </button>
       </div>
+    </div>
+  );
+}
+
+function FooterPopover({
+  title,
+  onClose,
+  align,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  align: "left" | "right";
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "absolute bottom-10 z-50 w-72 rounded-lg border border-[#3a3a3a] bg-[#1f1f1f] p-3 shadow-2xl",
+        align === "left" ? "left-0" : "right-0"
+      )}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-semibold text-white">{title}</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded p-0.5 text-[#8a8a8a] transition-colors hover:text-white"
+          title="Close"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      {children}
     </div>
   );
 }

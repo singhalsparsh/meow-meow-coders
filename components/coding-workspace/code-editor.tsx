@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback } from "react";
 
 import { cn } from "@/lib/utils";
+import { formatCppSource } from "./cpp-format";
 
 // Monaco reaches for `window` at import time and pulls a few MB of editor
 // assets, so it is loaded client-side only.
@@ -55,6 +56,19 @@ export function CodeEditor({
 
   const handleMount = useCallback(
     (editor: any, monaco: any) => {
+      // Register a lightweight C++ formatter once. Monaco has no C++ language
+      // service, so without this the "Format" action silently does nothing.
+      if (!(monaco as any).__cppFormatterRegistered) {
+        (monaco as any).__cppFormatterRegistered = true;
+        monaco.languages.registerDocumentFormattingEditProvider("cpp", {
+          provideDocumentFormattingEdits(model: any) {
+            const range = model.getFullModelRange();
+            const formatted = formatCppSource(model.getValue());
+            return [{ range, text: formatted }];
+          },
+        });
+      }
+
     // LeetCode-style neutral dark theme (VS Code "Dark+"-inspired).
     monaco.editor.defineTheme(DARK_THEME, {
       base: "vs-dark",
