@@ -10,6 +10,11 @@ import {
   type SearchResult,
 } from "@/components/ui/search-modal";
 
+// The app uses fixed layers up to z-[70] (course sidebar toggle) and the
+// navbar at z-50/z-[60]; render the search modal above all of them.
+const MODAL_OVERLAY_CLASS =
+  "z-[100]";
+
 const NAV_RESULTS: SearchResult[] = [
   { name: "All courses", meta: "Browse the full catalog", href: "/" },
   { name: "Explore / Search", meta: "Filter by category & title", href: "/search" },
@@ -49,11 +54,12 @@ export function SearchModalTrigger({ className }: SearchModalTriggerProps) {
         aria-label="Open search"
         title="Search (⌘K)"
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+          "inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card px-3 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
           className,
         )}
       >
         <MagnifyingGlass weight="bold" className="h-4 w-4" />
+        <span className="hidden lg:inline">Search…</span>
       </button>
 
       <SearchModal
@@ -64,6 +70,7 @@ export function SearchModalTrigger({ className }: SearchModalTriggerProps) {
         results={NAV_RESULTS}
         quickActions={[]}
         files={[]}
+        overlayClassName={MODAL_OVERLAY_CLASS}
         onQueryChange={handleQueryChange}
         onSelectResult={(result) => {
           if (result.href) router.push(result.href);
