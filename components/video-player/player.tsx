@@ -67,7 +67,7 @@ export const VideoPlayer = React.forwardRef<HTMLDivElement, VideoPlayerProps>(
       mediaProps,
       source,
       sourceKey,
-      theme = "auto",
+      theme = "dark",
     },
     ref
   ) {

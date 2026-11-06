@@ -34,7 +34,9 @@ export const PlayerRootContainer = React.forwardRef<
       aspectRatio={layout === "fill" ? false : aspectRatio}
       className={cn(
         "m-auto max-h-full min-h-0",
-        layout === "fill" ? "size-full" : "w-full",
+        layout === "fill"
+          ? "absolute inset-0 h-full w-full"
+          : "w-full",
         controlsVisibility.className,
         className
       )}
