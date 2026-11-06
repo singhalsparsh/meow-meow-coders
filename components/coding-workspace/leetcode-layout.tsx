@@ -273,7 +273,7 @@ export function LeetCodeLayout({
                 ))}
 
                 {/* "Now Your Turn!" callout */}
-                <div className="mt-6 rounded-lg border border-[#3d8ef7]/40 bg-[#0e2439] p-4">
+                <div className="mt-6 rounded-lg border border-[#3d8ef7]/40 bg-primary/5 p-4">
                   <div className="flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-[#ffc107]" />
                     <p className="text-sm font-semibold text-[var(--ide-active)]">Now Your Turn!</p>

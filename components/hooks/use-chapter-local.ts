@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Client-side, per-chapter persistence backed by localStorage.
@@ -30,10 +30,17 @@ export function useChapterLocal<T>(chapterId: string, fallback: T) {
     readJSON<T>(storageKey, fallback)
   );
 
+  // Keep the latest fallback without depending on its identity. Callers
+  // frequently pass inline literals (e.g. `[]`) which get a fresh identity on
+  // every render — depending on `fallback` directly would make the effect run
+  // every render and `setValue(...)` loop forever ("Maximum update depth").
+  const fallbackRef = useRef(fallback);
+  fallbackRef.current = fallback;
+
   useEffect(() => {
     // Keep state in sync when the chapter changes on the same page.
-    setValue(readJSON<T>(storageKey, fallback));
-  }, [storageKey, fallback]);
+    setValue(readJSON<T>(storageKey, fallbackRef.current));
+  }, [storageKey]);
 
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
