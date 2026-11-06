@@ -19,10 +19,14 @@ import {
 } from "@/components/video-player/player";
 import type { PlayerSource } from "@/components/liquid-glass-player";
 import { getMuxPlaybackUrl, getVideoUrlInfo } from "@/lib/video";
+import type {
+  AssetLoadContext,
+  UseAssetOptions,
+} from "@/components/hooks/use-asset";
 
 /** Public demo stream used when a chapter has no playable source. */
 const PLACEHOLDER_SRC =
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4";
 
 interface VideoPlayerProps {
   title?: string;
@@ -65,6 +69,7 @@ export const VideoPlayer = ({
   videoUrl,
   videoSources,
   playsInline = true,
+  autoPlay = false,
   onEnded,
   className,
   layout = "aspect",
@@ -119,6 +124,32 @@ export const VideoPlayer = ({
     [playable]
   );
 
+  // Custom loader: HLS streams use Shaka (the Limeplay default); progressive
+  // MP4 files play through the browser's native <video> on the SAME element,
+  // so the Limeplay UI/controls stay intact but MP4 never depends on Shaka's
+  // CORS/extension sniffing (the source of the blank player).
+  const loadAsset = async (ctx: AssetLoadContext<VideoPlayerAsset>) => {
+    const { asset, media, loadDefault, startTime } = ctx;
+
+    if (asset.hls) {
+      await loadDefault();
+      return;
+    }
+
+    const src = asset.src;
+    if (!src) return;
+
+    media.src = src;
+    media.load();
+    if (startTime != null && Number.isFinite(startTime)) {
+      media.currentTime = startTime;
+    }
+  };
+
+  const loader: UseAssetOptions<VideoPlayerAsset>["loader"] = {
+    load: loadAsset,
+  };
+
   // YouTube-only chapter → dedicated IFrame player.
   if (youtubeSources.length > 0 && playable.length === 0) {
     const id = getVideoUrlInfo(youtubeSources[0].src).youtubeId;
@@ -140,7 +171,8 @@ export const VideoPlayer = ({
         layout={layout}
         theme="dark"
         source={[{ id: "demo", src: PLACEHOLDER_SRC, title: "Demo video" }]}
-        mediaProps={{ playsInline, onEnded }}
+        mediaProps={{ playsInline, autoPlay, onEnded }}
+        loading={{ loader }}
       />
     );
   }
@@ -151,7 +183,8 @@ export const VideoPlayer = ({
       layout={layout}
       theme="dark"
       source={assets}
-      mediaProps={{ playsInline, onEnded }}
+      mediaProps={{ playsInline, autoPlay, onEnded }}
+      loading={{ loader }}
     />
   );
 };
