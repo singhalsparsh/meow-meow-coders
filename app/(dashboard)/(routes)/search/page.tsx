@@ -1,5 +1,5 @@
-import { db } from "@/lib/db"
 import { getCourses } from "@/actions/get-courses"
+import { getCachedCategories } from "@/actions/get-categories-cache"
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
@@ -26,12 +26,10 @@ const SearchPage = async (props: SearchPageProps) => {
     return redirect("/sign-in")
   }
 
-  // Categories and courses are independent — fetch them concurrently to avoid
-  // a serial round-trip to the database.
+  // Categories and courses are independent — fetch them concurrently, and use
+  // the cached category list so the DB isn't hit on every search view.
   const [categories, courses] = await Promise.all([
-    db.category.findMany({
-      orderBy: { name: "asc" },
-    }).catch((error) => {
+    getCachedCategories().catch((error) => {
       console.log("[SEARCH_CATEGORIES]", error);
       return [];
     }),

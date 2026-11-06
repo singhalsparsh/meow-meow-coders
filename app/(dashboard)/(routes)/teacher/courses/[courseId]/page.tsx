@@ -3,6 +3,7 @@ import { File, LayoutDashboard, ListChecks } from "lucide-react"
 import { redirect } from "next/navigation"
 
 import { IconBadge } from "@/components/icon-badge"
+import { getCachedCategories } from "@/actions/get-categories-cache"
 import { db } from "@/lib/db"
 
 import { TitleForm } from "./_components/title-form"
@@ -53,11 +54,7 @@ const CourseIdPage = async (
         }
     })
 
-    const categories = await db.category.findMany({
-        orderBy: {
-            name: "asc"
-        }
-    })
+    const categories = await getCachedCategories()
 
     if (!course) {
         return redirect("/")
