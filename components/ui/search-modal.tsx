@@ -109,7 +109,7 @@ export interface SearchModalProps {
   overlayClassName?: string;
 }
 
-const ICON = "h-[18px] w-[18px] text-neutral-400 dark:text-neutral-500";
+const ICON = "h-[18px] w-[18px] text-muted-foreground";
 
 const DEFAULT_TAGS: SearchTag[] = [
   { label: "Reactions", icon: <RadioButton className="h-4 w-4" /> },
@@ -237,14 +237,14 @@ export function SearchModal({
       role={modal ? "dialog" : undefined}
       aria-modal={modal ? true : undefined}
       className={cn(
-        "mx-auto w-full max-w-xl overflow-hidden rounded-2xl border backdrop-blur-xl",
-        "border-black/[0.07] bg-white/85 text-neutral-900 shadow-[0_10px_40px_-14px_rgba(0,0,0,0.22)]",
-        "dark:border-white/[0.08] dark:bg-neutral-900/85 dark:text-white dark:shadow-[0_18px_50px_-16px_rgba(0,0,0,0.7)]",
+        "mx-auto w-full max-w-xl overflow-hidden rounded-2xl border bg-popover/95 text-popover-foreground backdrop-blur-xl",
+        "border-border shadow-[0_10px_40px_-14px_rgba(0,0,0,0.25)]",
+        "dark:shadow-[0_18px_50px_-16px_rgba(0,0,0,0.65)]",
         className,
       )}
     >
       {/* Search bar */}
-      <div className="flex items-center gap-1 border-b border-black/[0.06] px-4 py-3.5 dark:border-white/[0.06]">
+      <div className="flex items-center gap-1 border-b border-border px-4 py-3.5">
         <MagnifyingGlass className={ICON} />
         <input
           ref={inputRef}
@@ -253,13 +253,13 @@ export function SearchModal({
           onChange={(e) => handleQuery(e.target.value)}
           placeholder={placeholder}
           aria-label="Search"
-          className="min-w-0 flex-1 bg-transparent px-3 text-sm text-current outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+          className="min-w-0 flex-1 bg-transparent px-3 text-sm text-current outline-none placeholder:text-muted-foreground"
         />
         <div className="flex shrink-0 items-center gap-2.5">
-          <button type="button" aria-label="Filters" className="text-neutral-400 transition-colors hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200">
+          <button type="button" aria-label="Filters" className="text-muted-foreground transition-colors hover:text-foreground">
             <SlidersHorizontal className="h-[18px] w-[18px]" />
           </button>
-          <kbd className="flex items-center gap-0.5 rounded-md border border-black/[0.06] bg-black/[0.03] px-1.5 py-0.5 font-sans text-[11px] font-medium text-neutral-400 dark:border-white/[0.08] dark:bg-white/[0.06] dark:text-neutral-500">
+          <kbd className="flex items-center gap-0.5 rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground">
             <span className="text-[13px] leading-none">⌘</span>
             {modal && hotkey ? hotkey.toUpperCase() : "F"}
           </kbd>
@@ -268,13 +268,13 @@ export function SearchModal({
 
       {/* Tags */}
       {activeTags.length > 0 ? (
-        <div className="border-b border-black/[0.06] px-4 py-3.5 dark:border-white/[0.06]">
-          <span className="text-[13px] text-neutral-400 dark:text-neutral-500">I&apos;m looking for...</span>
+        <div className="border-b border-border px-4 py-3.5">
+          <span className="text-[13px] text-muted-foreground">I&apos;m looking for...</span>
           <div className="mt-3 flex flex-wrap gap-2">
             {activeTags.map((tag, i) => (
               <span
                 key={`${tag.label}-${i}`}
-                className="flex items-center gap-1.5 rounded-full bg-black/[0.04] py-1 pl-2.5 pr-2 text-[13px] ring-1 ring-inset ring-black/[0.04] dark:bg-white/[0.06] dark:ring-white/[0.06]"
+                className="flex items-center gap-1.5 rounded-full bg-muted py-1 pl-2.5 pr-2 text-[13px] ring-1 ring-inset ring-border"
               >
                 {tag.icon}
                 <span>{tag.label}</span>
@@ -282,7 +282,7 @@ export function SearchModal({
                   type="button"
                   onClick={() => removeTag(i)}
                   aria-label={`Remove ${tag.label}`}
-                  className="text-neutral-400 transition-colors hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-200"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -294,9 +294,9 @@ export function SearchModal({
 
       {/* Results */}
       {results.length > 0 ? (
-        <div className="border-b border-black/[0.06] dark:border-white/[0.06]">
-          <p className="px-4 pt-3.5 pb-2 text-[13px] text-neutral-400 dark:text-neutral-500">
-            Last search&nbsp;&nbsp;<span className="text-neutral-600 dark:text-neutral-300">{filteredResults.length}</span>
+        <div className="border-b border-border">
+          <p className="px-4 pt-3.5 pb-2 text-[13px] text-muted-foreground">
+            Last search&nbsp;&nbsp;<span className="text-foreground">{filteredResults.length}</span>
           </p>
           <ul className="px-1.5 pb-1.5">
             {filteredResults.map((result, i) => (
@@ -304,24 +304,24 @@ export function SearchModal({
                 <a
                   href={result.href ?? "#"}
                   onClick={() => onSelectResult?.(result, i)}
-                  className="group relative flex items-center rounded-lg px-2.5 py-2 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+                  className="group relative flex items-center rounded-lg px-2.5 py-2 transition-colors hover:bg-accent"
                 >
                   {result.avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={result.avatar}
                       alt=""
-                      className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-black/5 dark:ring-white/10"
+                      className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-border"
                     />
                   ) : (
-                    <span className="h-6 w-6 shrink-0 rounded-full bg-neutral-300 ring-1 ring-black/5 dark:bg-neutral-600 dark:ring-white/10" />
+                    <span className="h-6 w-6 shrink-0 rounded-full bg-muted ring-1 ring-border" />
                   )}
                   <span className="ml-2.5 truncate text-sm">
                     {result.name}
-                    {result.meta ? <span className="pl-1.5 text-neutral-400 dark:text-neutral-500">{result.meta}</span> : null}
+                    {result.meta ? <span className="pl-1.5 text-muted-foreground">{result.meta}</span> : null}
                   </span>
                   {result.actions && result.actions.length > 0 ? (
-                    <span className="ml-auto flex items-center gap-2.5 pl-3 text-neutral-400 opacity-70 transition-opacity group-hover:opacity-100 dark:text-neutral-500">
+                    <span className="ml-auto flex items-center gap-2.5 pl-3 text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100">
                       {result.actions.map((action, ai) => (
                         <button
                           key={ai}
@@ -331,7 +331,7 @@ export function SearchModal({
                             e.preventDefault();
                             action.onClick?.();
                           }}
-                          className="transition-colors hover:text-neutral-700 dark:hover:text-neutral-200"
+                          className="transition-colors hover:text-foreground"
                         >
                           {action.icon}
                         </button>
@@ -347,21 +347,21 @@ export function SearchModal({
 
       {/* Quick actions */}
       {quickActions.length > 0 ? (
-        <div className="border-b border-black/[0.06] px-1.5 py-1.5 dark:border-white/[0.06]">
-          <p className="px-2.5 pt-2 pb-1 text-[13px] text-neutral-400 dark:text-neutral-500">Quick actions</p>
+        <div className="border-b border-border px-1.5 py-1.5">
+          <p className="px-2.5 pt-2 pb-1 text-[13px] text-muted-foreground">Quick actions</p>
           {quickActions.map((action, i) => (
             <button
               key={`${action.label}-${i}`}
               type="button"
               onClick={action.onClick}
-              className="relative flex w-full items-center rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+              className="relative flex w-full items-center rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-accent"
             >
-              <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-black/[0.04] text-neutral-500 dark:bg-white/[0.06] dark:text-neutral-300">
+              <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                 {action.icon ?? <Plus className="h-[15px] w-[15px]" />}
               </span>
               <span className="pl-3 text-sm">{action.label}</span>
               {action.shortcut ? (
-                <kbd className="ml-auto flex h-[26px] w-[26px] items-center justify-center rounded-md bg-black/[0.04] font-sans text-[13px] text-neutral-500 ring-1 ring-inset ring-black/[0.04] dark:bg-white/[0.06] dark:text-neutral-300 dark:ring-white/[0.06]">
+                <kbd className="ml-auto flex h-[26px] w-[26px] items-center justify-center rounded-md bg-muted font-sans text-[13px] text-muted-foreground ring-1 ring-inset ring-border">
                   {action.shortcut}
                 </kbd>
               ) : null}
@@ -373,28 +373,28 @@ export function SearchModal({
       {/* Files */}
       {files.length > 0 ? (
         <div className="px-1.5 py-1.5">
-          <p className="px-2.5 pt-2 pb-1 text-[13px] text-neutral-400 dark:text-neutral-500">
-            Files&nbsp;&nbsp;<span className="text-neutral-600 dark:text-neutral-300">{files.length}</span>
+          <p className="px-2.5 pt-2 pb-1 text-[13px] text-muted-foreground">
+            Files&nbsp;&nbsp;<span className="text-foreground">{files.length}</span>
           </p>
           {files.map((file, i) => (
             <div
               key={`${file.name}-${i}`}
-              className="group relative flex items-center rounded-lg px-2.5 py-2 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+              className="group relative flex items-center rounded-lg px-2.5 py-2 transition-colors hover:bg-accent"
             >
-              <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-black/[0.04] text-neutral-500 dark:bg-white/[0.06] dark:text-neutral-300">
+              <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                 {file.icon ?? <FileArrowDown className="h-[15px] w-[15px]" />}
               </span>
               <span className="flex items-center gap-1.5 pl-3 text-sm">
                 <span>
                   {file.name}
-                  {file.ext ? <span className="text-neutral-400 dark:text-neutral-500">{file.ext}</span> : null}
+                  {file.ext ? <span className="text-muted-foreground">{file.ext}</span> : null}
                 </span>
                 {file.verified ? <Checks className="h-4 w-4 text-emerald-500" /> : null}
               </span>
               <button
                 type="button"
                 onClick={file.onShare}
-                className="ml-auto flex items-center gap-1.5 text-sm text-neutral-400 opacity-80 transition-all hover:text-neutral-700 group-hover:opacity-100 dark:text-neutral-500 dark:hover:text-neutral-200"
+                className="ml-auto flex items-center gap-1.5 text-sm text-muted-foreground opacity-80 transition-all hover:text-foreground group-hover:opacity-100"
               >
                 <ShareFat weight="bold" className="h-4 w-4" />
                 <span>Share</span>
