@@ -41,6 +41,24 @@ interface VideoPlayerProps {
   layout?: "aspect" | "fill";
 }
 
+// Recover the real upstream URL from a stored signed proxy token (legacy data).
+// The proxy is gone; this guarantees a proxy URL is never handed to Shaka.
+function unwrapProxyUrl(u: string): string {
+  if (!u.startsWith("/api/video-proxy?t=")) return u;
+  try {
+    const token = u.slice("/api/video-proxy?t=".length);
+    const dot = token.indexOf(".");
+    const b64 = (dot > 0 ? token.slice(0, dot) : token)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const parsed = JSON.parse(atob(b64)) as { u?: unknown };
+    if (typeof parsed.u === "string" && parsed.u.trim()) return parsed.u;
+  } catch {
+    /* fall through to the raw value */
+  }
+  return u;
+}
+
 export const VideoPlayer = ({
   title,
   playbackId,
@@ -57,7 +75,7 @@ export const VideoPlayer = ({
     () => {
       if (videoSources && videoSources.length > 0) {
         return videoSources.map((s) => ({
-          src: s.src,
+          src: unwrapProxyUrl(s.src),
           title: s.title || title,
           hls: s.hls,
         }));
@@ -69,10 +87,11 @@ export const VideoPlayer = ({
         if (url) out.push({ src: url, title: title || "Primary stream", hls: true });
       }
       if (videoUrl) {
+        const src = unwrapProxyUrl(videoUrl);
         out.push({
-          src: videoUrl,
+          src,
           title: title || "Video",
-          hls: videoUrl.toLowerCase().includes(".m3u8"),
+          hls: src.toLowerCase().includes(".m3u8"),
         });
       }
 

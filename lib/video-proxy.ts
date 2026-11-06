@@ -136,24 +136,41 @@ export function buildPlayerSources(opts: {
   const list: ProtectedSource[] = [];
   const seen = new Set<string>();
 
+  // Recover the real upstream URL from a signed proxy token, in case a proxy
+  // URL was previously persisted in the DB. The proxy is no longer used; this
+  // just unwraps legacy stored values so we always play the direct link.
+  const unwrapProxyUrl = (u: string): string => {
+    if (!u.startsWith("/api/video-proxy?t=")) return u;
+    try {
+      const token = u.slice("/api/video-proxy?t=".length);
+      const dot = token.indexOf(".");
+      const payload = dot > 0 ? token.slice(0, dot) : token;
+      const parsed = JSON.parse(
+        Buffer.from(payload, "base64url").toString("utf8")
+      ) as { u?: unknown };
+      if (typeof parsed.u === "string" && parsed.u.trim()) return parsed.u;
+    } catch {
+      /* fall through to the raw value */
+    }
+    return u;
+  };
+
   const push = (raw: string, title: string) => {
     if (!raw) return;
-    const info = getVideoUrlInfo(raw);
+    const effective = unwrapProxyUrl(raw);
+    const info = getVideoUrlInfo(effective);
     if (info.kind === "youtube") {
       // Cannot proxy YouTube — keep the raw link for the iframe player.
-      list.push({ id: `yt-${list.length + 1}`, src: raw, title: title || "YouTube" });
+      list.push({ id: `yt-${list.length + 1}`, src: effective, title: title || "YouTube" });
       return;
     }
-    if (seen.has(raw)) return;
-    seen.add(raw);
-    // Serve every non-YouTube source through our own origin so the player
-    // (Shaka/Limeplay) always fetches same-origin — this lets plain MP4 links
-    // play even when the upstream host sends no CORS headers.
+    if (seen.has(effective)) return;
+    seen.add(effective);
     list.push({
       id: `src-${list.length + 1}`,
-      src: protect ? signVideoUrl(raw) : raw,
+      src: protect ? signVideoUrl(effective) : effective,
       title: title?.trim() || "",
-      hls: isHlsUrl(raw),
+      hls: isHlsUrl(effective),
     });
   };
 
