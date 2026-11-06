@@ -53,20 +53,33 @@ export const VideoPlayer = ({
 }: VideoPlayerProps) => {
   // Assemble every candidate source (in order) from the caller's list, or from
   // the single-stream props.
-  const allSources = useMemo<{ src: string; title?: string }[]>(() => {
-    if (videoSources && videoSources.length > 0) {
-      return videoSources.map((s) => ({ src: s.src, title: s.title || title }));
-    }
+  const allSources = useMemo<{ src: string; title?: string; hls?: boolean }[]>(
+    () => {
+      if (videoSources && videoSources.length > 0) {
+        return videoSources.map((s) => ({
+          src: s.src,
+          title: s.title || title,
+          hls: s.hls,
+        }));
+      }
 
-    const out: { src: string; title?: string }[] = [];
-    if (playbackId) {
-      const url = getMuxPlaybackUrl(playbackId);
-      if (url) out.push({ src: url, title: title || "Primary stream" });
-    }
-    if (videoUrl) out.push({ src: videoUrl, title: title || "Video" });
+      const out: { src: string; title?: string; hls?: boolean }[] = [];
+      if (playbackId) {
+        const url = getMuxPlaybackUrl(playbackId);
+        if (url) out.push({ src: url, title: title || "Primary stream", hls: true });
+      }
+      if (videoUrl) {
+        out.push({
+          src: videoUrl,
+          title: title || "Video",
+          hls: videoUrl.toLowerCase().includes(".m3u8"),
+        });
+      }
 
-    return out;
-  }, [videoSources, playbackId, videoUrl, title]);
+      return out;
+    },
+    [videoSources, playbackId, videoUrl, title]
+  );
 
   const youtubeSources = useMemo(
     () => allSources.filter((s) => getVideoUrlInfo(s.src).kind === "youtube"),
@@ -82,6 +95,7 @@ export const VideoPlayer = ({
         id: `src-${i + 1}`,
         src: s.src,
         title: s.title,
+        hls: s.hls,
       })),
     [playable]
   );

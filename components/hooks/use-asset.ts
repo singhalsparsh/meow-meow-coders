@@ -219,6 +219,14 @@ export interface TAsset {
   id?: string
   /** Direct playback URL. Use `resolveSource` when this is resolved lazily. */
   src?: string
+  /**
+   * True when this asset is an HLS stream. Used to pass the correct MIME type
+   * to Shaka when the URL doesn't carry a recognizable extension (e.g. a
+   * same-origin proxy URL). Defaults to false (progressive MP4).
+   */
+  hls?: boolean
+  /** Explicit MIME type override passed to Shaka (takes precedence). */
+  mimeType?: string
 }
 
 /** Store actions exposed by the asset feature. */
@@ -1054,7 +1062,15 @@ function createDefaultLoad({
       )
     }
 
-    await player.load(resolvedSource, timeToLoad)
+    // Near the MIME type to Shaka. proxied URLs (or extensions without a
+    // recognizable extension), Shaka can't infer the container from the URL, so
+    // an explicit hint is required: HLS → mpegurl, everything else → progressive
+    // MP4. An explicit asset.mimeType always wins.
+    const hlsMime = "application/vnd.apple.mpegurl"
+    const mp4Mime = "video/mp4"
+    const mimeType = asset.mimeType ?? (asset.hls ? hlsMime : mp4Mime)
+
+    await player.load(resolvedSource, timeToLoad, mimeType)
   }
 }
 
