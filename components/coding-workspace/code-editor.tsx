@@ -29,6 +29,14 @@ interface CodeEditorProps {
   readOnly?: boolean;
   height?: number | string;
   className?: string;
+  /** Editor font size in px. */
+  fontSize?: number;
+  /** Indentation width in spaces. */
+  tabSize?: number;
+  /** Soft-wrap long lines. */
+  wordWrap?: boolean;
+  /** Expose the raw Monaco editor instance (used for formatting etc.). */
+  onReady?: (editor: any) => void;
 }
 
 export function CodeEditor({
@@ -38,10 +46,15 @@ export function CodeEditor({
   readOnly = false,
   height = "100%",
   className,
+  fontSize = 13,
+  tabSize = 4,
+  wordWrap = false,
+  onReady,
 }: CodeEditorProps) {
   const { resolvedTheme } = useTheme();
 
-  const handleMount = useCallback((editor: any, monaco: any) => {
+  const handleMount = useCallback(
+    (editor: any, monaco: any) => {
     // LeetCode-style neutral dark theme (VS Code "Dark+"-inspired).
     monaco.editor.defineTheme(DARK_THEME, {
       base: "vs-dark",
@@ -97,7 +110,8 @@ export function CodeEditor({
 
     monaco.editor.setTheme(resolvedTheme === "dark" ? DARK_THEME : LIGHT_THEME);
     editor.focus();
-  }, [resolvedTheme]);
+    onReady?.(editor);
+  }, [resolvedTheme, onReady]);
 
   return (
     <div className={cn("h-full w-full overflow-hidden", className)}>
@@ -111,7 +125,7 @@ export function CodeEditor({
         options={{
           readOnly,
           automaticLayout: true,
-          fontSize: 13,
+          fontSize,
           fontFamily:
             "'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace",
           fontLigatures: true,
@@ -120,7 +134,7 @@ export function CodeEditor({
           lineNumbersMinChars: 3,
           scrollBeyondLastLine: false,
           padding: { top: 12, bottom: 12 },
-          tabSize: 4,
+          tabSize,
           insertSpaces: true,
           detectIndentation: false,
           renderWhitespace: "selection",
@@ -129,7 +143,7 @@ export function CodeEditor({
           cursorSmoothCaretAnimation: "on",
           bracketPairColorization: { enabled: true },
           guides: { bracketPairs: true, indentation: true },
-          wordWrap: "off",
+          wordWrap: wordWrap ? "on" : "off",
           // C++ has no language service in the browser, so completion is
           // word-based from the open document — still genuinely useful.
           wordBasedSuggestions: "currentDocument",

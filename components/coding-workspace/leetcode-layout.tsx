@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -24,6 +24,9 @@ import {
   ThumbsUp,
   Loader2,
   CheckCheck,
+  Wand2,
+  X,
+  Minus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -104,6 +107,40 @@ export function LeetCodeLayout({
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [copied, setCopied] = useState(false);
 
+  // Editor / settings state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<
+    "layout" | "editor" | "shortcuts"
+  >("layout");
+  const [fontSize, setFontSize] = useState(13);
+  const [tabSize, setTabSize] = useState(4);
+  const [wordWrap, setWordWrap] = useState(false);
+  const editorRef = useRef<any>(null);
+
+  const handleFormat = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const action = editor.getAction?.("editor.action.formatDocument");
+    if (action) action.run();
+    else editor.trigger?.("keyboard", "editor.action.formatDocument");
+  };
+
+  // Keyboard shortcuts: Ctrl/Cmd+Enter runs, Ctrl/Cmd+Shift+Enter submits.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      if (e.shiftKey) {
+        if (!busy && !submitting) onSubmit();
+      } else {
+        if (!busy && !submitting) onRun();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [busy, submitting, onRun, onSubmit]);
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(code);
@@ -176,9 +213,6 @@ export function LeetCodeLayout({
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <DifficultyBadge difficulty={problem.difficulty} />
                     <TopicBadge topic={problem.topic} />
-                    <span className="rounded-full border border-[#3a3a3a] bg-[#2d2d2d] px-2.5 py-0.5 text-xs font-medium text-[#b0b0b0]">
-                      Companies
-                    </span>
                     <span className="text-xs text-[#6e6e6e]">
                       {problem.timeLimitMs} ms
                     </span>
@@ -303,19 +337,18 @@ export function LeetCodeLayout({
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           {/* Editor nav */}
           <div className="flex h-10 flex-shrink-0 items-center border-b border-[#2d2d2d] text-[13px]">
-            <div className="flex h-full items-center border-r border-[#2d2d2d] bg-[#2d2d2d] px-3 text-[#e8e8e8]">
-              <span className="mr-2 h-2 w-2 rounded-full bg-[#3d8ef7]" />
-              <span className="font-medium">Tab-1</span>
-            </div>
-            <button
-              type="button"
-              className="flex h-full items-center px-2 text-[#6e6e6e] transition-colors hover:text-white"
-              title="New tab"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-
             <div className="ml-auto flex items-center gap-1.5 pr-2">
+              {/* Format code */}
+              <button
+                type="button"
+                onClick={handleFormat}
+                title="Format code (Shift+Alt+F)"
+                className="flex items-center gap-1.5 rounded border border-[#3a3a3a] bg-[#2d2d2d] px-2.5 py-1 text-xs font-medium text-[#d4d4d4] transition-colors hover:border-[#4a4a4a] hover:text-white"
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                Format
+              </button>
+
               {/* Language dropdown */}
               <button
                 type="button"
@@ -362,7 +395,14 @@ export function LeetCodeLayout({
             className="min-h-0 overflow-hidden"
             style={{ height: isMobile ? `${100 - editorHeight}%` : `${editorHeight}%` }}
           >
-            <CodeEditor value={code} onChange={onCodeChange} />
+            <CodeEditor
+              value={code}
+              onChange={onCodeChange}
+              fontSize={fontSize}
+              tabSize={tabSize}
+              wordWrap={wordWrap}
+              onReady={(editor) => (editorRef.current = editor)}
+            />
           </div>
 
           {/* Toolchain load progress */}
@@ -410,13 +450,6 @@ export function LeetCodeLayout({
               ))}
 
               <div className="ml-auto flex items-center gap-0.5">
-                <a
-                  href="#"
-                  className="mr-2 text-[#3d8ef7] hover:underline"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  Login to save
-                </a>
                 <button
                   type="button"
                   onClick={onReset}
@@ -438,13 +471,35 @@ export function LeetCodeLayout({
                     <Copy className="h-3.5 w-3.5" />
                   )}
                 </button>
-                <button
-                  type="button"
-                  className="rounded p-1.5 text-[#6e6e6e] transition-colors hover:text-white"
-                  title="Settings"
-                >
-                  <Settings className="h-3.5 w-3.5" />
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setSettingsOpen((o) => !o)}
+                    className={cn(
+                      "rounded p-1.5 text-[#6e6e6e] transition-colors hover:text-white",
+                      settingsOpen && "bg-[#333333] text-white"
+                    )}
+                    title="Settings"
+                  >
+                    <Settings className="h-3.5 w-3.5" />
+                  </button>
+
+                  {settingsOpen && (
+                    <SettingsPopover
+                      tab={settingsTab}
+                      onTabChange={setSettingsTab}
+                      fontSize={fontSize}
+                      onFontSizeChange={setFontSize}
+                      tabSize={tabSize}
+                      onTabSizeChange={setTabSize}
+                      wordWrap={wordWrap}
+                      onWordWrapChange={setWordWrap}
+                      consoleOpen={consoleOpen}
+                      onConsoleOpenChange={setConsoleOpen}
+                      onClose={() => setSettingsOpen(false)}
+                    />
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => setConsoleOpen((o) => !o)}
@@ -480,6 +535,224 @@ export function LeetCodeLayout({
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+type SettingsTab = "layout" | "editor" | "shortcuts";
+
+interface SettingsPopoverProps {
+  tab: SettingsTab;
+  onTabChange: (t: SettingsTab) => void;
+  fontSize: number;
+  onFontSizeChange: (n: number) => void;
+  tabSize: number;
+  onTabSizeChange: (n: number) => void;
+  wordWrap: boolean;
+  onWordWrapChange: (b: boolean) => void;
+  consoleOpen: boolean;
+  onConsoleOpenChange: (b: boolean) => void;
+  onClose: () => void;
+}
+
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs text-[#d4d4d4] transition-colors hover:bg-[#2a2a2a]"
+    >
+      <span>{label}</span>
+      <span
+        className={cn(
+          "relative h-4 w-7 rounded-full transition-colors",
+          checked ? "bg-[#3d8ef7]" : "bg-[#4a4a4a]"
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-all",
+            checked ? "left-3.5" : "left-0.5"
+          )}
+        />
+      </span>
+    </button>
+  );
+}
+
+function Stepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between px-2 py-1.5 text-xs">
+      <span className="text-[#d4d4d4]">{label}</span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          disabled={value <= min}
+          onClick={() => onChange(value - 1)}
+          className="rounded p-1 text-[#8a8a8a] transition-colors hover:text-white disabled:opacity-40"
+        >
+          <Minus className="h-3 w-3" />
+        </button>
+        <span className="w-6 text-center font-mono text-[#d4d4d4]">{value}</span>
+        <button
+          type="button"
+          disabled={value >= max}
+          onClick={() => onChange(value + 1)}
+          className="rounded p-1 text-[#8a8a8a] transition-colors hover:text-white disabled:opacity-40"
+        >
+          <Plus className="h-3 w-3" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPopover({
+  tab,
+  onTabChange,
+  fontSize,
+  onFontSizeChange,
+  tabSize,
+  onTabSizeChange,
+  wordWrap,
+  onWordWrapChange,
+  consoleOpen,
+  onConsoleOpenChange,
+  onClose,
+}: SettingsPopoverProps) {
+  const tabs: [SettingsTab, string][] = [
+    ["layout", "Layout"],
+    ["editor", "Code Editor"],
+    ["shortcuts", "Shortcuts"],
+  ];
+
+  return (
+    <div className="absolute bottom-9 right-0 z-50 w-72 overflow-hidden rounded-lg border border-[#3a3a3a] bg-[#1f1f1f] shadow-2xl">
+      <div className="flex items-center border-b border-[#333333] px-3 py-2">
+        <span className="text-xs font-semibold text-white">Settings</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="ml-auto rounded p-0.5 text-[#8a8a8a] transition-colors hover:text-white"
+          title="Close settings"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className="flex gap-1 border-b border-[#333333] px-2 py-1.5">
+        {tabs.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onTabChange(id)}
+            className={cn(
+              "rounded px-2.5 py-1 text-xs font-medium transition-colors",
+              tab === id
+                ? "bg-[#3a3a3a] text-white"
+                : "text-[#8a8a8a] hover:text-white"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="max-h-64 overflow-y-auto py-1">
+        {tab === "layout" && (
+          <div className="space-y-0.5">
+            <ToggleRow
+              label="Show test case console"
+              checked={consoleOpen}
+              onChange={onConsoleOpenChange}
+            />
+            <p className="px-2 pt-1 text-[11px] leading-snug text-[#6e6e6e]">
+              The console shows sample and hidden test cases, output and verdicts.
+            </p>
+          </div>
+        )}
+
+        {tab === "editor" && (
+          <div className="space-y-0.5">
+            <Stepper
+              label="Font size"
+              value={fontSize}
+              min={10}
+              max={24}
+              onChange={onFontSizeChange}
+            />
+            <div className="flex items-center justify-between px-2 py-1.5 text-xs">
+              <span className="text-[#d4d4d4]">Tab size</span>
+              <div className="flex gap-1">
+                {[2, 4, 8].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => onTabSizeChange(n)}
+                    className={cn(
+                      "rounded px-2 py-0.5 font-mono text-xs transition-colors",
+                      tabSize === n
+                        ? "bg-[#3d8ef7] text-white"
+                        : "text-[#8a8a8a] hover:text-white"
+                    )}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ToggleRow
+              label="Word wrap"
+              checked={wordWrap}
+              onChange={onWordWrapChange}
+            />
+          </div>
+        )}
+
+        {tab === "shortcuts" && (
+          <div className="space-y-0.5 px-2 py-1">
+            {(
+              [
+                ["Run code", "Ctrl ⌘ + Enter"],
+                ["Submit code", "Ctrl ⌘ + Shift + Enter"],
+                ["Format code", "Shift + Alt + F"],
+                ["Reset code", "Toolbar button"],
+                ["Copy code", "Toolbar button"],
+              ] as [string, string][]
+            ).map(([action, keys]) => (
+              <div
+                key={action}
+                className="flex items-center justify-between py-1 text-xs"
+              >
+                <span className="text-[#c8c8c8]">{action}</span>
+                <kbd className="rounded border border-[#3a3a3a] bg-[#2a2a2a] px-1.5 py-0.5 font-mono text-[11px] text-[#d4d4d4]">
+                  {keys}
+                </kbd>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

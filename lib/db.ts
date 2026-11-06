@@ -26,10 +26,29 @@ function createClient(): PrismaClient {
     const url = new URL(connectionString)
     url.searchParams.delete("sslmode")
 
-    const adapter = new PrismaPg({
-        connectionString: url.toString(),
-        ssl: { rejectUnauthorized: false },
-    })
+    // Aiven sometimes drops idle or long-lived connections, which leaves stale
+    // sockets in the pool and causes transient "connection terminated" failures.
+    // Configure the pool to be resilient: keep a modest size, fail connection
+    // attempts quickly instead of hanging, recycle connections before the server
+    // can close them, and surface pool errors instead of crashing the process.
+    const adapter = new PrismaPg(
+        {
+            connectionString: url.toString(),
+            ssl: { rejectUnauthorized: false },
+            connectionTimeoutMillis: 10_000,
+            idleTimeoutMillis: 30_000,
+            maxUses: 500,
+            max: 10,
+        },
+        {
+            onPoolError: (err) => {
+                console.warn("[db] pg pool error:", err.message)
+            },
+            onConnectionError: (err) => {
+                console.warn("[db] pg connection error:", err.message)
+            },
+        }
+    )
 
     return new PrismaClient({ adapter })
 }
