@@ -15,16 +15,7 @@ const dmSans = localFont({
   variable: "--font-dm-sans",
 });
 
-// Self-hosted Fira Code (latin) for the code editor and inline code. Ligature
-// support is enabled per-editor (fontLigatures: true on Monaco).
-const firaCode = localFont({
-  src: [
-    { path: "../public/fonts/fira-code-400.woff2", weight: "400", style: "normal" },
-    { path: "../public/fonts/fira-code-500.woff2", weight: "500", style: "normal" },
-    { path: "../public/fonts/fira-code-600.woff2", weight: "600", style: "normal" },
-  ],
-  variable: "--font-fira-code",
-});
+
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toaster-provider";
 import { ConfettiProvider } from "@/components/providers/confetti-provider";
@@ -47,7 +38,7 @@ export default function RootLayout({
           browser's auto-translate from rewriting the DOM (which previously broke
           React hydration and caused "removeChild is not a child of this node"). */}
       <html lang="en" translate="no" suppressHydrationWarning>
-        <body className={`${dmSans.variable} ${dmSans.className} ${firaCode.variable}`}>
+        <body className={`${dmSans.variable} ${dmSans.className}`}>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

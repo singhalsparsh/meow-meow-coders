@@ -13,6 +13,8 @@ import type {
   SubmissionVerdict,
 } from "@/lib/coding/types";
 import { VERDICT_LABEL, type CodingProblemPayload } from "@/lib/coding/types";
+import { cn } from "@/lib/utils";
+import { firaCode } from "@/lib/fonts";
 import { LeetCodeLayout } from "./leetcode-layout";
 import { DifficultyBadge } from "./badges";
 
@@ -310,11 +312,12 @@ export function CodingWorkspace({
   return (
     <div
       ref={containerRef}
-      className={
+      className={cn(
+        firaCode.variable,
         fullPage
           ? "flex h-full min-h-0 flex-col overflow-hidden"
           : "flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border md:h-[calc(100vh-190px)] md:min-h-[560px]"
-      }
+      )}
     >
       <LeetCodeLayout
         problem={problem}
