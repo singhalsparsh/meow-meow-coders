@@ -15,7 +15,6 @@ export async function POST(req: Request, props: { params: Promise<{ courseId: st
         const courseOwner = await db.course.findUnique({
             where: {
                 id: params.courseId,
-                userId: userId
             }
         })
 

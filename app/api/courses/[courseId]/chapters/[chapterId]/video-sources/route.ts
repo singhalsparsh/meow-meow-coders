@@ -31,7 +31,6 @@ export async function PUT(
         const ownCourse = await db.course.findUnique({
             where: {
                 id: params.courseId,
-                userId,
             }
         });
 

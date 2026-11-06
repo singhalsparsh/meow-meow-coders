@@ -13,10 +13,10 @@ const CoursesPage = async () => {
     return redirect("/")
   }
 
+  // A teacher manages every course in the workspace, regardless of which
+  // account created it. Filtering by `userId` made the list look empty when
+  // the logged-in teacher wasn't the original owner.
   const courses = await db.course.findMany({
-    where: {
-      userId
-    },
     orderBy: {
       createdAt: "desc"
     }

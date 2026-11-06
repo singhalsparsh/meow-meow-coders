@@ -14,7 +14,6 @@ export async function PATCH(req: Request, props: { params: Promise<{ courseId: s
         const course = await db.course.findUnique({
             where: {
                 id: params.courseId,
-                userId,
             },
         })
 
@@ -25,7 +24,6 @@ export async function PATCH(req: Request, props: { params: Promise<{ courseId: s
         const unpublishedCourse = await db.course.update({
             where: {
                 id: params.courseId,
-                userId
             },
             data: {
                 isPublished: false
