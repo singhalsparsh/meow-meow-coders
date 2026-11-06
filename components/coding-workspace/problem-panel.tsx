@@ -136,7 +136,7 @@ function DescriptionTab({
                     </span>
                   )}
                 </div>
-                <div className="space-y-1.5 font-mono text-xs">
+                <div className="space-y-1.5 font-mono text-sm">
                   <div>
                     <span className="font-sans font-medium text-primary">
                       Input:{" "}

@@ -1,22 +1,26 @@
 "use client";
 
-// Video playback via Limeplay — a Shaka-based, shadcn-style player that we
-// own (components/video-player/*). We feed it the server-assembled playable
-// streams (Mux HLS, extra streaming URLs, or a single video URL) as a playlist.
-// YouTube links cannot be played by Shaka, so a chapter whose only playable
-// source is a YouTube link falls back to the IFrame-based custom player. When
-// nothing playable is supplied, we show a high-quality public demo MP4 so the
-// player can be verified immediately.
+// Video playback abstraction.
+//
+// - HLS streams (Mux etc.) → Limeplay (Shaka-based, shadcn-style player).
+// - Direct MP4 files → a native HTML5 player with a glass control overlay
+//   (Shaka requires CORS on the host; plain MP4 links usually don't have it,
+//   so the native <video> path is the reliable choice for MP4).
+// - YouTube-only → dedicated IFrame player.
+//
+// When nothing playable is supplied, a high-quality public demo MP4 is shown so
+// the player can be verified immediately.
 
 import { useMemo } from "react";
 
 import { CustomVideoPlayer } from "@/components/custom-video-player";
+import { Mp4Player } from "@/components/mp4-player";
 import {
   VideoPlayer as LimeplayPlayer,
   type VideoPlayerAsset,
 } from "@/components/video-player/player";
 import type { PlayerSource } from "@/components/liquid-glass-player";
-import { getMuxPlaybackUrl, getVideoUrlInfo } from "@/lib/video";
+import { getMuxPlaybackUrl, getVideoUrlInfo, isHlsUrl } from "@/lib/video";
 
 /** Public demo stream used when a chapter has no playable source. */
 const PLACEHOLDER_SRC =
@@ -74,6 +78,18 @@ export const VideoPlayer = ({
     () => allSources.filter((s) => getVideoUrlInfo(s.src).kind !== "youtube"),
     [allSources]
   );
+
+  // Does the playable set include an HLS stream? HLS needs Shaka/Limeplay; a
+  // set of plain MP4s plays more reliably through the native player.
+  const hasHls = useMemo(
+    () => playable.some((s) => isHlsUrl(s.src)),
+    [playable]
+  );
+
+  const mp4Sources = useMemo(
+    () => playable.map((s, i) => ({ id: `src-${i + 1}`, ...s })),
+    [playable]
+  );
   const assets = useMemo<VideoPlayerAsset[]>(
     () =>
       playable.map((s, i) => ({
@@ -100,23 +116,39 @@ export const VideoPlayer = ({
   // No playable source at all → show the demo placeholder for instant testing.
   if (playable.length === 0) {
     return (
+      <Mp4Player
+        sources={[
+          { id: "demo", src: PLACEHOLDER_SRC, title: "Demo video" },
+        ]}
+        layout={layout}
+        className={className}
+        playsInline={playsInline}
+        onEnded={onEnded}
+      />
+    );
+  }
+
+  // HLS (or mixed with HLS) → Limeplay/Shaka.
+  if (hasHls) {
+    return (
       <LimeplayPlayer
         className={className}
         layout={layout}
         theme="dark"
-        source={[{ id: "demo", src: PLACEHOLDER_SRC, title: "Demo video" }]}
+        source={assets}
         mediaProps={{ playsInline, onEnded }}
       />
     );
   }
 
+  // Plain MP4 → native player.
   return (
-    <LimeplayPlayer
-      className={className}
+    <Mp4Player
+      sources={mp4Sources}
       layout={layout}
-      theme="dark"
-      source={assets}
-      mediaProps={{ playsInline, onEnded }}
+      className={className}
+      playsInline={playsInline}
+      onEnded={onEnded}
     />
   );
 };

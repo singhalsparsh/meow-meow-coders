@@ -19,8 +19,6 @@ import {
   Plus,
   RotateCcw,
   Settings,
-  ThumbsDown,
-  ThumbsUp,
   Loader2,
   CheckCheck,
   Wand2,
@@ -106,48 +104,6 @@ export function LeetCodeLayout({
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [copied, setCopied] = useState(false);
   const [panel, setPanel] = useState<"hint" | "info" | null>(null);
-
-  // Persistent likes/dislikes per problem (localStorage). Base counts seeded
-  // per difficulty so the UI always reflects a real, non-empty signal.
-  const voteKey = `lms:vote:${problem.id}`;
-  const [vote, setVote] = useState<"up" | "down" | null>(null);
-  const [voteCounts, setVoteCounts] = useState(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(voteKey) || "null");
-      if (saved && typeof saved === "object") {
-        return {
-          up: Math.max(0, Number(saved.up) || 0),
-          down: Math.max(0, Number(saved.down) || 0),
-        };
-      }
-    } catch {
-      /* ignore */
-    }
-    const base = problem.difficulty === "HARD" ? 218 : problem.difficulty === "MEDIUM" ? 141 : 102;
-    return { up: base, down: 24 };
-  });
-
-  const setVoteLocal = (type: "up" | "down") => {
-    setVote((prev) => {
-      const next = prev === type ? null : type;
-      setVoteCounts((c) => {
-        let up = c.up;
-        let down = c.down;
-        if (prev === "up") up = Math.max(0, up - 1);
-        if (prev === "down") down = Math.max(0, down - 1);
-        if (next === "up") up += 1;
-        if (next === "down") down += 1;
-        const result = { up, down };
-        try {
-          localStorage.setItem(voteKey, JSON.stringify(result));
-        } catch {
-          /* ignore */
-        }
-        return result;
-      });
-      return next;
-    });
-  };
 
   // Editor / settings state
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -326,7 +282,7 @@ export function LeetCodeLayout({
             {leftTab === "solution" && (
               <div>
                 {problem.solution?.trim() ? (
-                  <div className="prose prose-sm max-w-none prose-invert prose-headings:text-white prose-p:text-[#d4d4d4] prose-strong:text-white prose-pre:bg-[#262626] prose-pre:border prose-pre:border-[#3a3a3a] prose-code:text-[#d4d4d4]">
+                  <div className="prose max-w-none prose-invert prose-headings:text-white prose-p:text-[#d4d4d4] prose-strong:text-white prose-pre:bg-[#262626] prose-pre:border prose-pre:border-[#3a3a3a] prose-code:text-[#d4d4d4]">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {problem.solution}
                     </ReactMarkdown>
@@ -343,32 +299,8 @@ export function LeetCodeLayout({
             )}
           </div>
 
-          {/* Left footer: votes / hint / info */}
+          {/* Left footer: hint / info */}
           <div className="relative flex h-11 flex-shrink-0 items-center gap-1 border-t border-[#2d2d2d] px-3 text-xs text-[#6e6e6e]">
-            <button
-              type="button"
-              onClick={() => setVoteLocal("up")}
-              className={cn(
-                "flex items-center gap-1.5 rounded px-2 py-1.5 transition-colors hover:text-white",
-                vote === "up" && "text-[#3d8ef7]"
-              )}
-              title="I found this helpful"
-            >
-              <ThumbsUp className="h-3.5 w-3.5" />
-              <span className="font-medium">{voteCounts.up}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setVoteLocal("down")}
-              className={cn(
-                "flex items-center gap-1.5 rounded px-2 py-1.5 transition-colors hover:text-white",
-                vote === "down" && "text-[#3d8ef7]"
-              )}
-              title="Not helpful"
-            >
-              <ThumbsDown className="h-3.5 w-3.5" />
-              <span className="font-medium">{voteCounts.down}</span>
-            </button>
             <span className="mx-1 h-4 w-px bg-[#3a3a3a]" />
             <div className="relative">
               <button
