@@ -1,4 +1,5 @@
 import { CaptionsStateControl } from "@/components/video-player/components/captions-state-control"
+import { FullscreenControl } from "@/components/video-player/components/fullscreen-control"
 import { PictureInPictureControl } from "@/components/video-player/components/pip-control"
 import { PlaybackStateControl } from "@/components/video-player/components/playback-state-control"
 import { Playlist } from "@/components/video-player/components/playlist"
@@ -52,6 +53,7 @@ export function BottomControls({ className }: BottomControlsProps) {
         >
           <CaptionsStateControl />
           <PictureInPictureControl />
+          <FullscreenControl />
           <Playlist />
         </div>
       </div>

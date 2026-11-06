@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { buildPlayerSources } from "@/lib/video-proxy";
+import { buildPlayerSources } from "@/lib/video";
 import { findStaticChapter, findStaticCourse } from "@/lib/content";
 import { isCourseFresh } from "@/actions/course-freshness";
 

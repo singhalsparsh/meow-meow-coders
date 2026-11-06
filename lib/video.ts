@@ -130,6 +130,54 @@ export interface LimeplaySource {
   id: string;
   src: string;
   title?: string | null;
+  hls?: boolean;
+}
+
+/** A playable source with a guaranteed title (for Limeplay / players). */
+export interface PlayerSource {
+  id: string;
+  src: string;
+  title: string;
+  hls?: boolean;
+}
+
+/**
+ * Build the playable source list for a chapter. Streams are returned as the
+ * direct CDN URLs (no server-side proxy) — the browser plays them natively.
+ */
+export function buildPlayerSources(opts: {
+  muxPlaybackId?: string | null;
+  streams?: { id: string; src: string; title?: string | null }[];
+  videoUrl?: string | null;
+  fallbackTitle?: string | null;
+}): PlayerSource[] {
+  const list: PlayerSource[] = [];
+  const seen = new Set<string>();
+
+  const push = (raw: string, title: string) => {
+    if (!raw || seen.has(raw)) return;
+    seen.add(raw);
+    list.push({
+      id: `src-${list.length + 1}`,
+      src: raw,
+      title: title?.trim() || "",
+      hls: isHlsUrl(raw),
+    });
+  };
+
+  if (opts.muxPlaybackId) {
+    const url = getMuxPlaybackUrl(opts.muxPlaybackId);
+    if (url) push(url, opts.fallbackTitle || "Primary stream");
+  }
+  for (const stream of opts.streams ?? []) {
+    push(stream.src, stream.title ?? "");
+  }
+  if (opts.videoUrl) push(opts.videoUrl, "");
+
+  return list.map((source, index) => ({
+    ...source,
+    title: source.title || `Server ${index + 1}`,
+  }));
 }
 
 /**

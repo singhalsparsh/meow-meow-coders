@@ -1,6 +1,6 @@
 import { IconBadge } from "@/components/icon-badge";
 import { db } from "@/lib/db";
-import { buildPlayerSources } from "@/lib/video-proxy";
+import { buildPlayerSources } from "@/lib/video";
 import { auth } from "@clerk/nextjs/server";
 import {
   ArrowLeft,
