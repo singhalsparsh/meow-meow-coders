@@ -154,7 +154,7 @@ export function LeetCodeLayout({
   const [settingsTab, setSettingsTab] = useState<
     "layout" | "editor" | "shortcuts"
   >("layout");
-  const [fontSize, setFontSize] = useState(15);
+  const [fontSize, setFontSize] = useState(16);
   const [tabSize, setTabSize] = useState(4);
   const [wordWrap, setWordWrap] = useState(false);
   const editorRef = useRef<any>(null);

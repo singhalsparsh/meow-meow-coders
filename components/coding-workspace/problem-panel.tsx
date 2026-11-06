@@ -98,7 +98,7 @@ function DescriptionTab({
 }) {
   return (
     <div className="space-y-5">
-      <div className="prose prose-sm dark:prose-invert max-w-none">
+      <div className="prose dark:prose-invert max-w-none">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {problem.description || "No description provided."}
         </ReactMarkdown>
@@ -109,7 +109,7 @@ function DescriptionTab({
           <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Constraints
           </h4>
-          <div className="prose prose-sm dark:prose-invert max-w-none rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50 p-3">
+          <div className="prose dark:prose-invert max-w-none rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50 p-3">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {problem.constraints}
             </ReactMarkdown>
