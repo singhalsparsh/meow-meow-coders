@@ -563,20 +563,21 @@ const ProblemEditor = ({
           />
         </div>
 
-        {/* Solution */}
+        {/* Solution (reference code) */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
             Solution{" "}
             <span className="font-normal opacity-70">
-              (shown to students in the Solution tab; optional)
+              (shown to students in the Solution tab; optional — paste the reference code here)
             </span>
           </label>
-          <MarkdownWriter
-            value={form.solution}
-            onChange={(v) => update("solution", v)}
-            placeholder="Explain your approach and add the reference code. Use the toolbar to insert code blocks, images, tables, etc."
-            minHeight={150}
-          />
+          <div className="h-[220px] rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-700 bg-slate-950">
+            <CodeEditor
+              value={form.solution}
+              onChange={(v) => update("solution", v)}
+              height={220}
+            />
+          </div>
         </div>
 
         {/* Dual code editors */}

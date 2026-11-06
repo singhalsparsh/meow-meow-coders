@@ -301,10 +301,8 @@ export function LeetCodeLayout({
             {leftTab === "solution" && (
               <div>
                 {problem.solution?.trim() ? (
-                  <div className="prose max-w-none dark:prose-invert prose-headings:text-[var(--ide-active)] prose-p:text-[var(--ide-foreground)] prose-strong:text-[var(--ide-active)] prose-pre:bg-[var(--ide-surface)] prose-pre:border prose-pre:border-[var(--ide-border)] prose-code:text-[var(--ide-foreground)]">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {problem.solution}
-                    </ReactMarkdown>
+                  <div className="rounded-lg overflow-hidden border border-[var(--ide-border)] bg-[var(--ide-surface)]">
+                    <CodeEditor value={problem.solution} readOnly height={360} />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
