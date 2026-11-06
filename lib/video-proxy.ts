@@ -144,9 +144,12 @@ export function buildPlayerSources(opts: {
     }
     if (seen.has(raw)) return;
     seen.add(raw);
+    // Serve every non-YouTube source through our own origin so the player
+    // (Shaka/Limeplay) always fetches same-origin — this lets plain MP4 links
+    // play even when the upstream host sends no CORS headers.
     list.push({
       id: `src-${list.length + 1}`,
-      src: raw,
+      src: protect ? signVideoUrl(raw) : raw,
       title: title?.trim() || "",
       hls: isHlsUrl(raw),
     });
