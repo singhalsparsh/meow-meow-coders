@@ -2,10 +2,9 @@
 
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CheckCheck, ChevronDown, Code2, Loader2, Play, RotateCcw } from "lucide-react";
+import { ChevronDown, Code2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { Button } from "@/components/ui/button";
 import { useCppJudge } from "@/hooks/use-cpp-judge";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
 import type {
@@ -14,10 +13,8 @@ import type {
   SubmissionVerdict,
 } from "@/lib/coding/types";
 import { VERDICT_LABEL, type CodingProblemPayload } from "@/lib/coding/types";
-import { CodeEditor } from "./code-editor";
-import { ProblemPanel } from "./problem-panel";
-import { ResultsPanel } from "./results-panel";
-import { DifficultyBadge, TopicBadge } from "./badges";
+import { LeetCodeLayout } from "./leetcode-layout";
+import { DifficultyBadge } from "./badges";
 
 interface CodingWorkspaceProps {
   problem: CodingProblemPayload;
@@ -287,146 +284,38 @@ export function CodingWorkspace({
       ref={containerRef}
       className={
         fullPage
-          ? "flex h-full min-h-0 flex-col overflow-hidden bg-card"
-          : "flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card md:h-[calc(100vh-190px)] md:min-h-[560px]"
+          ? "flex h-full min-h-0 flex-col overflow-hidden"
+          : "flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border md:h-[calc(100vh-190px)] md:min-h-[560px]"
       }
     >
-      {/* Top control bar */}
-      <div className="flex flex-shrink-0 flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-2">
-          <h3 className="truncate text-sm font-semibold sm:text-base">
-            {problem.title}
-          </h3>
-          <TopicBadge topic={problem.topic} />
-          <DifficultyBadge difficulty={problem.difficulty} />
-          <span className="hidden text-xs text-muted-foreground sm:inline">
-            {problem.timeLimitMs} ms
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {!fullPage && (
-            <Button
-              onClick={() => setIsExpanded(false)}
-              variant="ghost"
-              size="sm"
-            >
-              <ChevronDown className="h-3.5 w-3.5 rotate-180 sm:mr-1.5" />
-              <span className="hidden sm:inline">Collapse</span>
-            </Button>
-          )}
-          <Button
-            onClick={handleReset}
-            variant="ghost"
-            size="sm"
-            disabled={busy || submitting}
-          >
-            <RotateCcw className="h-3.5 w-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">Reset</span>
-          </Button>
-          <Button
-            onClick={handleRun}
-            variant="outline"
-            size="sm"
-            disabled={busy || submitting}
-          >
-            {busy ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
-            ) : (
-              <Play className="h-3.5 w-3.5 sm:mr-1.5" />
-            )}
-            Run
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            size="sm"
-            disabled={busy || submitting}
-            className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700"
-          >
-            {submitting ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin sm:mr-1.5" />
-            ) : (
-              <CheckCheck className="h-3.5 w-3.5 sm:mr-1.5" />
-            )}
-            Submit
-          </Button>
-        </div>
-      </div>
-
-      {/* Toolchain load progress */}
-      {loading && (
-        <div className="h-1 w-full flex-shrink-0 overflow-hidden bg-muted">
-          <div
-            className="h-full bg-primary transition-all duration-300"
-            style={{
-              width: `${
-                typeof judge.progress === "number"
-                  ? Math.max(5, judge.progress * 100)
-                  : 30
-              }%`,
-            }}
-          />
-        </div>
-      )}
-
-      {/* Body */}
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        {/* Left: problem context + history */}
-        <div
-          className="min-h-0 min-w-0 flex-shrink-0 overflow-hidden md:border-r md:border-border"
-          style={isMobile ? { height: "38%", flexShrink: 0 } : { width: `${leftWidth}%` }}
-        >
-          <ProblemPanel
-            problem={problem}
-            submissions={submissions}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-        </div>
-
-        {!isMobile && (
-          <div
-            onPointerDown={startVerticalDrag}
-            className="w-1.5 flex-shrink-0 cursor-col-resize bg-muted transition-colors hover:bg-primary/50"
-          />
-        )}
-
-        {/* Right: editor + console */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div
-            className="min-h-0 overflow-hidden"
-            style={{ height: isMobile ? `${100 - editorHeight}%` : `${editorHeight}%` }}
-          >
-            <CodeEditor value={code} onChange={setCode} />
-          </div>
-
-          {!isMobile ? (
-            <div
-              onPointerDown={startHorizontalDrag}
-              className="h-1.5 flex-shrink-0 cursor-row-resize bg-muted transition-colors hover:bg-primary/50"
-            />
-          ) : null}
-
-          <div
-            className="min-h-0 flex-1 overflow-hidden border-t border-border"
-            style={isMobile ? { height: `${editorHeight}%`, flexShrink: 0 } : undefined}
-          >
-            <ResultsPanel
-              problem={problem}
-              result={judge.result}
-              error={judge.error}
-              busy={busy}
-              statusMessage={judge.statusMessage}
-              caseInputs={caseInputs}
-              onCaseInputChange={(caseId, value) =>
-                setCaseInputs((prev) => ({ ...prev, [caseId]: value }))
-              }
-              onRunCase={handleRunCase}
-              activeCaseId={activeCaseId}
-              onActiveCaseChange={setActiveCaseId}
-            />
-          </div>
-        </div>
-      </div>
+      <LeetCodeLayout
+        problem={problem}
+        submissions={submissions}
+        code={code}
+        onCodeChange={setCode}
+        busy={busy}
+        submitting={submitting}
+        loading={loading}
+        progress={typeof judge.progress === "number" ? judge.progress : undefined}
+        onReset={handleReset}
+        onRun={handleRun}
+        onSubmit={handleSubmit}
+        result={judge.result}
+        error={judge.error}
+        statusMessage={judge.statusMessage}
+        caseInputs={caseInputs}
+        onCaseInputChange={(caseId, value) =>
+          setCaseInputs((prev) => ({ ...prev, [caseId]: value }))
+        }
+        onRunCase={handleRunCase}
+        activeCaseId={activeCaseId}
+        onActiveCaseChange={setActiveCaseId}
+        leftWidth={leftWidth}
+        onVerticalDragStart={startVerticalDrag}
+        editorHeight={editorHeight}
+        onHorizontalDragStart={startHorizontalDrag}
+        isMobile={isMobile}
+      />
     </div>
   );
 }

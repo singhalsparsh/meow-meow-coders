@@ -29,6 +29,8 @@ interface ResultsPanelProps {
   onRunCase: (caseId: string) => void;
   activeCaseId: string | null;
   onActiveCaseChange: (caseId: string) => void;
+  /** Filter which cases are shown: all | sample (public) | hidden. */
+  categoryFilter?: "all" | "sample" | "hidden";
 }
 
 export function ResultsPanel({
@@ -42,10 +44,11 @@ export function ResultsPanel({
   onRunCase,
   activeCaseId,
   onActiveCaseChange,
+  categoryFilter = "all",
 }: ResultsPanelProps) {
   // Tabs come from the latest result when there is one, otherwise from the
   // problem's public cases so the samples are available before any run.
-  const tabs: { id: string; label: string; hidden: boolean }[] = result
+  const allTabs: { id: string; label: string; hidden: boolean }[] = result
     ? result.results.map((r, i) => ({
         id: r.id,
         label: r.hidden ? `Hidden ${result.results.slice(0, i + 1).filter((x) => x.hidden).length}` : `Case ${result.results.slice(0, i + 1).filter((x) => !x.hidden).length}`,
@@ -56,6 +59,11 @@ export function ResultsPanel({
         label: `Case ${i + 1}`,
         hidden: false,
       }));
+
+  const tabs =
+    categoryFilter === "all"
+      ? allTabs
+      : allTabs.filter((t) => (categoryFilter === "hidden" ? t.hidden : !t.hidden));
 
   const activeId =
     activeCaseId && tabs.some((t) => t.id === activeId2(activeCaseId, tabs))
