@@ -31,6 +31,7 @@ import {
   useMediaFeatureApi,
   useMediaFeatureStore,
 } from "@/components/limeplay/media-provider"
+import { getVideoUrlInfo, isHlsUrl } from "@/lib/video"
 
 /** Context passed to a custom asset load handler. */
 export interface AssetLoadContext<TItem extends TAsset = TAsset> {
@@ -1054,8 +1055,59 @@ function createDefaultLoad({
       )
     }
 
+    // Direct progressive files (MP4/WebM/OGG) play cross-origin with a native
+    // <video> element — no CORS needed. Shaka fetches via XHR and therefore
+    // cannot play sources whose host omits `Access-Control-Allow-Origin`
+    // (e.g. archive.org media nodes). Play those natively so the Limeplay UI
+    // (which is driven by native media-element events) works unchanged.
+    if (typeof resolvedSource === "string") {
+      const info = getVideoUrlInfo(resolvedSource)
+      if (info.kind === "direct" && !isHlsUrl(resolvedSource)) {
+        const media = player?.getMediaElement?.()
+        if (media) {
+          await playNatively(media, resolvedSource, timeToLoad)
+          return
+        }
+      }
+    }
+
     await player.load(resolvedSource, timeToLoad)
   }
+}
+
+/**
+ * Load a direct media file through the native <video> element. Resolves once
+ * the element has enough data to play; rejects if the media fails to load.
+ */
+function playNatively(
+  media: HTMLMediaElement,
+  src: string,
+  startTime?: number
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      media.removeEventListener("canplay", onCanPlay)
+      media.removeEventListener("error", onError)
+    }
+    const onCanPlay = () => {
+      cleanup()
+      resolve()
+    }
+    const onError = () => {
+      cleanup()
+      reject(new Error(`Unable to play video natively: ${src}`))
+    }
+
+    media.addEventListener("canplay", onCanPlay)
+    media.addEventListener("error", onError)
+
+    media.src = src
+    media.load()
+
+    if (startTime !== undefined && startTime > 0) {
+      media.currentTime = startTime
+    }
+  })
 }
 
 function generateAssetSessionId(): string {

@@ -10,9 +10,8 @@ import { Chapter, MuxData, VideoSource } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { Input } from "@/components/ui/input";
-import { isPlayableVideoUrl, getVideoUrlInfo, isHlsUrl, toLimeplayAssets } from "@/lib/video";
+import { isPlayableVideoUrl, toLimeplayAssets } from "@/lib/video";
 import { VideoPlayer as LimeplayVideoPlayer } from "@/components/video-player/player";
-import { CustomVideoPlayer } from "@/components/custom-video-player";
 import type { PlayerSource } from "@/components/liquid-glass-player";
 
 interface ChapterVideoProps {
@@ -142,25 +141,10 @@ export const ChapterVideoForm = ({
           </div>
         ) : (
           <div className="relative aspect-video mt-2">
-            {playerSources.find(
-              (source) => !isHlsUrl(source.src) &&
-                getVideoUrlInfo(source.src).kind !== "youtube"
-            ) ? (
-              <CustomVideoPlayer
-                src={
-                  playerSources.find(
-                    (source) => !isHlsUrl(source.src) &&
-                      getVideoUrlInfo(source.src).kind !== "youtube"
-                  )!.src
-                }
-                className="absolute inset-0 h-full w-full border-0 rounded-none"
-              />
-            ) : (
-              <LimeplayVideoPlayer
-                source={toLimeplayAssets(playerSources, initialData.title)}
-                layout="fill"
-              />
-            )}
+            <LimeplayVideoPlayer
+              source={toLimeplayAssets(playerSources, initialData.title)}
+              layout="fill"
+            />
           </div>
         )
       )}

@@ -8,8 +8,7 @@ import { Lock } from "lucide-react";
 
 import { useConfettiStore } from "@/hooks/use-confetti-store";
 import { VideoPlayer as LimeplayVideoPlayer } from "@/components/video-player/player";
-import { CustomVideoPlayer } from "@/components/custom-video-player";
-import { getMuxPlaybackUrl, getVideoUrlInfo, isHlsUrl, toLimeplayAssets } from "@/lib/video";
+import { getMuxPlaybackUrl, toLimeplayAssets } from "@/lib/video";
 import type { PlayerSource } from "@/components/liquid-glass-player";
 
 interface VideoPlayerProps {
@@ -63,16 +62,6 @@ export const VideoPlayer = ({
 
     const hasVideo = playerSources.length > 0;
 
-    // Direct progressive files (MP4/WebM/OGG) play cross-origin with a native
-    // <video> element — no CORS needed. HLS streams (Mux) require the Limeplay
-    // (Shaka) player instead, since Shaka fetches via XHR and needs CORS.
-    const nativeSource = hasVideo
-      ? playerSources.find(
-          (source) => !isHlsUrl(source.src) &&
-            getVideoUrlInfo(source.src).kind !== "youtube"
-        )
-      : undefined;
-
     const onEnd = async () => {
         try {
             if (completeOnEnd) {
@@ -106,15 +95,7 @@ export const VideoPlayer = ({
                     </p>
                 </div>
             )}
-            {!isLocked && nativeSource && (
-                <CustomVideoPlayer
-                    src={nativeSource.src}
-                    autoPlay
-                    onEnded={onEnd}
-                    className="absolute inset-0 h-full w-full border-0 rounded-none"
-                />
-            )}
-            {!isLocked && hasVideo && !nativeSource && (
+            {!isLocked && hasVideo && (
                 <LimeplayVideoPlayer
                     source={playerSources}
                     mediaProps={{ autoPlay: true, playsInline: true, onEnded: onEnd }}
