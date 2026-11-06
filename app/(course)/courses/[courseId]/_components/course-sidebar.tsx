@@ -1,22 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
-import { Chapter, Course, UserProgress } from "@prisma/client"
 import { redirect } from "next/navigation";
-
-import { db } from "@/lib/db";
-/* import { CourseProgress } from "@/components/course-progress"; */
 
 import { CourseSidebarItem } from "./course-sidebar-item";
 import { CourseProgress } from "@/components/course-progress";
+import type { StaticCourseTree } from "@/lib/content";
 
 interface CourseSidebarProps {
-  course: Course & {
-    chapters: (Chapter & {
-      userProgress: UserProgress[] | null;
-      subChapters: (Chapter & {
-        userProgress: UserProgress[] | null;
-      })[];
-    })[]
-  };
+  course: StaticCourseTree;
   progressCount: number;
 };
 

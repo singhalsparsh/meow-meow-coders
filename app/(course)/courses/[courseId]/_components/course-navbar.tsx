@@ -1,18 +1,10 @@
-import { Chapter, Course, UserProgress } from "@prisma/client"
-
 import { NavbarRoutes } from "@/components/navbar-routes";
+import type { StaticCourseTree } from "@/lib/content";
 
 import { CourseMobileSidebar } from "./course-mobile-sidebar";
 
 interface CourseNavbarProps {
-  course: Course & {
-    chapters: (Chapter & {
-      userProgress: UserProgress[] | null;
-      subChapters: (Chapter & {
-        userProgress: UserProgress[] | null;
-      })[];
-    })[];
-  };
+  course: StaticCourseTree;
   progressCount: number;
 };
 

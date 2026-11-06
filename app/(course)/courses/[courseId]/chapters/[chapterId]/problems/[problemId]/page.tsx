@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Code2 } from "lucide-react";
 import { db } from "@/lib/db";
+import { findCodingProblem, findStaticChapter } from "@/lib/content";
 import { CodingWorkspace } from "@/components/coding-workspace/coding-workspace";
 import type { CodingProblemPayload, ProblemSubmissionPayload } from "@/lib/coding/types";
 
@@ -18,33 +19,36 @@ const ProblemPage = async (
     return redirect("/");
   }
 
-  const problem = await db.codingProblem.findUnique({
-    where: { id: params.problemId },
-    include: {
-      testCases: {
-        where: { isHidden: false },
-        orderBy: { order: "asc" },
-      },
-      submissions: {
-        where: { userId },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      },
-    },
-  });
+  // Problem + chapter content are static; only per-user submissions hit the DB.
+  const problem = findCodingProblem(params.problemId);
 
   if (!problem) {
     return redirect(`/courses/${params.courseId}/chapters/${params.chapterId}`);
   }
 
-  const chapter = await db.chapter.findUnique({
-    where: { id: params.chapterId },
-    select: { title: true, courseId: true },
-  });
+  const chapter = findStaticChapter(params.courseId, params.chapterId);
+
+  const submissions: ProblemSubmissionPayload[] = await db.problemSubmission
+    .findMany({
+      where: { userId, problemId: params.problemId },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    })
+    .then((rows) =>
+      rows.map((s) => ({
+        id: s.id,
+        status: s.status,
+        passedCount: s.passedCount,
+        totalCount: s.totalCount,
+        runtimeMs: s.runtimeMs,
+        createdAt: s.createdAt.toISOString(),
+      })),
+    )
+    .catch(() => []);
 
   const payload: CodingProblemPayload = {
     id: problem.id,
-    chapterId: problem.chapterId ?? "",
+    chapterId: problem.chapterId,
     title: problem.title,
     difficulty: problem.difficulty,
     topic: problem.topic,
@@ -63,15 +67,6 @@ const ProblemPage = async (
       order: tc.order,
     })),
   };
-
-  const submissions: ProblemSubmissionPayload[] = problem.submissions.map((s) => ({
-    id: s.id,
-    status: s.status,
-    passedCount: s.passedCount,
-    totalCount: s.totalCount,
-    runtimeMs: s.runtimeMs,
-    createdAt: s.createdAt.toISOString(),
-  }));
 
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col">

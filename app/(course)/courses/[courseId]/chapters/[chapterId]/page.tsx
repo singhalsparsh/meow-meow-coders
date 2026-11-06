@@ -1,8 +1,8 @@
 import { getChapter } from "@/actions/get-chapter";
+import { getChapterCodingProblems } from "@/lib/content";
 import { Banner } from "@/components/ui/banner";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { db } from "@/lib/db";
 import { LessonShell } from "./_components/lesson-shell";
 import { ScrollToTop } from "./_components/scroll-to-top";
 
@@ -18,74 +18,16 @@ const ChapterIdPage = async (
         return redirect("/")
     }
 
-    // Fetch the chapter (with its attachments/streams/progress) and the DSA
-    // problems for the chapter in parallel — they are independent, so running
-    // them concurrently avoids a serial round-trip to the database.
-    const [chapterData, codingProblems] = await Promise.all([
-        getChapter({
-            userId,
-            chapterId: params.chapterId,
-            courseId: params.courseId,
-        }),
-        // In-browser DSA problem attached to this chapter (public cases only;
-        // hidden cases are fetched on Submit from the submission-suite
-        // endpoint). Rows are mapped to plain serializable objects (no Dates)
-        // before being passed to the client LessonShell — raw Prisma rows with
-        // Date fields cannot be serialized into client-component props.
-        (async () => {
-            try {
-                const rows = await db.codingProblem.findMany({
-            where: { chapterId: params.chapterId },
-            orderBy: { position: "asc" },
-            include: {
-                testCases: {
-                    where: { isHidden: false },
-                    orderBy: { order: "asc" },
-                },
-                submissions: {
-                    where: { userId },
-                    orderBy: { createdAt: "desc" },
-                    take: 50,
-                },
-            },
-        });
+    // Chapter content (video/attachments/notes/questions) is static; only the
+    // per-user progress comes from the DB (via getChapter). Coding problems are
+    // also static here — hidden test cases are fetched by the submit endpoint.
+    const chapterData = await getChapter({
+        userId,
+        chapterId: params.chapterId,
+        courseId: params.courseId,
+    });
 
-                return rows.map((p) => ({
-                    id: p.id,
-                    chapterId: p.chapterId ?? "",
-                    title: p.title,
-                    difficulty: p.difficulty,
-                    topic: p.topic,
-                    description: p.description,
-                    constraints: p.constraints,
-                    solution: p.solution,
-                    starterCode: p.starterCode,
-                    driverCode: p.driverCode,
-                    timeLimitMs: p.timeLimitMs,
-                    position: p.position,
-                    testCases: p.testCases.map((tc) => ({
-                        id: tc.id,
-                        input: tc.input,
-                        expectedOutput: tc.expectedOutput,
-                        explanation: tc.explanation,
-                        isHidden: tc.isHidden,
-                        order: tc.order,
-                    })),
-                    submissions: p.submissions.map((s) => ({
-                        id: s.id,
-                        status: s.status,
-                        passedCount: s.passedCount,
-                        totalCount: s.totalCount,
-                        runtimeMs: s.runtimeMs,
-                        createdAt: s.createdAt.toISOString(),
-                    })),
-                }));
-            } catch {
-                // Table may not exist yet
-                return [];
-            }
-        })(),
-    ]);
+    const codingProblems = getChapterCodingProblems(params.chapterId);
 
     const {
         chapter,
@@ -100,8 +42,8 @@ const ChapterIdPage = async (
         videoSources,
     } = chapterData;
 
-    // Same story for PDF notes and extra-practice questions attached to the
-    // raw chapter object — flatten to plain serializable objects.
+    // PDF notes and extra-practice questions attached to the chapter object —
+    // flatten to plain serializable objects.
     const pdfNotes = ((chapter as any).pdfNotes || []).map((n: any) => ({
         id: n.id,
         title: n.title,

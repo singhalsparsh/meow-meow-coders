@@ -15,6 +15,7 @@
 
 import categoriesData from "@/content/categories.json";
 import coursesData from "@/content/courses.json";
+import type { Difficulty, DsaTopic } from "@/lib/coding/types";
 
 // ---------------------------------------------------------------------------
 // Static content types (Date fields are converted from ISO strings at load).
@@ -393,3 +394,113 @@ export const staticCourses: StaticCourse[] = rawCourses
   .filter((c) => c.isPublished)
   .filter((c) => Array.isArray(c.chapters))
   .map(parseCourse);
+
+// ---------------------------------------------------------------------------
+// Lookup helpers for the student-facing course / chapter / problem pages.
+// ---------------------------------------------------------------------------
+
+export function findStaticCourse(courseId: string): StaticCourse | undefined {
+  return staticCourses.find((c) => c.id === courseId);
+}
+
+export function findStaticChapter(
+  courseId: string,
+  chapterId: string,
+): StaticChapter | undefined {
+  return findStaticCourse(courseId)?.chapters.find((ch) => ch.id === chapterId);
+}
+
+/**
+ * A coding problem serialized for the in-browser workspace: dates stripped,
+ * test cases filtered to the public ones (hidden cases are only fetched by the
+ * submit endpoint), ordered by `order`.
+ */
+export interface PublicTestCase {
+  id: string;
+  input: string;
+  expectedOutput: string;
+  explanation: string | null;
+  isHidden: boolean;
+  order: number;
+}
+
+export interface CodingProblemView {
+  id: string;
+  chapterId: string;
+  title: string;
+  difficulty: Difficulty;
+  topic: DsaTopic;
+  description: string;
+  constraints: string | null;
+  solution: string | null;
+  starterCode: string;
+  driverCode: string | null;
+  timeLimitMs: number;
+  position: number;
+  testCases: PublicTestCase[];
+}
+
+function serializeCodingProblem(p: StaticCodingProblem): CodingProblemView {
+  return {
+    id: p.id,
+    chapterId: p.chapterId ?? "",
+    title: p.title,
+    difficulty: p.difficulty as Difficulty,
+    topic: p.topic as DsaTopic,
+    description: p.description,
+    constraints: p.constraints,
+    solution: p.solution,
+    starterCode: p.starterCode,
+    driverCode: p.driverCode,
+    timeLimitMs: p.timeLimitMs,
+    position: p.position,
+    testCases: p.testCases
+      .filter((tc) => !tc.isHidden)
+      .sort((a, b) => a.order - b.order)
+      .map((tc) => ({
+        id: tc.id,
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+        explanation: tc.explanation,
+        isHidden: tc.isHidden,
+        order: tc.order,
+      })),
+  };
+}
+
+/** Coding problems attached to a chapter, ordered by position (public cases only). */
+export function getChapterCodingProblems(chapterId: string): CodingProblemView[] {
+  const chapter = staticCourses
+    .flatMap((c) => c.chapters)
+    .find((ch) => ch.id === chapterId);
+  if (!chapter) return [];
+  return chapter.codingProblems
+    .slice()
+    .sort((a, b) => a.position - b.position)
+    .map(serializeCodingProblem);
+}
+
+/** Find a single coding problem by id (public cases only). */
+export function findCodingProblem(problemId: string): CodingProblemView | undefined {
+  for (const c of staticCourses) {
+    for (const ch of c.chapters) {
+      const p = ch.codingProblems.find((item) => item.id === problemId);
+      if (p) return serializeCodingProblem(p);
+    }
+  }
+  return undefined;
+}
+
+// Shapes used by the course sidebar/navbar (static content + per-user progress).
+export interface ChapterProgressState {
+  isCompleted: boolean;
+}
+
+export interface StaticChapterTree extends StaticChapter {
+  userProgress: ChapterProgressState[] | null;
+  subChapters: (StaticChapter & { userProgress: ChapterProgressState[] | null })[];
+}
+
+export interface StaticCourseTree extends StaticCourse {
+  chapters: StaticChapterTree[];
+}
