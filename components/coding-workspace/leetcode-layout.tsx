@@ -44,7 +44,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
 
-type LeftTab = "problem" | "solution" | "submissions" | "peer";
+type LeftTab = "problem" | "solution" | "submissions";
 type CategoryFilter = "all" | "sample" | "hidden";
 
 interface LeetCodeLayoutProps {
@@ -215,7 +215,6 @@ export function LeetCodeLayout({
                 ["problem", "Problem"],
                 ["solution", "Solution"],
                 ["submissions", "Submissions"],
-                ["peer", "Peer Solutions"],
               ] as [LeftTab, string][]
             ).map(([id, label]) => (
               <button
@@ -324,14 +323,22 @@ export function LeetCodeLayout({
               <SubmissionsTab submissions={submissions} />
             )}
 
-            {(leftTab === "solution" || leftTab === "peer") && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <FileText className="h-8 w-8 text-[#4a4a4a]" />
-                <p className="mt-3 text-sm text-[#6e6e6e]">
-                  {leftTab === "solution"
-                    ? "No official solution for this problem yet."
-                    : "Peer solutions are not shown."}
-                </p>
+            {leftTab === "solution" && (
+              <div>
+                {problem.solution?.trim() ? (
+                  <div className="prose prose-sm max-w-none prose-invert prose-headings:text-white prose-p:text-[#d4d4d4] prose-strong:text-white prose-pre:bg-[#262626] prose-pre:border prose-pre:border-[#3a3a3a] prose-code:text-[#d4d4d4]">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {problem.solution}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <FileText className="h-8 w-8 text-[#4a4a4a]" />
+                    <p className="mt-3 text-sm text-[#6e6e6e]">
+                      No official solution for this problem yet.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

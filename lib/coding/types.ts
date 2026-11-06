@@ -94,6 +94,7 @@ export interface CodingProblemPayload {
   topic: DsaTopic;
   description: string;
   constraints: string | null;
+  solution: string | null;
   starterCode: string;
   driverCode: string | null;
   timeLimitMs: number;

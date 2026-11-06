@@ -1,10 +1,9 @@
 "use client";
 
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ChevronDown,
   ChevronRight,
   Code2,
   Pencil,
@@ -53,6 +52,7 @@ interface CodingProblemDraft {
   topic: DsaTopic;
   description: string;
   constraints: string;
+  solution: string;
   starterCode: string;
   driverCode: string;
   timeLimitMs: number;
@@ -109,6 +109,7 @@ const blankProblem = (): CodingProblemDraft => ({
   topic: "ARRAYS",
   description: "",
   constraints: "",
+  solution: "",
   starterCode: DEFAULT_STARTER_CODE,
   driverCode: DEFAULT_DRIVER_CODE,
   timeLimitMs: 2000,
@@ -174,116 +175,166 @@ export const CodingProblemForm = ({
     setEditing(draft.id as string);
   };
 
+  // The problem currently open in the full-page modal, or null.
+  const activeProblem = editing
+    ? (problems.find((p) => (p.id as string) === editing) ?? null)
+    : null;
+
+  const closeEditor = () => {
+    if (editing) {
+      const target = problems.find((p) => (p.id as string) === editing);
+      if (target && (!target.id || String(target.id).startsWith("new-"))) {
+        // Discard the unsaved draft when cancelled.
+        setProblems((prev) => prev.filter((p) => (p.id as string) !== editing));
+      }
+    }
+    setEditing(null);
+  };
+
+  // Close the modal with Escape.
+  useEffect(() => {
+    if (!editing) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeEditor();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, problems]);
+
   return (
-    <div className="mt-6 glass-card rounded-2xl p-4">
-      <div className="font-medium flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Code2 className="h-4 w-4 text-muted-foreground" />
-          <span>Coding Problems</span>
-          {problems.length > 0 && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20">
-              {problems.length} attached
-            </span>
-          )}
+    <>
+      <div className="mt-6 glass-card rounded-2xl p-4">
+        <div className="font-medium flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Code2 className="h-4 w-4 text-muted-foreground" />
+            <span>Coding Problems</span>
+            {problems.length > 0 && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20">
+                {problems.length} attached
+              </span>
+            )}
+          </div>
+          <Button
+            type="button"
+            onClick={startNew}
+            variant="outline"
+            size="sm"
+            disabled={problems.some((p) => !p.id || p.id.startsWith("new-"))}
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Add question
+          </Button>
         </div>
-        <Button
-          type="button"
-          onClick={startNew}
-          variant="outline"
-          size="sm"
-          disabled={problems.some((p) => !p.id || p.id.startsWith("new-"))}
-        >
-          <Plus className="h-3.5 w-3.5 mr-1" />
-          Add question
-        </Button>
-      </div>
 
-      {problems.length === 0 && editing === null && (
-        <p className="mt-3 text-sm text-muted-foreground">
-          No coding problems yet. Click <span className="font-medium">Add question</span> to create one.
-        </p>
-      )}
+        {problems.length === 0 && editing === null && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            No coding problems yet. Click{" "}
+            <span className="font-medium">Add question</span> to create one.
+          </p>
+        )}
 
-      <div className="mt-3 space-y-2">
-        {problems.map((problem, index) => {
-          const pid = problem.id as string;
-          const isOpen = editing === pid;
-          const isNew = !problem.id || problem.id.startsWith("new-");
+        <div className="mt-3 space-y-2">
+          {problems.map((problem, index) => {
+            const pid = problem.id as string;
+            const isNew = !problem.id || problem.id.startsWith("new-");
 
-          return (
-            <div
-              key={pid}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 overflow-hidden"
-            >
-              <div className="flex items-center gap-2 p-2.5">
-                <button
-                  type="button"
-                  onClick={() => setEditing(isOpen ? null : pid)}
-                  className="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-75 transition"
-                >
-                  {isOpen ? (
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  ) : (
+            return (
+              <div
+                key={pid}
+                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 overflow-hidden"
+              >
+                <div className="flex items-center gap-2 p-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(pid)}
+                    className="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-75 transition"
+                  >
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  )}
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0">
-                    Q{index + 1}
-                  </span>
-                  <span className="text-sm font-medium truncate">
-                    {problem.title.trim() || "Untitled question"}
-                  </span>
-                  {!isNew && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 shrink-0">
-                      saved
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0">
+                      Q{index + 1}
                     </span>
+                    <span className="text-sm font-medium truncate">
+                      {problem.title.trim() || "Untitled question"}
+                    </span>
+                    {!isNew && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 shrink-0">
+                        saved
+                      </span>
+                    )}
+                  </button>
+                  {!isNew && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        type="button"
+                        onClick={() => setEditing(pid)}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
+                        aria-label="Edit question"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => handleDelete(pid, problem.title || `Question ${index + 1}`)}
+                        disabled={busyId === pid}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
+                        aria-label="Delete question"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   )}
-                </button>
-                {!isNew && (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      type="button"
-                      onClick={() => setEditing(pid)}
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
-                      aria-label="Edit question"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => handleDelete(pid, problem.title || `Question ${index + 1}`)}
-                      disabled={busyId === pid}
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
-                      aria-label="Delete question"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
+                </div>
               </div>
-
-              {isOpen && (
-                <ProblemEditor
-                  key={pid}
-                  draft={problem}
-                  apiBase={apiBase}
-                  onCancel={() => {
-                    if (isNew) {
-                      setProblems((prev) => prev.filter((p) => (p.id as string) !== pid));
-                    }
-                    setEditing(null);
-                  }}
-                  onSaved={(saved) => handleSaved(pid, saved)}
-                />
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {/* Full-page modal editor — one question at a time */}
+      {activeProblem && (
+        <div
+          className="fixed inset-0 z-[60] overflow-y-auto bg-black/60 p-4 sm:p-8"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) closeEditor();
+          }}
+        >
+          <div className="mx-auto w-full max-w-5xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-950">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3 dark:border-slate-700 dark:bg-slate-950">
+              <div className="flex items-center gap-2 min-w-0">
+                <Code2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                <h3 className="truncate text-sm font-semibold">
+                  {activeProblem.title.trim() || "New coding question"}
+                </h3>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={closeEditor}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="px-5 pb-6 pt-3">
+              <ProblemEditor
+                key={activeProblem.id}
+                draft={activeProblem}
+                apiBase={apiBase}
+                onCancel={closeEditor}
+                onSaved={(saved) => handleSaved(activeProblem.id as string, saved)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -307,7 +358,11 @@ const ProblemEditor = ({
 }: ProblemEditorProps) => {
   const isNew = !draft.id || draft.id.startsWith("new-");
 
-  const [form, setForm] = useState<CodingProblemDraft>(draft);
+  const [form, setForm] = useState<CodingProblemDraft>(() => ({
+    ...draft,
+    constraints: draft.constraints ?? "",
+    solution: draft.solution ?? "",
+  }));
   const [saving, setSaving] = useState(false);
 
   const update = <K extends keyof CodingProblemDraft>(
@@ -365,6 +420,7 @@ const ProblemEditor = ({
           topic: form.topic,
           description: form.description,
           constraints: form.constraints || null,
+          solution: form.solution || null,
           starterCode: form.starterCode,
           driverCode: form.driverCode || null,
           timeLimitMs: form.timeLimitMs,
@@ -384,6 +440,7 @@ const ProblemEditor = ({
         topic: data.topic,
         description: data.description,
         constraints: data.constraints ?? "",
+        solution: data.solution ?? "",
         starterCode: data.starterCode,
         driverCode: data.driverCode ?? "",
         timeLimitMs: data.timeLimitMs,
@@ -403,8 +460,8 @@ const ProblemEditor = ({
   };
 
   return (
-    <div className="px-3 pb-3 space-y-5 border-t border-slate-200 dark:border-slate-700">
-      <div className="pt-4 space-y-5">
+    <div className="space-y-5">
+      <div className="space-y-5">
         {/* Metadata */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="md:col-span-3 space-y-1.5">
@@ -497,6 +554,22 @@ const ProblemEditor = ({
             onChange={(v) => update("constraints", v)}
             placeholder={"1 <= n <= 10^5\n-10^9 <= nums[i] <= 10^9"}
             minHeight={90}
+          />
+        </div>
+
+        {/* Solution */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Solution{" "}
+            <span className="font-normal opacity-70">
+              (shown to students in the Solution tab; optional)
+            </span>
+          </label>
+          <MarkdownWriter
+            value={form.solution}
+            onChange={(v) => update("solution", v)}
+            placeholder="Explain your approach and add the reference code. Use the toolbar to insert code blocks, images, tables, etc."
+            minHeight={150}
           />
         </div>
 

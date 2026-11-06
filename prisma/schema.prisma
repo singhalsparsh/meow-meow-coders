@@ -230,6 +230,9 @@ model CodingProblem {
   description String  @db.Text
   constraints String? @db.Text
 
+  // Teacher-authored solution shown in the student workspace's "Solution" tab.
+  solution String? @db.Text
+
   // Starter code provided to the student in Monaco Editor
   starterCode String @db.Text
 

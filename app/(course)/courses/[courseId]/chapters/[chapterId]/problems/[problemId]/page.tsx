@@ -50,6 +50,7 @@ const ProblemPage = async (
     topic: problem.topic,
     description: problem.description,
     constraints: problem.constraints,
+    solution: problem.solution,
     starterCode: problem.starterCode,
     driverCode: problem.driverCode,
     timeLimitMs: problem.timeLimitMs,
