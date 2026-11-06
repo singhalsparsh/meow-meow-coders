@@ -4,6 +4,7 @@ import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Code2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTheme } from "next-themes";
 
 import { useCppJudge } from "@/hooks/use-cpp-judge";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
@@ -87,6 +88,19 @@ export function CodingWorkspace({
       return "lms-dark";
     }
   });
+
+  const { resolvedTheme } = useTheme();
+
+  // Sync the editor theme with the site theme unless the user has explicitly
+  // chosen an editor theme (stored in localStorage).
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem("code_editor_theme")) return;
+    } catch {
+      // ignore
+    }
+    setEditorTheme(resolvedTheme === "light" ? "lms-light" : "lms-dark");
+  }, [resolvedTheme]);
   const [leftWidth, setLeftWidth] = useState(42);
   const [editorHeight, setEditorHeight] = useState(58);
   // Collapsed by default so the tall workspace only mounts once the learner
