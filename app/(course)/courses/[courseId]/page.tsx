@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { db } from "@/lib/db";
 import { findStaticCourse } from "@/lib/content"
+import { isCourseFresh } from "@/actions/course-freshness";
 
 type CourseRedirectSource = {
   id: string;
@@ -20,8 +21,11 @@ const CourseIdPage = async (
     const { userId } = await auth()
 
     // Course content is static; only fall back to the DB for content that is
-    // not yet in the static snapshot (newly created / edited courses).
-    let course: CourseRedirectSource | null = findStaticCourse(params.courseId) ?? null;
+    // not yet in the static snapshot or has been edited since the last export.
+    const staticCourse = findStaticCourse(params.courseId);
+    const fresh = staticCourse ? await isCourseFresh(params.courseId) : false;
+    let course: CourseRedirectSource | null =
+      staticCourse && fresh ? staticCourse : null;
 
     if (!course) {
         course = await db.course.findUnique({

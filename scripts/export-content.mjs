@@ -79,11 +79,32 @@ async function main() {
   const cats = JSON.parse(JSON.stringify(categories));
   const courses = JSON.parse(JSON.stringify(catalog));
 
+  // Snapshot version metadata: for each course, the newest updatedAt across
+  // the course and all of its nested content. The student-facing pages compare
+  // this against the live DB at request time — if the DB is newer (a teacher
+  // edited something), they fall back to the database so the edit propagates
+  // to everyone without a redeploy. Otherwise they serve the static snapshot.
+  const toTime = (d) => (d ? new Date(d).getTime() : 0);
+  const meta = {};
+  for (const c of courses) {
+    let max = toTime(c.updatedAt);
+    for (const a of c.attachments || []) max = Math.max(max, toTime(a.updatedAt));
+    for (const ch of c.chapters || []) {
+      max = Math.max(max, toTime(ch.updatedAt));
+      for (const v of ch.videoSources || []) max = Math.max(max, toTime(v.updatedAt));
+      for (const p of ch.pdfNotes || []) max = Math.max(max, toTime(p.updatedAt));
+      for (const q of ch.leetcodeQuestions || []) max = Math.max(max, toTime(q.updatedAt));
+      for (const cp of ch.codingProblems || []) max = Math.max(max, toTime(cp.updatedAt));
+    }
+    meta[c.id] = new Date(max).toISOString();
+  }
+
   writeFileSync(join(outDir, "categories.json"), JSON.stringify(cats, null, 2));
   writeFileSync(join(outDir, "courses.json"), JSON.stringify(courses, null, 2));
+  writeFileSync(join(outDir, "snapshot-meta.json"), JSON.stringify(meta, null, 2));
 
   console.log(
-    `[export-content] wrote content/categories.json (${cats.length}) and content/courses.json (${courses.length} published courses)`
+    `[export-content] wrote content/categories.json (${cats.length}), content/courses.json (${courses.length} published courses), content/snapshot-meta.json (${Object.keys(meta).length} courses)`
   );
 }
 

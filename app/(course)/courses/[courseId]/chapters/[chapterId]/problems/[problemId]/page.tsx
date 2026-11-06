@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Code2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { findCodingProblem, findStaticChapter } from "@/lib/content";
+import { isCourseFresh } from "@/actions/course-freshness";
 import { CodingWorkspace } from "@/components/coding-workspace/coding-workspace";
 import type { CodingProblemPayload, ProblemSubmissionPayload } from "@/lib/coding/types";
 
@@ -25,7 +26,10 @@ const ProblemPage = async (
   let payload: CodingProblemPayload | null = null;
   let chapterTitle: string | undefined;
 
-  const staticProblem = findCodingProblem(params.problemId);
+  // Only use the static snapshot when the host course is fresh (no teacher
+  // edits since the last export); otherwise fall back to the DB below.
+  const fresh = await isCourseFresh(params.courseId);
+  const staticProblem = fresh ? findCodingProblem(params.problemId) : undefined;
 
   if (staticProblem) {
     const chapter = findStaticChapter(params.courseId, params.chapterId);

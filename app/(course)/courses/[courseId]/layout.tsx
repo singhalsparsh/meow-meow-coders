@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
 import { getProgress } from "@/actions/get-progress";
+import { isCourseFresh } from "@/actions/course-freshness";
 import {
   findStaticCourse,
   type StaticChapterTree,
@@ -36,7 +37,7 @@ const CourseLayout = async (
   let courseTree: StaticCourseTree;
   let progressCount: number;
 
-  if (staticCourse) {
+  if (staticCourse && (await isCourseFresh(params.courseId))) {
     // Static path: content from the snapshot. Per-user progress is rendered
     // client-side from the browser cache (seeded once via /api/my-progress on
     // a cold cache), so we don't hit the DB for progress on every visit.

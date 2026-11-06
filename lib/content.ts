@@ -15,6 +15,7 @@
 
 import categoriesData from "@/content/categories.json";
 import coursesData from "@/content/courses.json";
+import snapshotMetaData from "@/content/snapshot-meta.json";
 import type { Difficulty, DsaTopic } from "@/lib/coding/types";
 
 // ---------------------------------------------------------------------------
@@ -394,6 +395,19 @@ export const staticCourses: StaticCourse[] = rawCourses
   .filter((c) => c.isPublished)
   .filter((c) => Array.isArray(c.chapters))
   .map(parseCourse);
+
+/**
+ * The snapshot "version" for a course: the newest updatedAt across the course
+ * and all its nested content at export time. The student-facing pages compare
+ * this against the live DB — if the DB is newer, a teacher edited content since
+ * the last export, so we serve from the DB instead of the static snapshot.
+ */
+const snapshotMeta = snapshotMetaData as Record<string, string>;
+
+export function getSnapshotVersion(courseId: string): Date | undefined {
+  const v = snapshotMeta[courseId];
+  return v ? new Date(v) : undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Lookup helpers for the student-facing course / chapter / problem pages.

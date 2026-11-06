@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { buildPlayerSources } from "@/lib/video-proxy";
 import { findStaticChapter, findStaticCourse } from "@/lib/content";
+import { isCourseFresh } from "@/actions/course-freshness";
 
 interface GetChapterProps {
   userId: string;
@@ -222,7 +223,7 @@ export const getChapter = async (props: GetChapterProps): Promise<GetChapterResu
       ? findStaticChapter(props.courseId, props.chapterId)
       : undefined;
 
-    if (staticCourse && staticChapter) {
+    if (staticCourse && staticChapter && (await isCourseFresh(props.courseId))) {
       return getChapterFromStatic(props);
     }
 
