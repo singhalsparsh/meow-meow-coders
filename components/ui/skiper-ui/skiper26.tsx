@@ -99,8 +99,8 @@ const Options = ({
       className="top-30 border-foreground/10 bg-muted2 absolute right-1/2 flex w-[245px] translate-x-1/2 flex-col gap-3 rounded-3xl border p-3 backdrop-blur-sm lg:right-4 lg:translate-x-0"
     >
       <div className="flex items-center justify-between">
-        <span className="size-4 cursor-grab active:cursor-grabbing">
-          <GripHorizontal className="size-4 opacity-50" />
+        <span className="h-4 w-4 cursor-grab active:cursor-grabbing">
+          <GripHorizontal className="h-4 w-4 opacity-50" />
         </span>
 
         <p className="group flex cursor-pointer items-center justify-center gap-1 rounded-lg px-2 py-1 text-sm opacity-50">
@@ -617,7 +617,7 @@ export const ThemeToggleButton = ({
     <button
       type="button"
       className={cn(
-        "size-10 cursor-pointer rounded-full bg-black p-0 transition-all duration-300 active:scale-95",
+        "h-10 w-10 cursor-pointer rounded-full bg-black p-0 transition-all duration-300 active:scale-95",
         className,
       )}
       onClick={toggleTheme}

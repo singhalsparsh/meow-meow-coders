@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 
 import { Categories } from "./_components/categories"
-import { SearchInput } from "@/components/search-input"
+import { SearchModalTrigger } from "@/components/search-modal-trigger"
 import { CoursesList } from "@/components/courses-list"
 
 interface SearchPageProps {
@@ -42,7 +42,7 @@ const SearchPage = async (props: SearchPageProps) => {
   return (
     <>
       <div className="px-6 pt-6 md:hidden md:mb-0 block">
-        <SearchInput />
+        <SearchModalTrigger />
       </div>
       <div className="p-6 space-y-4">
         <Categories
