@@ -6,6 +6,7 @@ import {
   Play,
   Terminal,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -259,6 +260,48 @@ function CompileError({ output }: { output: string }) {
   );
 }
 
+function RuntimeErrorNotice({
+  stdout,
+  stderr,
+  timedOut,
+  runtimeMs,
+}: {
+  stdout: string | null;
+  stderr: string | null;
+  timedOut: boolean;
+  runtimeMs: number;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 p-3">
+        <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+        <span className="text-sm font-medium text-rose-700 dark:text-rose-300">
+          {timedOut ? (
+            <>Time Limit Exceeded — exceeded {runtimeMs} ms</>
+          ) : (
+            "Runtime Error"
+          )}
+        </span>
+        {!timedOut && (
+          <span className="ml-auto text-xs text-muted-foreground">{runtimeMs} ms</span>
+        )}
+      </div>
+
+      {(stdout || stderr) && (
+        <Field label={stderr ? "Error / stderr" : "Output"}>
+          <Pre className="text-rose-300">{stderr || stdout}</Pre>
+        </Field>
+      )}
+
+      <p className="text-xs text-muted-foreground">
+        Your program crashed at runtime or was terminated by the sandbox. Check
+        for null-pointer dereferences, out-of-bounds array access, division by
+        zero, or overly long loops.
+      </p>
+    </div>
+  );
+}
+
 function CaseDetail({
   result,
   input,
@@ -314,6 +357,13 @@ function CaseDetail({
             {result.passed ? "Passed." : "Did not pass."}
           </p>
         </div>
+      ) : result.verdict === "RUNTIME_ERROR" ? (
+        <RuntimeErrorNotice
+          stdout={result.stdout}
+          stderr={result.stderr}
+          timedOut={result.timedOut}
+          runtimeMs={result.runtimeMs}
+        />
       ) : (
         <>
           <Field label="Input (editable)">
@@ -329,13 +379,33 @@ function CaseDetail({
             )}
           </Field>
 
-          <Field label="Expected Output">
-            <Pre>{result.expectedOutput ?? ""}</Pre>
-          </Field>
+          {/* Expected output — green tint + check when the case failed */}
+          {result.passed ? (
+            <Field label="Expected Output">
+              <Pre>{result.expectedOutput ?? ""}</Pre>
+            </Field>
+          ) : (
+            <Field label="Expected Output">
+              <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-2.5">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <Pre className="border-0 bg-transparent p-0">{result.expectedOutput ?? ""}</Pre>
+              </div>
+            </Field>
+          )}
 
-          <Field label="Your Output">
-            <Pre>{result.stdout || "(no output)"}</Pre>
-          </Field>
+          {/* Actual output — red tint + error icon on failure */}
+          {result.passed ? (
+            <Field label="Your Output">
+              <Pre>{result.stdout || "(no output)"}</Pre>
+            </Field>
+          ) : (
+            <Field label="Your Output">
+              <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-2.5">
+                <XCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-600 dark:text-rose-400" />
+                <Pre className="border-0 bg-transparent p-0">{result.stdout || "(no output)"}</Pre>
+              </div>
+            </Field>
+          )}
 
           {result.stderr && (
             <Field label="stderr">

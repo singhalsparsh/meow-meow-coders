@@ -39,7 +39,8 @@ export function CodingWorkspace({
   onAccepted,
   fullPage = false,
 }: CodingWorkspaceProps) {
-  const storageKey = `cpp-code:${problem.id}`;
+  // Auto-save key: code_draft_<problemId>_<language>.
+  const storageKey = `code_draft_${problem.id}_cpp`;
 
   const [code, setCode] = useState<string>(() => {
     if (typeof window === "undefined") return problem.starterCode;
@@ -49,13 +50,22 @@ export function CodingWorkspace({
       return problem.starterCode;
     }
   });
+  const [draftSaved, setDraftSaved] = useState(false);
 
+  // Debounced auto-save (1000 ms) so typing doesn't hammer localStorage.
   useEffect(() => {
-    try {
-      window.localStorage.setItem(storageKey, code);
-    } catch {
-      // Private mode / disabled storage: persistence is best-effort.
-    }
+    if (typeof window === "undefined") return;
+    if (!code) return;
+    const t = setTimeout(() => {
+      try {
+        window.localStorage.setItem(storageKey, code);
+      } catch {
+        // Private mode / disabled storage: persistence is best-effort.
+      }
+      setDraftSaved(true);
+      window.setTimeout(() => setDraftSaved(false), 1200);
+    }, 1000);
+    return () => clearTimeout(t);
   }, [code, storageKey]);
 
   const [submissions, setSubmissions] = useState(initialSubmissions);
@@ -66,6 +76,15 @@ export function CodingWorkspace({
   const [caseInputs, setCaseInputs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Editor theme selection, persisted to localStorage.
+  const [editorTheme, setEditorTheme] = useState<string>(() => {
+    if (typeof window === "undefined") return "lms-dark";
+    try {
+      return window.localStorage.getItem("code_editor_theme") ?? "lms-dark";
+    } catch {
+      return "lms-dark";
+    }
+  });
   const [leftWidth, setLeftWidth] = useState(42);
   const [editorHeight, setEditorHeight] = useState(58);
   // Collapsed by default so the tall workspace only mounts once the learner
@@ -95,6 +114,15 @@ export function CodingWorkspace({
       // ignore
     }
     toast.success("Reset to starter code");
+  };
+
+  const handleThemeChange = (theme: string) => {
+    setEditorTheme(theme);
+    try {
+      window.localStorage.setItem("code_editor_theme", theme);
+    } catch {
+      // ignore
+    }
   };
 
   const runCases = useCallback(
@@ -315,6 +343,9 @@ export function CodingWorkspace({
         editorHeight={editorHeight}
         onHorizontalDragStart={startHorizontalDrag}
         isMobile={isMobile}
+        draftSaved={draftSaved}
+        editorTheme={editorTheme}
+        onEditorThemeChange={handleThemeChange}
       />
     </div>
   );

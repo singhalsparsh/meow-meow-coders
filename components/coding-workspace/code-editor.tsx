@@ -1,11 +1,11 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 import { formatCppSource } from "./cpp-format";
+import { FONT_FAMILY, registerEditorThemes } from "./editor-themes";
 
 // Monaco reaches for `window` at import time and pulls a few MB of editor
 // assets, so it is loaded client-side only.
@@ -17,10 +17,6 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
     </div>
   ),
 });
-
-// Themes tuned to the LMS slate palette rather than Monaco's defaults.
-const DARK_THEME = "lms-dark";
-const LIGHT_THEME = "lms-light";
 
 interface CodeEditorProps {
   value: string;
@@ -36,6 +32,8 @@ interface CodeEditorProps {
   tabSize?: number;
   /** Soft-wrap long lines. */
   wordWrap?: boolean;
+  /** Monaco theme id (see editor-themes.ts). Defaults to LMS dark/light by system. */
+  theme?: string;
   /** Expose the raw Monaco editor instance (used for formatting etc.). */
   onReady?: (editor: any) => void;
 }
@@ -50,82 +48,50 @@ export function CodeEditor({
   fontSize = 16,
   tabSize = 4,
   wordWrap = false,
+  theme,
   onReady,
 }: CodeEditorProps) {
-  const { resolvedTheme } = useTheme();
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+  const themeRef = useRef<string | undefined>(theme);
+  themeRef.current = theme;
 
-  const handleMount = useCallback(
-    (editor: any, monaco: any) => {
-      // Register a lightweight C++ formatter once. Monaco has no C++ language
-      // service, so without this the "Format" action silently does nothing.
-      if (!(monaco as any).__cppFormatterRegistered) {
-        (monaco as any).__cppFormatterRegistered = true;
-        monaco.languages.registerDocumentFormattingEditProvider("cpp", {
-          provideDocumentFormattingEdits(model: any) {
-            const range = model.getFullModelRange();
-            const formatted = formatCppSource(model.getValue());
-            return [{ range, text: formatted }];
-          },
-        });
-      }
+  const handleMount = useCallback((editor: any, monaco: any) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
 
-    // LeetCode-style neutral dark theme (VS Code "Dark+"-inspired).
-    monaco.editor.defineTheme(DARK_THEME, {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "comment", foreground: "6a9955", fontStyle: "italic" },
-        { token: "keyword", foreground: "569cd6" },
-        { token: "string", foreground: "ce9178" },
-        { token: "number", foreground: "b5cea8" },
-        { token: "type", foreground: "4ec9b0" },
-        { token: "function", foreground: "dcdcaa" },
-      ],
-      colors: {
-        "editor.background": "#1e1e1e",
-        "editor.foreground": "#d4d4d4",
-        "editorLineNumber.foreground": "#6e6e6e",
-        "editorLineNumber.activeForeground": "#c6c6c6",
-        "editor.selectionBackground": "#264f78",
-        "editor.lineHighlightBackground": "#2a2d2e",
-        "editorCursor.foreground": "#aeafad",
-        "editorIndentGuide.background1": "#404040",
-        "editorWidget.background": "#252526",
-        "editorWidget.border": "#454545",
-        "editorSuggestWidget.background": "#252526",
-        "editorSuggestWidget.selectedBackground": "#04395e",
-      },
-    });
+    // Register the C++ formatter + all editor themes once.
+    if (!(monaco as any).__cppFormatterRegistered) {
+      (monaco as any).__cppFormatterRegistered = true;
+      monaco.languages.registerDocumentFormattingEditProvider("cpp", {
+        provideDocumentFormattingEdits(model: any) {
+          const range = model.getFullModelRange();
+          const formatted = formatCppSource(model.getValue());
+          return [{ range, text: formatted }];
+        },
+      });
+    }
+    registerEditorThemes(monaco);
 
-    monaco.editor.defineTheme(LIGHT_THEME, {
-      base: "vs",
-      inherit: true,
-      rules: [
-        { token: "comment", foreground: "6a737d", fontStyle: "italic" },
-        { token: "keyword", foreground: "d73a49" },
-        { token: "string", foreground: "032f62" },
-        { token: "number", foreground: "005cc5" },
-        { token: "type", foreground: "6f42c1" },
-        { token: "function", foreground: "005cc5" },
-      ],
-      colors: {
-        "editor.background": "#ffffff",
-        "editor.foreground": "#24292e",
-        "editorLineNumber.foreground": "#b0b6bc",
-        "editorLineNumber.activeForeground": "#586069",
-        "editor.selectionBackground": "#c8e1ff",
-        "editor.lineHighlightBackground": "#f6f8fa",
-        "editorCursor.foreground": "#044289",
-        "editorIndentGuide.background1": "#e1e4e8",
-        "editorWidget.background": "#ffffff",
-        "editorWidget.border": "#e1e4e8",
-      },
-    });
+    // Apply the theme immediately on mount (as well as in the effect below) so
+    // the correct theme is present even if the effect runs before Monaco is up.
+    const resolved =
+      themeRef.current || (getSystemTheme() === "dark" ? "lms-dark" : "lms-light");
+    monaco.editor.setTheme(resolved);
 
-    monaco.editor.setTheme(resolvedTheme === "dark" ? DARK_THEME : LIGHT_THEME);
-    editor.focus();
     onReady?.(editor);
-  }, [resolvedTheme, onReady]);
+  }, [onReady]);
+
+  // Apply the selected theme when it changes (Monaco themes must be applied
+  // after mount, so we do it in an effect that runs both on mount and later).
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+    const id = themeRef.current;
+    // When no explicit theme is given, follow the LMS system theme.
+    const resolved = id || (getSystemTheme() === "dark" ? "lms-dark" : "lms-light");
+    monaco.editor.setTheme(resolved);
+  }, [theme]);
 
   return (
     <div className={cn("h-full w-full overflow-hidden", className)}>
@@ -133,15 +99,16 @@ export function CodeEditor({
         height={height}
         language={language}
         value={value}
-        theme={resolvedTheme === "dark" ? DARK_THEME : LIGHT_THEME}
+        // Pass a placeholder theme; the effect above overrides it after mount
+        // with the resolved/selected theme.
+        theme="lms-dark"
         onChange={(newValue) => onChange?.(newValue ?? "")}
         onMount={handleMount}
         options={{
           readOnly,
           automaticLayout: true,
           fontSize,
-          fontFamily:
-            "'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontFamily: FONT_FAMILY,
           fontLigatures: true,
           minimap: { enabled: false },
           lineNumbers: "on",
@@ -173,4 +140,11 @@ export function CodeEditor({
       />
     </div>
   );
+}
+
+function getSystemTheme(): "dark" | "light" {
+  if (typeof window === "undefined") return "dark";
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }

@@ -15,6 +15,7 @@ import {
   Lightbulb,
   ListChecks,
   Maximize2,
+  Minimize2,
   Play,
   Plus,
   RotateCcw,
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "./code-editor";
 import { ResultsPanel } from "./results-panel";
+import { EDITOR_THEMES } from "./editor-themes";
 import { DifficultyBadge, TopicBadge, VerdictBadge } from "./badges";
 import { getHints } from "./hints";
 import type {
@@ -70,6 +72,12 @@ interface LeetCodeLayoutProps {
   editorHeight: number;
   onHorizontalDragStart: (e: React.PointerEvent) => void;
   isMobile: boolean;
+  /** True when a debounced auto-save just committed (flash indicator). */
+  draftSaved?: boolean;
+  /** Selected Monaco theme id. */
+  editorTheme?: string;
+  /** Callback when the user changes the editor theme. */
+  onEditorThemeChange?: (theme: string) => void;
 }
 
 export function LeetCodeLayout({
@@ -97,6 +105,9 @@ export function LeetCodeLayout({
   editorHeight,
   onHorizontalDragStart,
   isMobile,
+  draftSaved = false,
+  editorTheme = "lms-dark",
+  onEditorThemeChange,
 }: LeetCodeLayoutProps) {
   const [leftTab, setLeftTab] = useState<LeftTab>("problem");
   const [bookmarked, setBookmarked] = useState(false);
@@ -113,6 +124,8 @@ export function LeetCodeLayout({
   const [fontSize, setFontSize] = useState(16);
   const [tabSize, setTabSize] = useState(4);
   const [wordWrap, setWordWrap] = useState(false);
+  // Fullscreen: hide the left panel and expand the editor + console.
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const editorRef = useRef<any>(null);
 
   const handleFormat = () => {
@@ -160,6 +173,7 @@ export function LeetCodeLayout({
     <div className="flex h-full min-h-0 flex-col bg-[#1e1e1e] text-[#d4d4d4] selection:bg-[#264f78]">
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* ============================= LEFT PANE ============================= */}
+        {!isFullscreen && (
         <div
           className="flex min-w-0 flex-col border-r border-[#2d2d2d]"
           style={isMobile ? { height: "42%" } : { width: `${leftWidth}%` }}
@@ -222,7 +236,7 @@ export function LeetCodeLayout({
                 </div>
 
                 {problem.description && (
-                  <div className="prose prose-sm max-w-none prose-invert prose-headings:text-white prose-p:text-[#d4d4d4] prose-strong:text-white">
+                  <div className="prose prose-sm max-w-none leading-relaxed prose-invert prose-headings:text-white prose-p:text-[#d4d4d4] prose-strong:text-white prose-code:rounded prose-code:bg-[#1f1f1f] prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-[#e2e8f0] prose-code:before:content-none prose-code:after:content-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {problem.description}
                     </ReactMarkdown>
@@ -234,7 +248,7 @@ export function LeetCodeLayout({
                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#8a8a8a]">
                       Constraints
                     </h4>
-                    <div className="prose prose-sm max-w-none prose-invert rounded-lg border border-[#3a3a3a] bg-[#262626] p-3">
+                    <div className="prose prose-sm max-w-none leading-relaxed prose-invert rounded-lg border border-[#3a3a3a] bg-[#262626] p-3 prose-code:rounded prose-code:bg-[#1a1a1a] prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-[#e2e8f0] prose-code:before:content-none prose-code:after:content-none">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {problem.constraints}
                       </ReactMarkdown>
@@ -383,9 +397,10 @@ export function LeetCodeLayout({
             )}
           </div>
         </div>
+        )}
 
         {/* Draggable vertical divider */}
-        {!isMobile && (
+        {!isMobile && !isFullscreen && (
           <div
             onPointerDown={onVerticalDragStart}
             className="w-1 flex-shrink-0 cursor-col-resize bg-[#262626] transition-colors hover:bg-[#2d2d2d]"
@@ -396,6 +411,17 @@ export function LeetCodeLayout({
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           {/* Editor nav */}
           <div className="flex h-10 flex-shrink-0 items-center border-b border-[#2d2d2d] text-[13px]">
+            {/* Draft auto-save indicator */}
+            <div className="min-w-0 pl-3">
+              {draftSaved ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-[#4caf50]">
+                  <CheckCheck className="h-3.5 w-3.5" />
+                  Draft saved
+                </span>
+              ) : (
+                <span className="text-xs text-[#6e6e6e]">Auto-saves</span>
+              )}
+            </div>
             <div className="ml-auto flex items-center gap-1.5 pr-2">
               {/* Format code */}
               <button
@@ -425,11 +451,16 @@ export function LeetCodeLayout({
                 className="h-7 gap-1.5 border border-[#3a3a3a] bg-[#2d2d2d] px-3 text-xs font-medium text-[#d4d4d4] hover:bg-[#3a3a3a] hover:text-white"
               >
                 {busy ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Running…
+                  </>
                 ) : (
-                  <Play className="h-3.5 w-3.5" />
+                  <>
+                    <Play className="h-3.5 w-3.5" />
+                    Run
+                  </>
                 )}
-                Run
               </Button>
 
               {/* Submit */}
@@ -440,12 +471,36 @@ export function LeetCodeLayout({
                 className="h-7 gap-1.5 bg-[#2e7d32] px-3 text-xs font-semibold text-white hover:bg-[#388e3c]"
               >
                 {submitting ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Submitting…
+                  </>
                 ) : (
-                  <CheckCheck className="h-3.5 w-3.5" />
+                  <>
+                    <CheckCheck className="h-3.5 w-3.5" />
+                    Submit
+                  </>
                 )}
-                Submit
               </Button>
+
+              {/* Fullscreen / Maximize */}
+              <button
+                type="button"
+                onClick={() => setIsFullscreen((f) => !f)}
+                title={isFullscreen ? "Exit fullscreen" : "Fullscreen editor"}
+                className={cn(
+                  "flex h-7 w-7 items-center justify-center rounded border transition-colors",
+                  isFullscreen
+                    ? "border-[#3d8ef7] bg-[#3d8ef7]/20 text-[#3d8ef7]"
+                    : "border-[#3a3a3a] bg-[#2d2d2d] text-[#d4d4d4] hover:border-[#4a4a4a] hover:text-white"
+                )}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Maximize2 className="h-3.5 w-3.5" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -460,6 +515,7 @@ export function LeetCodeLayout({
               fontSize={fontSize}
               tabSize={tabSize}
               wordWrap={wordWrap}
+              theme={editorTheme}
               onReady={(editor) => (editorRef.current = editor)}
             />
           </div>
@@ -555,6 +611,8 @@ export function LeetCodeLayout({
                       onWordWrapChange={setWordWrap}
                       consoleOpen={consoleOpen}
                       onConsoleOpenChange={setConsoleOpen}
+                      theme={editorTheme}
+                      onThemeChange={onEditorThemeChange}
                       onClose={() => setSettingsOpen(false)}
                     />
                   )}
@@ -612,6 +670,8 @@ interface SettingsPopoverProps {
   onWordWrapChange: (b: boolean) => void;
   consoleOpen: boolean;
   onConsoleOpenChange: (b: boolean) => void;
+  theme: string;
+  onThemeChange?: (theme: string) => void;
   onClose: () => void;
 }
 
@@ -732,6 +792,8 @@ function SettingsPopover({
   onWordWrapChange,
   consoleOpen,
   onConsoleOpenChange,
+  theme,
+  onThemeChange,
   onClose,
 }: SettingsPopoverProps) {
   const tabs: [SettingsTab, string][] = [
@@ -772,7 +834,7 @@ function SettingsPopover({
         ))}
       </div>
 
-      <div className="max-h-64 overflow-y-auto py-1">
+      <div className="max-h-80 overflow-y-auto py-1">
         {tab === "layout" && (
           <div className="space-y-0.5">
             <ToggleRow
@@ -788,6 +850,28 @@ function SettingsPopover({
 
         {tab === "editor" && (
           <div className="space-y-0.5">
+            {/* Theme selector */}
+            <div className="px-2 py-1.5 text-xs">
+              <span className="block text-[#d4d4d4] mb-1.5">Editor theme</span>
+              <div className="grid grid-cols-2 gap-1">
+                {EDITOR_THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => onThemeChange?.(t.id)}
+                    className={cn(
+                      "rounded px-2 py-1 text-left text-xs transition-colors",
+                      theme === t.id
+                        ? "bg-[#3d8ef7] text-white"
+                        : "text-[#c6c6c6] hover:bg-[#2a2a2a] hover:text-white"
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="mx-2 my-1.5 h-px bg-[#333333]" />
             <Stepper
               label="Font size"
               value={fontSize}
