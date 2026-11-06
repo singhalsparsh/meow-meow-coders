@@ -38,7 +38,12 @@ function createClient(): PrismaClient {
             connectionTimeoutMillis: 10_000,
             idleTimeoutMillis: 30_000,
             maxUses: 500,
-            max: 10,
+            // Keep the pool well under the Aiven instance's max_connections so
+            // the app can never exhaust the server's connection slots (which
+            // made queries throw 53300 "TooManyConnections" and pages render
+            // empty/error states). Connections are shared across requests, so
+            // a small pool is plenty.
+            max: 5,
         },
         {
             onPoolError: (err) => {
