@@ -18,30 +18,23 @@ const ChapterIdPage = async (
         return redirect("/")
     }
 
-    const {
-        chapter,
-        course,
-        muxData,
-        attachments,
-        nextChapter,
-        previousChapter,
-        userProgress,
-        isOwner,
-        videoUrl,
-        videoSources } = await getChapter({
+    // Fetch the chapter (with its attachments/streams/progress) and the DSA
+    // problems for the chapter in parallel — they are independent, so running
+    // them concurrently avoids a serial round-trip to the database.
+    const [chapterData, codingProblems] = await Promise.all([
+        getChapter({
             userId,
             chapterId: params.chapterId,
-            courseId: params.courseId
-        })
-
-    // In-browser DSA problem attached to this chapter (public cases only;
-    // hidden cases are fetched on Submit from the submission-suite endpoint).
-    // Rows are mapped to plain serializable objects (no Dates) before being
-    // passed to the client LessonShell — raw Prisma rows with Date fields
-    // cannot be serialized into client-component props and make the page error.
-    let codingProblems: any[] = [];
-    try {
-        const rows = await db.codingProblem.findMany({
+            courseId: params.courseId,
+        }),
+        // In-browser DSA problem attached to this chapter (public cases only;
+        // hidden cases are fetched on Submit from the submission-suite
+        // endpoint). Rows are mapped to plain serializable objects (no Dates)
+        // before being passed to the client LessonShell — raw Prisma rows with
+        // Date fields cannot be serialized into client-component props.
+        (async () => {
+            try {
+                const rows = await db.codingProblem.findMany({
             where: { chapterId: params.chapterId },
             orderBy: { position: "asc" },
             include: {
@@ -57,39 +50,55 @@ const ChapterIdPage = async (
             },
         });
 
-        codingProblems = rows.map((p) => ({
-            id: p.id,
-            chapterId: p.chapterId ?? "",
-            title: p.title,
-            difficulty: p.difficulty,
-            topic: p.topic,
-            description: p.description,
-            constraints: p.constraints,
-            solution: p.solution,
-            starterCode: p.starterCode,
-            driverCode: p.driverCode,
-            timeLimitMs: p.timeLimitMs,
-            position: p.position,
-            testCases: p.testCases.map((tc) => ({
-                id: tc.id,
-                input: tc.input,
-                expectedOutput: tc.expectedOutput,
-                explanation: tc.explanation,
-                isHidden: tc.isHidden,
-                order: tc.order,
-            })),
-            submissions: p.submissions.map((s) => ({
-                id: s.id,
-                status: s.status,
-                passedCount: s.passedCount,
-                totalCount: s.totalCount,
-                runtimeMs: s.runtimeMs,
-                createdAt: s.createdAt.toISOString(),
-            })),
-        }));
-    } catch {
-        // Table may not exist yet
-    }
+                return rows.map((p) => ({
+                    id: p.id,
+                    chapterId: p.chapterId ?? "",
+                    title: p.title,
+                    difficulty: p.difficulty,
+                    topic: p.topic,
+                    description: p.description,
+                    constraints: p.constraints,
+                    solution: p.solution,
+                    starterCode: p.starterCode,
+                    driverCode: p.driverCode,
+                    timeLimitMs: p.timeLimitMs,
+                    position: p.position,
+                    testCases: p.testCases.map((tc) => ({
+                        id: tc.id,
+                        input: tc.input,
+                        expectedOutput: tc.expectedOutput,
+                        explanation: tc.explanation,
+                        isHidden: tc.isHidden,
+                        order: tc.order,
+                    })),
+                    submissions: p.submissions.map((s) => ({
+                        id: s.id,
+                        status: s.status,
+                        passedCount: s.passedCount,
+                        totalCount: s.totalCount,
+                        runtimeMs: s.runtimeMs,
+                        createdAt: s.createdAt.toISOString(),
+                    })),
+                }));
+            } catch {
+                // Table may not exist yet
+                return [];
+            }
+        })(),
+    ]);
+
+    const {
+        chapter,
+        course,
+        muxData,
+        attachments,
+        nextChapter,
+        previousChapter,
+        userProgress,
+        isOwner,
+        videoUrl,
+        videoSources,
+    } = chapterData;
 
     // Same story for PDF notes and extra-practice questions attached to the
     // raw chapter object — flatten to plain serializable objects.

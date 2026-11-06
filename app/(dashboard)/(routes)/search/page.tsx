@@ -26,27 +26,20 @@ const SearchPage = async (props: SearchPageProps) => {
     return redirect("/sign-in")
   }
 
-  let categories: any[] = [];
-  let courses: any[] = [];
-
-  try {
-    categories = await db.category.findMany({
-      orderBy: {
-        name: "asc"
-      }
-    })
-  } catch (error) {
-    console.log("[SEARCH_CATEGORIES]", error);
-  }
-
-  try {
-    courses = await getCourses({
-      userId,
-      ...searchParams,
-    })
-  } catch (error) {
-    console.log("[SEARCH_COURSES]", error);
-  }
+  // Categories and courses are independent — fetch them concurrently to avoid
+  // a serial round-trip to the database.
+  const [categories, courses] = await Promise.all([
+    db.category.findMany({
+      orderBy: { name: "asc" },
+    }).catch((error) => {
+      console.log("[SEARCH_CATEGORIES]", error);
+      return [];
+    }),
+    getCourses({ userId, ...searchParams }).catch((error) => {
+      console.log("[SEARCH_COURSES]", error);
+      return [];
+    }),
+  ]);
 
   return (
     <>
