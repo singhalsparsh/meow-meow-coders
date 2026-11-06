@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server"
+import { revalidateTag } from "next/cache";
 import { video } from "@/lib/mux";
 
 export async function DELETE(req: Request, props: { params: Promise<{ courseId: string }> }) {
@@ -48,6 +49,8 @@ export async function DELETE(req: Request, props: { params: Promise<{ courseId: 
             }
         })
 
+        revalidateTag("course-catalog", "max");
+
         return NextResponse.json(deletedCourse)
 
     } catch (error) {
@@ -75,6 +78,10 @@ export async function PATCH(req: Request, props: { params: Promise<{ courseId: s
                 ...values,
             }
         });
+
+        // The published-course catalog is cached; invalidate it so students see
+        // edits immediately.
+        revalidateTag("course-catalog", "max");
 
         return NextResponse.json(course);
 

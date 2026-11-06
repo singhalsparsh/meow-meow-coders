@@ -32,34 +32,29 @@ export const SidebarItem = ({
     <button
       onClick={onClick}
       type="button"
+      aria-current={isActive ? "page" : undefined}
       className={cn(
-        "group flex items-center gap-x-3 text-sm font-medium px-3 rounded-lg transition-colors",
+        "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "text-muted-foreground",
-        "hover:text-foreground",
-        "hover:bg-accent",
-        isActive && "text-foreground bg-accent",
-        isActive && "hover:bg-accent"
+        "hover:bg-accent hover:text-accent-foreground",
+        isActive && "bg-accent text-accent-foreground"
       )}
     >
-      <div className="flex items-center gap-x-3 py-3 flex-1">
-        <div className={cn(
-          "flex items-center justify-center w-7 h-7 rounded-md transition-colors",
-          "bg-muted",
-          "group-hover:bg-accent-foreground/10",
-          isActive && "bg-primary/10",
-        )}>
-          <Icon
-            size={16}
-            className={cn(
-              "transition-colors",
-              "text-muted-foreground",
-              "group-hover:text-foreground",
-              isActive && "text-primary",
-            )}
-          />
-        </div>
-        {label}
-      </div>
+      {/* Active indicator bar */}
+      <span
+        className={cn(
+          "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-primary transition-all duration-200",
+          isActive ? "opacity-100" : "opacity-0"
+        )}
+      />
+      <Icon
+        className={cn(
+          "h-4 w-4 flex-shrink-0 transition-colors",
+          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+        )}
+      />
+      <span>{label}</span>
     </button>
   )
 }

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { video } from "@/lib/mux";
 import { isOwnUploadUrl } from "@/lib/video";
 
@@ -85,6 +86,8 @@ export async function DELETE(
                 }
             })
         }
+
+        revalidateTag("course-catalog", "max");
 
         return NextResponse.json(deletedChapter)
 
@@ -180,6 +183,8 @@ export async function PATCH(
         }
 
 
+
+        revalidateTag("course-catalog", "max");
 
         return NextResponse.json(chapter)
     } catch (error) {

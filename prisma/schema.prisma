@@ -27,6 +27,10 @@ model Course {
 
   @@index([categoryId])
   @@index([userId])
+  // Hot path: dashboard/search list published courses, filtered/ordered by
+  // these columns. Composite index avoids a full scan + sort on Aiven.
+  @@index([isPublished, categoryId])
+  @@index([isPublished, createdAt])
 }
 
 model Category {
@@ -82,6 +86,9 @@ model Chapter {
 
   @@index([courseId])
   @@index([parentId])
+  // Chapter navigation + gating: published chapters are queried by course and
+  // publication state on every lesson page.
+  @@index([courseId, isPublished])
 }
 
 model MuxData {
@@ -307,6 +314,8 @@ model Test {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  // Hot path: teacher dashboard lists tests for a user, filtered by state.
+  @@index([userId, isPublished])
 }
 
 // One multiple-choice question. `correctOptionIds` holds the ids of the correct

@@ -3,13 +3,14 @@ import { SidebarRoutes } from "./sidebar-routes"
 
 export const Sidebar = () => {
   return (
-    <div className="h-full flex flex-col overflow-y-auto py-3">
-      <div className="px-3 pb-1">
+    <div className="flex h-full flex-col overflow-y-auto">
+      <div className="px-4 pb-4 pt-3">
         <Logo />
       </div>
-      <div className="flex flex-col w-full px-3 gap-1">
+      <div className="mx-3 border-t border-border/70" />
+      <nav className="flex flex-1 flex-col gap-1 px-3 py-3">
         <SidebarRoutes />
-      </div>
+      </nav>
     </div>
   )
 }

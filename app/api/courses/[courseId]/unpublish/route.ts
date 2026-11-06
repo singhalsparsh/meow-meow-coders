@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 
 export async function PATCH(req: Request, props: { params: Promise<{ courseId: string }> }) {
     const params = await props.params;
@@ -29,6 +30,8 @@ export async function PATCH(req: Request, props: { params: Promise<{ courseId: s
                 isPublished: false
             }
         })
+
+        revalidateTag("course-catalog", "max");
 
         return NextResponse.json(unpublishedCourse)
 

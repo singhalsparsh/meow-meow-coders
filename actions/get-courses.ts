@@ -1,7 +1,7 @@
 import { Category, Course } from "@prisma/client";
 
 import { getProgressBatch } from "@/actions/get-progress-batch";
-import { db } from "@/lib/db";
+import { getCachedCatalog } from "@/actions/get-catalog-cache";
 
 type CourseWithProgressWithCategory = Course & {
   category: Category | null;
@@ -21,29 +21,29 @@ export const getCourses = async ({
   categoryId
 }: GetCourses): Promise<CourseWithProgressWithCategory[]> => {
   try {
-    const courses = await db.course.findMany({
-      where: {
-        isPublished: true,
-        title: {
-          contains: title,
-        },
-        categoryId,
-      },
-      include: {
-        category: true,
-        chapters: {
-          where: {
-            isPublished: true,
-          },
-          select: {
-            id: true,
-          }
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
+    // The catalog is cached server-side (60s TTL). Filter the published course
+    // set in memory rather than hitting the Aiven Postgres per search. This
+    // mirrors the DB semantics: `contains` matching and category equality.
+    const catalog = await getCachedCatalog();
+
+    const normalizedTitle = title?.trim().toLowerCase();
+    const filtered = catalog.filter((course) => {
+      if (categoryId && course.categoryId !== categoryId) return false;
+      if (normalizedTitle) {
+        const courseTitle = course.title.toLowerCase();
+        if (!courseTitle.includes(normalizedTitle)) return false;
       }
+      return true;
     });
+
+    const courses = filtered
+      .map((c) => ({
+        ...c,
+        category: c.category,
+        chapters: c.chapters.map((ch) => ({ id: ch.id })),
+      }))
+      // Keep the same ordering as the original query (newest first).
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     const progressBatch = await getProgressBatch(
       userId,

@@ -1,7 +1,7 @@
 import { Category, Chapter, Course } from "@prisma/client";
 
-import { db } from "@/lib/db";
 import { getProgressBatch } from "@/actions/get-progress-batch";
+import { getCachedCatalog } from "@/actions/get-catalog-cache";
 
 type CourseWithProgressWithCategory = Course & {
     category: Category;
@@ -16,19 +16,9 @@ type DashboardCourses = {
 
 export const getDashboardCourses = async (userId: string): Promise<DashboardCourses> => {
     try {
-        const allCourses = await db.course.findMany({
-            where: {
-                isPublished: true,
-            },
-            include: {
-                category: true,
-                chapters: {
-                    where: {
-                        isPublished: true,
-                    }
-                }
-            }
-        });
+        // The catalog is cached server-side (60s TTL); the per-user progress is
+        // computed live so it always reflects the user's latest activity.
+        const allCourses = await getCachedCatalog();
 
         const courses = allCourses as CourseWithProgressWithCategory[];
 
