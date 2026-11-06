@@ -19,6 +19,14 @@ module.exports = withUt({
       },
     },
     extend: {
+      fontFamily: {
+        sans: [
+          "var(--font-dm-sans)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

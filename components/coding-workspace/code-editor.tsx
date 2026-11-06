@@ -47,7 +47,7 @@ export function CodeEditor({
   readOnly = false,
   height = "100%",
   className,
-  fontSize = 13,
+  fontSize = 15,
   tabSize = 4,
   wordWrap = false,
   onReady,

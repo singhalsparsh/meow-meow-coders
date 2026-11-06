@@ -94,12 +94,21 @@ body,
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  /* Slightly larger base type across the whole app so text reads comfortably;
+     rem-based sizes (text-sm, p-4, h-10, …) all scale from here. */
+  html {
+    font-size: 17px;
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    @apply border-border;
   }
 }
 
