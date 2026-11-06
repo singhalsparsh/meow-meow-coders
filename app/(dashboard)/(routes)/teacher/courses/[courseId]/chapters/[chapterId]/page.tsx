@@ -83,8 +83,10 @@ const ChapterIdPage = async (
             orderBy: { position: "asc" },
             include: { testCases: { orderBy: { order: "asc" } } },
         });
-    } catch {
-        // Table may not exist yet
+    } catch (error) {
+        // Table or column may not exist yet (e.g. a pending migration). Log it
+        // so a schema drift can't silently hide every problem.
+        console.error("[TEACHER_CHAPTER_CODING_PROBLEMS]", error);
     }
 
     // A chapter counts as having a video when it has a primary video OR at
