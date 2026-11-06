@@ -30,6 +30,7 @@ interface VideoPlayerProps {
   videoUrl?: string | null;
   /** Server-assembled playable streams (may be proxy-signed). */
   videoSources?: PlayerSource[];
+  /** Kept for API compatibility (autoplay is handled by the player). */
   autoPlay?: boolean;
   playsInline?: boolean;
   /** Called when playback reaches the end. */
@@ -43,7 +44,6 @@ export const VideoPlayer = ({
   playbackId,
   videoUrl,
   videoSources,
-  autoPlay = false,
   playsInline = true,
   onEnded,
   className,
@@ -105,7 +105,6 @@ export const VideoPlayer = ({
         layout={layout}
         theme="dark"
         source={[{ id: "demo", src: PLACEHOLDER_SRC, title: "Demo video" }]}
-        autoLoad={autoPlay}
         mediaProps={{ playsInline, onEnded }}
       />
     );
@@ -117,7 +116,6 @@ export const VideoPlayer = ({
       layout={layout}
       theme="dark"
       source={assets}
-      autoLoad={autoPlay}
       mediaProps={{ playsInline, onEnded }}
     />
   );

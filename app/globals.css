@@ -98,6 +98,14 @@ body,
      rem-based sizes (text-sm, p-4, h-10, …) all scale from here. */
   html {
     font-size: 17px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {

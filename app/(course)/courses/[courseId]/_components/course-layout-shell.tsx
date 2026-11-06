@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 interface CourseLayoutShellProps {
@@ -17,11 +17,22 @@ interface CourseLayoutShellProps {
  */
 export function CourseLayoutShell({ navbar, sidebar, children }: CourseLayoutShellProps) {
   const [collapsed, setCollapsed] = useState(false);
+  // Only apply the sidebar inset on md+ screens; on portrait phones the sidebar
+  // is hidden, so content must use the full width.
+  const [isMd, setIsMd] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const onChange = () => setIsMd(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   // Sidebar is w-72 (288px) anchored at left-3 (12px), so its right edge sits
   // at 300px. When collapsed, we keep a thin rail so the toggle stays reachable.
   const sidebarWidth = collapsed ? 24 : 288; // px
-  const contentInset = collapsed ? 48 : 316; // px (sidebar right edge + gutter)
+  const contentInset = isMd ? (collapsed ? 48 : 316) : 0; // px (sidebar right edge + gutter)
 
   return (
     <div className="h-full">
