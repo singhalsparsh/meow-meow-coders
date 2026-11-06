@@ -88,6 +88,7 @@ export const ImageForm = ({
             <Image
               alt="Upload"
               fill
+              sizes="(min-width: 768px) 40vw, 90vw"
               className="object-cover rounded-md"
               src={initialData.imageUrl}
             />

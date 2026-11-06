@@ -2,13 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { IconType } from "react-icons";
+import type { LucideIcon } from "lucide-react";
 import qs from "query-string"
 
 interface CategoriesItemProps {
     label?: string;
     value?: string;
-    icon?: IconType;
+    icon?: LucideIcon;
 }
 
 export const CategoryItem = ({
