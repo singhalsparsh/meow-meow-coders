@@ -170,7 +170,12 @@ export function LeetCodeLayout({
   const examples = problem.testCases;
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[var(--ide-bg)] text-[var(--ide-foreground)] selection:bg-primary/30">
+    <div
+      className={cn(
+        "flex flex-col min-h-0 bg-[var(--ide-bg)] text-[var(--ide-foreground)] selection:bg-primary/30",
+        isFullscreen ? "fixed inset-0 z-[90]" : "h-full"
+      )}
+    >
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* ============================= LEFT PANE ============================= */}
         {!isFullscreen && (
@@ -506,8 +511,11 @@ export function LeetCodeLayout({
 
           {/* Editor */}
           <div
-            className="min-h-0 overflow-hidden"
-            style={{ height: isMobile ? `${100 - editorHeight}%` : `${editorHeight}%` }}
+            className={cn(
+              "min-h-0 overflow-hidden flex-shrink-0",
+              !consoleOpen && "flex-1"
+            )}
+            style={consoleOpen ? { height: `${editorHeight}%` } : undefined}
           >
             <CodeEditor
               value={code}
@@ -531,7 +539,7 @@ export function LeetCodeLayout({
           )}
 
           {/* Horizontal divider (editor vs console) */}
-          {!isMobile && (
+          {!isMobile && consoleOpen && (
             <div
               onPointerDown={onHorizontalDragStart}
               className="h-1 flex-shrink-0 cursor-row-resize bg-[var(--ide-surface)] transition-colors hover:bg-[var(--ide-surface)]"
@@ -539,7 +547,12 @@ export function LeetCodeLayout({
           )}
 
           {/* Console / test-case panel */}
-          <div className="flex min-h-0 flex-shrink-0 flex-col border-t border-[var(--ide-border)] bg-[var(--ide-bg-deep)]">
+          <div
+            className={cn(
+              "flex min-h-0 flex-col border-t border-[var(--ide-border)] bg-[var(--ide-bg-deep)]",
+              consoleOpen ? "flex-1" : "flex-shrink-0"
+            )}
+          >
             {/* Console header */}
             <div className="flex h-9 flex-shrink-0 items-center gap-1 border-b border-[var(--ide-border)] px-2 text-xs">
               {(
