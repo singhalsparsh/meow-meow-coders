@@ -8,6 +8,7 @@ import { Lock } from "lucide-react";
 
 import { useConfettiStore } from "@/hooks/use-confetti-store";
 import { VideoPlayer as LimeplayVideoPlayer } from "@/components/video-player/player";
+import { CustomVideoPlayer } from "@/components/custom-video-player";
 import { getMuxPlaybackUrl, getVideoUrlInfo, isHlsUrl, toLimeplayAssets } from "@/lib/video";
 import type { PlayerSource } from "@/components/liquid-glass-player";
 
@@ -106,13 +107,11 @@ export const VideoPlayer = ({
                 </div>
             )}
             {!isLocked && nativeSource && (
-                <video
+                <CustomVideoPlayer
                     src={nativeSource.src}
-                    controls
                     autoPlay
-                    playsInline
                     onEnded={onEnd}
-                    className="h-full w-full bg-black object-contain"
+                    className="absolute inset-0 h-full w-full border-0 rounded-none"
                 />
             )}
             {!isLocked && hasVideo && !nativeSource && (

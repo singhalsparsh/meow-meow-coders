@@ -12,6 +12,7 @@ import { FileUpload } from "@/components/file-upload";
 import { Input } from "@/components/ui/input";
 import { isPlayableVideoUrl, getVideoUrlInfo, isHlsUrl, toLimeplayAssets } from "@/lib/video";
 import { VideoPlayer as LimeplayVideoPlayer } from "@/components/video-player/player";
+import { CustomVideoPlayer } from "@/components/custom-video-player";
 import type { PlayerSource } from "@/components/liquid-glass-player";
 
 interface ChapterVideoProps {
@@ -145,16 +146,14 @@ export const ChapterVideoForm = ({
               (source) => !isHlsUrl(source.src) &&
                 getVideoUrlInfo(source.src).kind !== "youtube"
             ) ? (
-              <video
+              <CustomVideoPlayer
                 src={
                   playerSources.find(
                     (source) => !isHlsUrl(source.src) &&
                       getVideoUrlInfo(source.src).kind !== "youtube"
                   )!.src
                 }
-                controls
-                playsInline
-                className="h-full w-full bg-black object-contain"
+                className="absolute inset-0 h-full w-full border-0 rounded-none"
               />
             ) : (
               <LimeplayVideoPlayer
