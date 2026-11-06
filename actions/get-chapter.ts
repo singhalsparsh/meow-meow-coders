@@ -21,6 +21,7 @@ export const getChapter = async ({
       select: {
         userId: true,
         isPublished: true,
+        title: true,
       }
     });
 

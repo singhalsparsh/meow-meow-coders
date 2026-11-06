@@ -324,7 +324,7 @@ export const LiquidGlassPlayer = ({
       onContextMenu={(e) => e.preventDefault()}
       className={cn(
         "group relative w-full select-none overflow-hidden bg-gradient-to-br from-gray-950 via-[#0a0a14] to-gray-900 outline-none",
-        !isFullscreen && "rounded-2xl ring-1 ring-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_80px_rgba(99,102,241,0.08)]",
+        !isFullscreen && "rounded-2xl ring-1 ring-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.5)]",
         layout === "aspect" && "aspect-video",
         layout === "fill" && "h-full w-full",
         className

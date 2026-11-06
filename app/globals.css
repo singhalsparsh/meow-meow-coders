@@ -22,7 +22,7 @@ body,
     --popover: 0 0% 100%;
     --popover-foreground: 224 24% 12%;
 
-    --primary: 248 72% 58%;
+    --primary: 248 68% 56%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 40 20% 95%;
@@ -39,7 +39,7 @@ body,
 
     --border: 40 14% 90%;
     --input: 40 14% 90%;
-    --ring: 248 72% 58%;
+    --ring: 248 68% 56%;
 
     --radius: 0.75rem;
 
@@ -62,7 +62,7 @@ body,
     --popover: 226 30% 10%;
     --popover-foreground: 210 30% 96%;
 
-    --primary: 248 80% 72%;
+    --primary: 248 80% 70%;
     --primary-foreground: 226 40% 8%;
 
     --secondary: 226 24% 16%;
@@ -79,7 +79,7 @@ body,
 
     --border: 226 22% 18%;
     --input: 226 22% 18%;
-    --ring: 248 80% 72%;
+    --ring: 248 80% 70%;
 
     --lp-accent: oklch(0.97 0 0);
     --lp-primary: oklch(0.205 0 0);

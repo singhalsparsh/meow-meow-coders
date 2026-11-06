@@ -31,9 +31,12 @@ export const CourseSidebar = async ({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto py-3">
-      <div className="px-4 pb-4 pt-2">
-        <h1 className="font-semibold text-base truncate px-3">
+    <div className="h-full flex flex-col overflow-y-auto">
+      <div className="px-4 pb-4 pt-5 border-b border-border/60">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-3">
+          Course content
+        </p>
+        <h1 className="font-semibold text-base truncate px-3 text-foreground">
           {course.title}
         </h1>
         <div className="mt-4 px-3">
@@ -43,7 +46,7 @@ export const CourseSidebar = async ({
           />
         </div>
       </div>
-      <div className="flex flex-col w-full px-3 gap-1 flex-1">
+      <div className="flex flex-col w-full px-3 gap-1 flex-1 pt-4">
         {course.chapters.map((chapter, index) => (
           <div
             key={chapter.id}
@@ -58,17 +61,16 @@ export const CourseSidebar = async ({
               isLocked={false}
             />
             {chapter.subChapters?.length > 0 && (
-              <div className="flex flex-col gap-1 mt-0.5">
+              <div className="flex flex-col gap-1 mt-0.5 ml-4 border-l border-border/70 pl-3">
                 {chapter.subChapters.map((subChapter) => (
-                  <div key={subChapter.id} className="pl-5">
-                    <CourseSidebarItem
-                      id={subChapter.id}
-                      label={subChapter.title}
-                      isCompleted={!!subChapter.userProgress?.[0]?.isCompleted}
-                      courseId={course.id}
-                      isLocked={false}
-                    />
-                  </div>
+                  <CourseSidebarItem
+                    key={subChapter.id}
+                    id={subChapter.id}
+                    label={subChapter.title}
+                    isCompleted={!!subChapter.userProgress?.[0]?.isCompleted}
+                    courseId={course.id}
+                    isLocked={false}
+                  />
                 ))}
               </div>
             )}
