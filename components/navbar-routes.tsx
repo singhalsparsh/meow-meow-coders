@@ -7,7 +7,7 @@ import Link from "next/link"
 
 import { LogOut } from "lucide-react"
 import { SearchInput } from "./search-input"
-import { ThemeToggle } from "./theme-toggle"
+import { ThemeToggleButton } from "@/components/ui/skiper-ui/skiper26"
 import { isTeacher, hasTeacherRole } from "@/lib/teacher"
 import { useEffect, useState } from "react"
 
@@ -49,7 +49,7 @@ export const NavbarRoutes = () => {
 
                 ) : null}
                 <div className="glass-pill rounded-full p-1">
-                  <ThemeToggle />
+                  <ThemeToggleButton variant="circle" start="center" />
                 </div>
                 <div className="glass-pill rounded-full p-1">
                   <UserButton />
