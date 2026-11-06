@@ -1,6 +1,6 @@
 import { Category, Course } from "@prisma/client";
 
-import { getProgress } from "@/actions/get-progress";
+import { getProgressBatch } from "@/actions/get-progress-batch";
 import { db } from "@/lib/db";
 
 type CourseWithProgressWithCategory = Course & {
@@ -45,15 +45,19 @@ export const getCourses = async ({
       }
     });
 
-    const coursesWithProgress: CourseWithProgressWithCategory[] = await Promise.all(
-      courses.map(async course => {
-        const progressPercentage = await getProgress(userId, course.id);
+    const progressBatch = await getProgressBatch(
+      userId,
+      courses.map((c) => c.id),
+    );
+    const progressByCourse = new Map(
+      progressBatch.map((p) => [p.courseId, p.progress]),
+    );
 
-        return {
-          ...course,
-          progress: progressPercentage,
-        };
-      })
+    const coursesWithProgress: CourseWithProgressWithCategory[] = courses.map(
+      (course) => ({
+        ...course,
+        progress: progressByCourse.get(course.id) ?? 0,
+      }),
     );
 
     return coursesWithProgress;

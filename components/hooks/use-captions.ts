@@ -100,13 +100,23 @@ function CaptionsSetup() {
 
   const syncTextTrackState = () => {
     const player = playerStore.getState().player.instance
-    if (!player) {
+    if (!player || typeof player.getTextTracks !== "function") {
       return
     }
 
-    const tracks = player.getTextTracks()
+    // Shaka's text-track manager may not be initialized yet (e.g. before the
+    // manifest has loaded), in which case getTextTracks() can throw on an
+    // internal null. Treat that as "no tracks" instead of crashing the page.
+    let tracks: shaka.extern.TextTrack[] = []
+    try {
+      const raw = player.getTextTracks()
+      if (Array.isArray(raw)) tracks = raw
+    } catch {
+      tracks = []
+    }
+
     const activeTrack = tracks.find(
-      (track: shaka.extern.TextTrack) => track.active
+      (track: shaka.extern.TextTrack) => track?.active
     )
 
     store.setState(({ captions }) => {

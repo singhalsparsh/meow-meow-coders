@@ -1,7 +1,7 @@
 import { Category, Chapter, Course } from "@prisma/client";
 
 import { db } from "@/lib/db";
-import { getProgress } from "@/actions/get-progress";
+import { getProgressBatch } from "@/actions/get-progress-batch";
 
 type CourseWithProgressWithCategory = Course & {
     category: Category;
@@ -32,9 +32,15 @@ export const getDashboardCourses = async (userId: string): Promise<DashboardCour
 
         const courses = allCourses as CourseWithProgressWithCategory[];
 
-        for (let course of courses) {
-            const progress = await getProgress(userId, course.id);
-            course["progress"] = progress;
+        const progressBatch = await getProgressBatch(
+            userId,
+            courses.map((c) => c.id),
+        );
+        const progressByCourse = new Map(
+            progressBatch.map((p) => [p.courseId, p.progress]),
+        );
+        for (const course of courses) {
+            course["progress"] = progressByCourse.get(course.id) ?? 0;
         }
 
         const completedCourses = courses.filter((course) => course.progress === 100);

@@ -26,6 +26,7 @@ model Course {
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
+  @@index([userId])
 }
 
 model Category {
