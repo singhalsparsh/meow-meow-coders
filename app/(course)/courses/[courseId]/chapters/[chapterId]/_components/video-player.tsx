@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 
 import { useConfettiStore } from "@/hooks/use-confetti-store";
-import { VideoPlayer as LimeplayVideoPlayer } from "@/components/video-player";
+import { VideoPlayer as LimeplayVideoPlayer } from "@/components/video-player/player";
+import { getMuxPlaybackUrl, toLimeplayAssets } from "@/lib/video";
 import type { PlayerSource } from "@/components/liquid-glass-player";
 
 interface VideoPlayerProps {
@@ -36,7 +37,30 @@ export const VideoPlayer = ({
     const router = useRouter();
     const confetti = useConfettiStore();
 
-    const hasVideo = !!playbackId || !!videoUrl || (videoSources?.length ?? 0) > 0;
+    // Assemble the Limeplay source list. Prefer the server-assembled
+    // `videoSources` array (which already includes Mux HLS + any entered
+    // stream URLs + the legacy videoUrl); fall back to a plain videoUrl or
+    // playbackId when no list is present.
+    const playerSources = (() => {
+      if (videoSources && videoSources.length > 0) {
+        return toLimeplayAssets(
+          videoSources.map((s) => ({ id: s.id, src: s.src, title: s.title })),
+          title
+        );
+      }
+      if (videoUrl) {
+        return toLimeplayAssets([{ id: "video-url", src: videoUrl, title }], title);
+      }
+      if (playbackId) {
+        const muxUrl = getMuxPlaybackUrl(playbackId);
+        if (muxUrl) {
+          return toLimeplayAssets([{ id: "mux", src: muxUrl, title }], title);
+        }
+      }
+      return [];
+    })();
+
+    const hasVideo = playerSources.length > 0;
 
     const onEnd = async () => {
         try {
@@ -73,13 +97,8 @@ export const VideoPlayer = ({
             )}
             {!isLocked && hasVideo && (
                 <LimeplayVideoPlayer
-                    title={title}
-                    playbackId={playbackId}
-                    videoUrl={videoUrl}
-                    videoSources={videoSources}
-                    onEnded={onEnd}
-                    autoPlay
-                    playsInline
+                    source={playerSources}
+                    mediaProps={{ autoPlay: true, playsInline: true, onEnded: onEnd }}
                     layout="fill"
                 />
             )}
