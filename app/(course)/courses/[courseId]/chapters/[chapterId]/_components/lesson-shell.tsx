@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Code2, Paperclip, FileText, MonitorPlay, Terminal } from "lucide-react";
+import {
+  Play,
+  Code2,
+  Terminal,
+  FileText,
+  Paperclip,
+  LayoutGrid,
+  X,
+  BrainCircuit,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { VideoPlayer } from "./video-player";
@@ -12,7 +21,7 @@ import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
 import { CodingWorkspace } from "@/components/coding-workspace/coding-workspace";
 
-type ViewMode = "video" | "practice";
+type ViewMode = "video" | "coding" | "practice" | "pdf";
 
 interface Attachment {
   id: string;
@@ -64,11 +73,22 @@ export const LessonShell = ({
   codingProblems,
 }: LessonShellProps) => {
   const [mode, setMode] = useState<ViewMode>("video");
+  const [dockOpen, setDockOpen] = useState(false);
 
-  const practiceCount = codingProblems.length + leetcodeQuestions.length;
+  const modes = [
+    { id: "video" as const, label: "Video", icon: Play, count: null },
+    { id: "coding" as const, label: "Coding Questions", icon: Code2, count: codingProblems.length },
+    { id: "practice" as const, label: "Extra Practice", icon: BrainCircuit, count: leetcodeQuestions.length },
+    { id: "pdf" as const, label: "PDF Notes", icon: FileText, count: pdfNotes.length },
+  ];
+
+  const selectMode = (id: ViewMode) => {
+    setMode(id);
+    setDockOpen(false);
+  };
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       {/* Page header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div className="min-w-0">
@@ -89,156 +109,97 @@ export const LessonShell = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-        {/* Main stage */}
-        <div className="min-w-0">
-          {mode === "video" ? (
-            <div className="space-y-6">
-              <div className="overflow-hidden rounded-2xl border border-border bg-black shadow-[0_1px_2px_rgba(0,0,0,0.05),0_12px_32px_-12px_rgba(0,0,0,0.2)]">
-                <VideoPlayer
-                  chapterId={chapterId}
-                  title={chapterTitle}
-                  courseId={courseId}
-                  nextChapterId={nextChapterId}
-                  playbackId={playbackId}
-                  videoUrl={videoUrl}
-                  videoSources={videoSources}
-                  isLocked={isLocked}
-                  completeOnEnd={completeOnEnd}
-                />
-              </div>
+      {/* Main stage */}
+      <div className="min-w-0">
+        {mode === "video" && (
+          <div className="space-y-6">
+            <div className="overflow-hidden rounded-2xl border border-border bg-black shadow-[0_1px_2px_rgba(0,0,0,0.05),0_12px_32px_-12px_rgba(0,0,0,0.2)]">
+              <VideoPlayer
+                chapterId={chapterId}
+                title={chapterTitle}
+                courseId={courseId}
+                nextChapterId={nextChapterId}
+                playbackId={playbackId}
+                videoUrl={videoUrl}
+                videoSources={videoSources}
+                isLocked={isLocked}
+                completeOnEnd={completeOnEnd}
+              />
+            </div>
 
-              {description && (
-                <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold tracking-tight mb-3">About this lesson</h2>
-                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
-                    <Preview value={description} />
-                  </div>
-                </section>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {practiceCount === 0 ? (
-                <section className="rounded-2xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
-                  <Terminal className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    No practice questions have been added to this lesson yet.
-                  </p>
-                </section>
-              ) : (
-                <>
-                  {!!leetcodeQuestions.length && (
-                    <LeetcodeQuestions questions={leetcodeQuestions} />
-                  )}
-                  {codingProblems.map((problem, index) => (
-                    <section
-                      key={problem.id}
-                      className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm"
-                    >
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                          <Code2 className="h-4 w-4 text-primary" />
-                        </div>
-                        <h3 className="text-sm font-semibold text-foreground">
-                          {"Coding Challenge" + (codingProblems.length > 1 ? " " + (index + 1) : "")}
-                        </h3>
-                      </div>
-                      <CodingWorkspace
-                        problem={problem}
-                        submissions={problem.submissions}
-                        apiBase={`/api/courses/${courseId}/chapters/${chapterId}`}
-                      />
-                    </section>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right sidebar */}
-        <aside className="min-w-0 space-y-6">
-          {/* View switcher */}
-          <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
-            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
-              <button
-                type="button"
-                onClick={() => setMode("video")}
-                className={cn(
-                  "flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  mode === "video"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Play className="h-4 w-4" />
-                Video
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("practice")}
-                className={cn(
-                  "flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  mode === "practice"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Code2 className="h-4 w-4" />
-                Practice
-                {practiceCount > 0 && (
-                  <span className="rounded-full bg-primary/10 text-primary px-1.5 text-[11px] font-semibold">
-                    {practiceCount}
-                  </span>
-                )}
-              </button>
-            </div>
-            <p className="px-2 pt-3 pb-1 text-xs text-muted-foreground">
-              {mode === "video"
-                ? "Watch the lesson video for this chapter."
-                : "Work through the practice questions for this chapter."}
-            </p>
+            {description && (
+              <section className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                <h2 className="text-lg font-semibold tracking-tight mb-3">About this lesson</h2>
+                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+                  <Preview value={description} />
+                </div>
+              </section>
+            )}
           </div>
+        )}
 
-          {/* PDF notes */}
-          {!!pdfNotes.length && (
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-              <div className="flex items-center gap-2 px-1 pt-1 pb-3">
-                <MonitorPlay className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">Reading material</h3>
-              </div>
-              <PdfNotes notes={pdfNotes} />
-            </div>
-          )}
+        {mode === "coding" && (
+          <div className="space-y-6">
+            {codingProblems.length === 0 ? (
+              <EmptyState
+                icon={Terminal}
+                title="No coding questions yet"
+                hint="Coding challenges for this chapter will appear here."
+              />
+            ) : (
+              codingProblems.map((problem, index) => (
+                <section
+                  key={problem.id}
+                  className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                      <Code2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {"Coding Challenge" + (codingProblems.length > 1 ? " " + (index + 1) : "")}
+                    </h3>
+                  </div>
+                  <CodingWorkspace
+                    problem={problem}
+                    submissions={problem.submissions}
+                    apiBase={`/api/courses/${courseId}/chapters/${chapterId}`}
+                  />
+                </section>
+              ))
+            )}
+          </div>
+        )}
 
-          {/* Attachments */}
-          {!!attachments.length && (
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-              <h3 className="flex items-center gap-2 text-sm font-semibold mb-3 px-1 pt-1">
-                <Paperclip className="h-4 w-4 text-muted-foreground" />
-                Attachments
-                <span className="ml-auto text-xs font-medium text-muted-foreground">
-                  {attachments.length}
-                </span>
-              </h3>
-              <div className="space-y-2">
-                {attachments.map((attachment) => (
-                  <a
-                    key={attachment.id}
-                    href={attachment.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 w-full rounded-xl border border-border bg-muted/40 text-foreground hover:border-primary/40 hover:bg-accent transition-colors"
-                  >
-                    <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                    <span className="text-sm truncate">{attachment.name}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </aside>
+        {mode === "practice" && (
+          <div className="space-y-6">
+            {leetcodeQuestions.length === 0 ? (
+              <EmptyState
+                icon={BrainCircuit}
+                title="No extra practice yet"
+                hint="Extra practice questions for this chapter will appear here."
+              />
+            ) : (
+              <LeetcodeQuestions questions={leetcodeQuestions} />
+            )}
+          </div>
+        )}
+
+        {mode === "pdf" && (
+          <div className="space-y-6">
+            {pdfNotes.length === 0 ? (
+              <EmptyState
+                icon={FileText}
+                title="No PDF notes yet"
+                hint="Reading material for this chapter will appear here."
+              />
+            ) : (
+              <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+                <PdfNotes notes={pdfNotes} />
+              </section>
+            )}
+          </div>
+        )}
       </div>
 
       <ChapterNav
@@ -246,6 +207,108 @@ export const LessonShell = ({
         previousChapter={previousChapter}
         nextChapter={nextChapter}
       />
+
+      {/* Floating dock: pinned to right-middle edge */}
+      <div className="fixed right-0 top-1/2 z-40 -translate-y-1/2 flex items-stretch">
+        {!dockOpen && (
+          <button
+            type="button"
+            onClick={() => setDockOpen(true)}
+            aria-label="Open lesson menu"
+            title="Open lesson menu"
+            className="flex h-12 w-12 items-center justify-center rounded-l-xl border border-r-0 border-border bg-card text-muted-foreground shadow-[0_4px_20px_rgba(0,0,0,0.12)] transition-colors hover:text-foreground hover:bg-accent"
+          >
+            <LayoutGrid className="h-5 w-5" />
+          </button>
+        )}
+
+        {dockOpen && (
+          <div className="mr-3 w-72 rounded-2xl border border-border bg-card p-3 shadow-[0_12px_40px_rgba(0,0,0,0.18)] animate-in slide-in-from-right-4 fade-in duration-200">
+            <div className="flex items-center justify-between px-2 pb-2">
+              <p className="text-sm font-semibold text-foreground">Lesson content</p>
+              <button
+                type="button"
+                onClick={() => setDockOpen(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                aria-label="Close lesson menu"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              {modes.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => selectMode(m.id)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    mode === m.id
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
+                >
+                  <m.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{m.label}</span>
+                  {m.count !== null && m.count > 0 && (
+                    <span
+                      className={cn(
+                        "ml-auto rounded-full px-1.5 py-0.5 text-[11px] font-semibold",
+                        mode === m.id ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {m.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {!!attachments.length && (
+              <>
+                <div className="my-3 h-px bg-border" />
+                <p className="flex items-center gap-2 px-2 pb-2 text-xs font-medium text-muted-foreground">
+                  <Paperclip className="h-3.5 w-3.5" />
+                  Attachments
+                </p>
+                <div className="space-y-1.5">
+                  {attachments.map((a) => (
+                    <a
+                      key={a.id}
+                      href={a.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <FileText className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{a.name}</span>
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+function EmptyState({
+  icon: Icon,
+  title,
+  hint,
+}: {
+  icon: typeof Play;
+  title: string;
+  hint: string;
+}) {
+  return (
+    <section className="rounded-2xl border border-dashed border-border bg-card p-12 text-center shadow-sm">
+      <Icon className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="text-sm text-muted-foreground mt-1">{hint}</p>
+    </section>
+  );
+}
