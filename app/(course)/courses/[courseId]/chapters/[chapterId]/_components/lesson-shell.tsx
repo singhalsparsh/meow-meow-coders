@@ -12,6 +12,7 @@ import {
   X,
   BrainCircuit,
   ChevronRight,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,9 +22,10 @@ import { ChapterNav } from "./chapter-nav";
 import { Preview } from "@/components/preview";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
+import { VideoBlog } from "@/components/video-blog";
 import { DifficultyBadge } from "@/components/coding-workspace/badges";
 
-type ViewMode = "video" | "coding" | "practice" | "pdf";
+type ViewMode = "video" | "coding" | "practice" | "pdf" | "blog";
 
 interface Attachment {
   id: string;
@@ -82,6 +84,7 @@ export const LessonShell = ({
     { id: "coding" as const, label: "Coding Questions", icon: Code2, count: codingProblems.length },
     { id: "practice" as const, label: "Extra Practice", icon: BrainCircuit, count: leetcodeQuestions.length },
     { id: "pdf" as const, label: "PDF Notes", icon: FileText, count: pdfNotes.length },
+    { id: "blog" as const, label: "Blog", icon: BookOpen, count: null },
   ];
 
   const selectMode = (id: ViewMode) => {
@@ -197,7 +200,7 @@ export const LessonShell = ({
 
         {mode === "pdf" && (
           <div className="space-y-6">
-            {pdfNotes.length === 0 ? (
+            {pdfNotes.length === 0 && !chapterId ? (
               <EmptyState
                 icon={FileText}
                 title="No PDF notes yet"
@@ -205,10 +208,16 @@ export const LessonShell = ({
               />
             ) : (
               <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
-                <PdfNotes notes={pdfNotes} />
+                <PdfNotes notes={pdfNotes} chapterId={chapterId} />
               </section>
             )}
           </div>
+        )}
+
+        {mode === "blog" && (
+          <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+            <VideoBlog chapterId={chapterId} title={chapterTitle} />
+          </section>
         )}
       </div>
 

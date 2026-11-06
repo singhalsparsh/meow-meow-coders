@@ -9,11 +9,6 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/uploadthing(.*)",
   "/api/webhook(.*)",
-  // Same-origin media proxy: the <video> element / Shaka fetch streams through
-  // this route. It must be public so an authenticated video request isn't
-  // redirected to sign-in (a redirect loop, or a 307 that breaks playback).
-  // Access is still constrained to public http(s) hosts by isAllowedProxyTarget.
-  "/api/video-proxy(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

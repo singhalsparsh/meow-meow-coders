@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FileText, ExternalLink, Download, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChapterLocal } from "@/components/hooks/use-chapter-local";
 
 interface PdfNote {
   id: string;
@@ -13,6 +14,8 @@ interface PdfNote {
 
 interface PdfNotesProps {
   notes: PdfNote[];
+  /** Optional: when provided, merges client-side notes for this chapter. */
+  chapterId?: string;
 }
 
 function getGoogleDriveEmbedUrl(url: string): string | null {
@@ -91,8 +94,18 @@ function DownloadButton({ url, title }: { url: string; title: string }) {
   );
 }
 
-export const PdfNotes = ({ notes }: PdfNotesProps) => {
-  if (!notes.length) return null;
+export const PdfNotes = ({ notes, chapterId }: PdfNotesProps) => {
+  // Merge server-provided notes with client-side (localStorage) notes so any
+  // notes added by the teacher are visible here too, without a server roundtrip.
+  const local = useChapterLocal<PdfNote[]>(chapterId ?? "none", []);
+  const merged = useMemo(() => {
+    if (!chapterId || !local.value.length) return notes;
+    const seen = new Set(notes.map((n) => n.id));
+    const extra = local.value.filter((n) => !seen.has(n.id));
+    return [...notes, ...extra];
+  }, [notes, chapterId, local.value]);
+
+  if (!merged.length) return null;
 
   return (
     <div className="space-y-4">
@@ -103,12 +116,12 @@ export const PdfNotes = ({ notes }: PdfNotesProps) => {
         <div>
           <h3 className="text-sm font-semibold text-foreground leading-none">PDF Notes</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            {notes.length} {notes.length === 1 ? "document" : "documents"}
+            {merged.length} {merged.length === 1 ? "document" : "documents"}
           </p>
         </div>
       </div>
 
-      {notes.map((note) => {
+      {merged.map((note) => {
         const driveEmbedUrl = getGoogleDriveEmbedUrl(note.url);
         const canEmbed = driveEmbedUrl || isPdfUrl(note.url);
         const embedUrl = driveEmbedUrl || note.url;

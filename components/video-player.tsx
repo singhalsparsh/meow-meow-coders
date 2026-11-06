@@ -1,32 +1,39 @@
 "use client";
 
-// Video playback is handled exclusively by the Limeplay player (Shaka-based,
-// shadcn-style — we own components/video-player/*). Sources are pre-wrapped in
-// signed same-origin proxy URLs by the server (lib/video-proxy.ts), so Shaka
-// fetches every stream — HLS or plain MP4 — from our own origin and never hits
-// a CORS wall on an upstream host.
+// Video playback uses Vidstack (MediaPlayer + default video layout). Sources
+// are passed straight through to the browser's native <video>; no proxy, no
+// API route, no Shaka. This means:
 //
-// YouTube cannot be played by Shaka, so a chapter whose only playable source is
-// a YouTube link falls back to the IFrame-based player. When nothing playable
-// is supplied, a CORS-enabled public demo MP4 is shown for instant testing.
+//   - archive.org MP4 / WebM files play directly via native <video>, which
+//     ( unlike Shaka/fetch) does NOT require the server to send CORS headers.
+//   - A Mux playbackId is rendered as HLS (.m3u8) — native HLS where the
+//     browser supports it (Safari), otherwise it falls back to the browser's
+//     own HLS support. Mux streams DO send proper CORS headers.
+//
+// IMPORTANT (crossOrigin): we intentionally do NOT set `crossOrigin`. Setting
+// it would force the media element into CORS mode, and since archive.org sends
+// no `Access-Control-Allow-Origin` headers, that would BLOCK playback (and the
+// thumbnails/canvas would also be tainted). A plain <video> plays cross-origin
+// MP4s fine without crossOrigin — CORS is only needed for reading pixels.
 
-import { useMemo } from "react";
-
-import { CustomVideoPlayer } from "@/components/custom-video-player";
 import {
-  VideoPlayer as LimeplayPlayer,
-  type VideoPlayerAsset,
-} from "@/components/video-player/player";
-import type { PlayerSource } from "@/components/liquid-glass-player";
-import { getMuxPlaybackUrl, getVideoUrlInfo } from "@/lib/video";
-import type {
-  AssetLoadContext,
-  UseAssetOptions,
-} from "@/components/hooks/use-asset";
+  MediaPlayer,
+  MediaProvider,
+  type MediaPlayerInstance,
+  type MediaSrc,
+} from "@vidstack/react";
+import {
+  defaultLayoutIcons,
+  DefaultVideoLayout,
+} from "@vidstack/react/player/layouts/default";
 
-/** Public demo stream used when a chapter has no playable source. */
-const PLACEHOLDER_SRC =
-  "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4";
+import "@vidstack/react/player/styles/default/theme.css";
+import "@vidstack/react/player/styles/default/layouts/video.css";
+
+import { useMemo, useRef } from "react";
+import { cn } from "@/lib/utils";
+import { getMuxPlaybackUrl, getVideoUrlInfo } from "@/lib/video";
+import type { PlayerSource } from "@/components/liquid-glass-player";
 
 interface VideoPlayerProps {
   title?: string;
@@ -45,7 +52,7 @@ interface VideoPlayerProps {
   layout?: "aspect" | "fill";
 }
 
-// Recover the real upstream URL from a stored signed proxy token (legacy data).
+/** Recover the real upstream URL from a stored signed proxy token (legacy). */
 function unwrapProxyUrl(u: string): string {
   if (!u.startsWith("/api/video-proxy?t=")) return u;
   try {
@@ -62,22 +69,21 @@ function unwrapProxyUrl(u: string): string {
   return u;
 }
 
-// Route any cross-origin media URL through our same-origin streaming proxy so
-// Archive.org / other CDNs that omit CORS headers (and non-faststart MP4s)
-// can still be fetched reliably. Same-origin and YouTube URLs are left
-// untouched. Works for both the native <video> path (MP4) and Shaka (HLS).
-function proxifyMediaUrl(u: string): string {
-  if (!u.startsWith("http://") && !u.startsWith("https://")) return u;
-  let parsed: URL;
-  try {
-    parsed = new URL(u);
-  } catch {
-    return u;
-  }
-  if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
-    return u;
-  }
-  return `/api/video-proxy?url=${encodeURIComponent(u)}`;
+type InfSrcType =
+  | "video/mp4"
+  | "video/webm"
+  | "video/ogg"
+  | "application/x-mpegurl"
+  | "video/youtube";
+
+function inferSourceType(raw: string): InfSrcType {
+  if (getVideoUrlInfo(raw).kind === "youtube") return "video/youtube";
+  const lower = raw.toLowerCase();
+  if (lower.includes(".m3u8")) return "application/x-mpegurl";
+  if (lower.includes(".webm")) return "video/webm";
+  if (lower.includes(".ogg") || lower.includes(".ogv")) return "video/ogg";
+  // Default for anything else (mp4/mov/m4v/mkv).
+  return "video/mp4";
 }
 
 export const VideoPlayer = ({
@@ -91,178 +97,56 @@ export const VideoPlayer = ({
   className,
   layout = "aspect",
 }: VideoPlayerProps) => {
-  // Assemble every candidate source (in order) from the caller's list, or from
-  // the single-stream props.
-  const allSources = useMemo<{ src: string; title?: string; hls?: boolean }[]>(
-    () => {
-      if (videoSources && videoSources.length > 0) {
-        return videoSources.map((s) => {
-          const raw = unwrapProxyUrl(s.src);
-          return {
-            src: raw,
-            title: s.title || title,
-            hls: s.hls ?? raw.toLowerCase().includes(".m3u8"),
-          };
-        });
-      }
+  const playerRef = useRef<MediaPlayerInstance>(null);
 
-      const out: { src: string; title?: string; hls?: boolean }[] = [];
-      if (playbackId) {
-        // Mux streams are HLS and served with full CORS — no proxy needed.
-        const url = getMuxPlaybackUrl(playbackId);
-        if (url) out.push({ src: url, title: title || "Primary stream", hls: true });
-      }
-      if (videoUrl) {
-        const raw = unwrapProxyUrl(videoUrl);
-        out.push({
-          src: raw,
-          title: title || "Video",
-          hls: raw.toLowerCase().includes(".m3u8"),
-        });
-      }
+  // Resolve the single source to feed Vidstack. Prefer the assembled source
+  // list (which carries the archive.org URL), then the single videoUrl, then
+  // the Mux playbackId.
+  const source = useMemo<MediaSrc | null>(() => {
+    let raw: string | null = null;
 
-      return out;
-    },
-    [videoSources, playbackId, videoUrl, title]
-  );
-
-  const youtubeSources = useMemo(
-    () => allSources.filter((s) => getVideoUrlInfo(s.src).kind === "youtube"),
-    [allSources]
-  );
-  const playable = useMemo(
-    () => allSources.filter((s) => getVideoUrlInfo(s.src).kind !== "youtube"),
-    [allSources]
-  );
-  const assets = useMemo<VideoPlayerAsset[]>(
-    () =>
-      playable.map((s, i) => ({
-        id: `src-${i + 1}`,
-        // Proxy cross-origin media (fixes CORS + lets Shaka handle non-faststart
-        // MP4s). YouTube is excluded (handled by its own iframe).
-        src: proxifyMediaUrl(s.src),
-        title: s.title,
-        hls: s.hls,
-      })),
-    [playable]
-  );
-
-  // Custom loader:
-  //  - HLS always goes through Shaka (the Limeplay default).
-  //  - MP4 also tries Shaka first: Shaka parses non-faststart files whose
-  //    `moov` box lives at the end (native <video> would buffer the whole file
-  //    before playing). Sources are routed through our same-origin proxy, so
-  //    Shaka's XHR fetches don't hit a CORS wall.
-  //  - If Shaka fails on an MP4 (e.g. an unusual container), fall back to the
-  //    browser's native <video> so we never show a blank spinner.
-  const loadAsset = async (ctx: AssetLoadContext<VideoPlayerAsset>) => {
-    const { asset, media, loadDefault, startTime } = ctx;
-
-    if (asset.hls) {
-      await loadDefault();
-      return;
+    if (videoSources && videoSources.length > 0) {
+      raw = unwrapProxyUrl(videoSources[0].src);
+    } else if (videoUrl) {
+      raw = unwrapProxyUrl(videoUrl);
+    } else if (playbackId) {
+      const url = getMuxPlaybackUrl(playbackId);
+      if (url) raw = url;
     }
 
-    const src = asset.src;
-    if (!src) return;
+    if (!raw) return null;
+    return { src: raw, type: inferSourceType(raw) };
+  }, [videoSources, videoUrl, playbackId]);
 
-    try {
-      await loadDefault();
-      return;
-    } catch (loadError) {
-      // Shaka path failed — fall through to native playback.
-      console.warn(
-        "[video-player] Shaka MP4 load failed, falling back to native <video>:",
-        loadError
-      );
-    }
-
-    // --- debug: surface the real media/network error instead of a silent
-    // spinner. Kept verbose on purpose while diagnosing playback issues.
-    const report = (what: string, extra?: unknown) => {
-      console.log(`[video-player > ${what}]`, {
-        src,
-        readyState: media.readyState,
-        networkState: media.networkState,
-        error: media.error
-          ? { code: media.error.code, message: media.error.message }
-          : null,
-        extra,
-      });
-    };
-    const onError = () => report("error", media.error);
-    const onStalled = () => report("stalled");
-    const onWaiting = () => report("waiting");
-    const onCanPlay = () => report("canplay");
-    const onPlaying = () => report("playing");
-    const onLoadedMetadata = () => report("loadedmetadata");
-
-    media.addEventListener("error", onError);
-    media.addEventListener("stalled", onStalled);
-    media.addEventListener("waiting", onWaiting);
-    media.addEventListener("canplay", onCanPlay);
-    media.addEventListener("playing", onPlaying);
-    media.addEventListener("loadedmetadata", onLoadedMetadata);
-
-    media.src = src;
-    media.load();
-    if (startTime != null && Number.isFinite(startTime)) {
-      media.currentTime = startTime;
-    }
-
-    // Clean up listeners once playback actually starts (or the element is
-    // replaced). Avoids leaking handlers across chapter navigations.
-    const detach = () => {
-      media.removeEventListener("error", onError);
-      media.removeEventListener("stalled", onStalled);
-      media.removeEventListener("waiting", onWaiting);
-      media.removeEventListener("canplay", onCanPlay);
-      media.removeEventListener("playing", onPlaying);
-      media.removeEventListener("loadedmetadata", onLoadedMetadata);
-    };
-    media.addEventListener("playing", detach, { once: true });
-    media.addEventListener("error", detach, { once: true });
-  };
-
-  const loader: UseAssetOptions<VideoPlayerAsset>["loader"] = {
-    load: loadAsset,
-  };
-
-  // YouTube-only chapter → dedicated IFrame player.
-  if (youtubeSources.length > 0 && playable.length === 0) {
-    const id = getVideoUrlInfo(youtubeSources[0].src).youtubeId;
+  if (!source) {
     return (
-      <CustomVideoPlayer
-        title={title}
-        youtubeId={id}
-        onEnded={onEnded}
-        className={layout === "fill" ? "h-full w-full" : className}
-      />
-    );
-  }
-
-  // No playable source at all → show the demo placeholder for instant testing.
-  if (playable.length === 0) {
-    return (
-      <LimeplayPlayer
-        className={className}
-        layout={layout}
-        theme="dark"
-        source={[{ id: "demo", src: proxifyMediaUrl(PLACEHOLDER_SRC), title: "Demo video" }]}
-        mediaProps={{ playsInline, autoPlay, onEnded }}
-        loading={{ loader }}
-      />
+      <div className="flex h-full w-full items-center justify-center bg-slate-800 text-sm text-secondary">
+        No video for this chapter
+      </div>
     );
   }
 
   return (
-    <LimeplayPlayer
-      className={className}
-      layout={layout}
-      theme="dark"
-      source={assets}
-      mediaProps={{ playsInline, autoPlay, onEnded }}
-      loading={{ loader }}
-    />
+    <div
+      className={cn(
+        "bg-black",
+        layout === "fill" ? "h-full w-full" : "aspect-video",
+        className
+      )}
+    >
+      <MediaPlayer
+        ref={playerRef}
+        className="!h-full !w-full"
+        title={title || "Video"}
+        src={source}
+        playsInline={playsInline}
+        autoPlay={autoPlay}
+        onEnded={onEnded}
+        crossOrigin={undefined}
+      >
+        <MediaProvider />
+        <DefaultVideoLayout icons={defaultLayoutIcons} />
+      </MediaPlayer>
+    </div>
   );
 };

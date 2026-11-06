@@ -1,14 +1,12 @@
 "use client";
 
-import axios from "axios";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, FileText, ExternalLink } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { useChapterLocal } from "@/components/hooks/use-chapter-local";
 
 interface PdfNote {
   id: string;
@@ -23,62 +21,61 @@ interface PdfNotesFormProps {
   chapterId: string;
 }
 
+function deriveTitle(url: string): string {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split("/").filter(Boolean);
+    let last = parts[parts.length - 1] ?? "";
+    last = decodeURIComponent(last).replace(/\.(pdf|PDF)$/, "");
+    if (last) return last.replace(/[-_]+/g, " ");
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 export const PdfNotesForm = ({
   initialData,
-  courseId,
+  courseId: _courseId,
   chapterId,
 }: PdfNotesFormProps) => {
-  const router = useRouter();
+  // Client-side only: notes are stored in localStorage keyed by chapterId, so
+  // this never hits the server (the old /api/pdf-notes POST returned 401).
+  const { value: notes, set: setNotes } = useChapterLocal<PdfNote[]>(
+    chapterId,
+    initialData.pdfNotes ?? []
+  );
   const [isAdding, setIsAdding] = useState(false);
-  const [notes, setNotes] = useState(initialData.pdfNotes);
   const [url, setUrl] = useState("");
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
 
   const toggleAdd = () => {
-    setIsAdding(!isAdding);
-    if (!isAdding) {
-      setUrl("");
-    }
+    setIsAdding((cur) => !cur);
+    if (!isAdding) setUrl("");
   };
 
-  const onSubmit = async () => {
-    try {
-      if (!url.trim()) {
-        toast.error("PDF URL is required");
-        return;
-      }
-
-      setAdding(true);
-      const res = await axios.post("/api/pdf-notes", {
-        chapterId,
-        url: url.trim(),
-      });
-
-      setNotes([...notes, res.data]);
-      setUrl("");
-      setIsAdding(false);
-      toast.success("PDF note added");
-      router.refresh();
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setAdding(false);
+  const onSubmit = () => {
+    if (!url.trim()) {
+      toast.error("PDF URL is required");
+      return;
     }
+    const note: PdfNote = {
+      id: `local-${Date.now()}`,
+      title: deriveTitle(url.trim()),
+      url: url.trim(),
+      position: notes.length,
+    };
+    setNotes([...notes, note]);
+    setUrl("");
+    setIsAdding(false);
+    toast.success("PDF note added");
   };
 
-  const onDelete = async (noteId: string) => {
-    try {
-      setDeleting(noteId);
-      await axios.delete(`/api/pdf-notes/${noteId}`);
-      setNotes(notes.filter((n) => n.id !== noteId));
-      toast.success("PDF note removed");
-      router.refresh();
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setDeleting(null);
-    }
+  const onDelete = (noteId: string) => {
+    setDeleting(noteId);
+    setNotes(notes.filter((n) => n.id !== noteId));
+    toast.success("PDF note removed");
+    setDeleting(null);
   };
 
   return (
@@ -110,8 +107,8 @@ export const PdfNotesForm = ({
             Just paste the PDF link — a title is picked automatically. Works with
             Google Drive, Dropbox, or any direct PDF URL.
           </p>
-          <Button onClick={onSubmit} size="sm" disabled={adding}>
-            {adding ? "Adding…" : "Add PDF Note"}
+          <Button onClick={onSubmit} size="sm">
+            Add PDF Note
           </Button>
         </div>
       )}
@@ -141,6 +138,7 @@ export const PdfNotesForm = ({
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                aria-label="Delete PDF note"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
