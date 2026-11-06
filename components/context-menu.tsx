@@ -15,7 +15,7 @@ import {
   Download,
   Maximize,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/providers/theme-provider";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 

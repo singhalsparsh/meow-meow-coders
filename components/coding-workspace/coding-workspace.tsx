@@ -4,7 +4,7 @@ import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Code2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/providers/theme-provider";
 
 import { useCppJudge } from "@/hooks/use-cpp-judge";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
