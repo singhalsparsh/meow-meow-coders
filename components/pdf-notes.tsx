@@ -1,6 +1,7 @@
 "use client";
 
-import { FileText, ExternalLink, Eye } from "lucide-react";
+import { useState } from "react";
+import { FileText, ExternalLink, Download, Loader2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface PdfNote {
@@ -40,51 +41,125 @@ function isPdfUrl(url: string): boolean {
   return url.toLowerCase().endsWith(".pdf") || url.includes("pdf");
 }
 
+function DownloadButton({ url, title }: { url: string; title: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "done">("idle");
+
+  const handleDownload = async () => {
+    setState("loading");
+    try {
+      // Best-effort direct download: fetch as a blob, then save. If the host
+      // blocks cross-origin reads, fall back to opening the PDF in a new tab,
+      // where the browser's native viewer still offers a download control.
+      const res = await fetch(url, { mode: "cors" });
+      if (res.ok) {
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = title.endsWith(".pdf") ? title : `${title}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objectUrl);
+        setState("done");
+        setTimeout(() => setState("idle"), 2000);
+        return;
+      }
+      throw new Error("fetch-failed");
+    } catch {
+      window.open(url, "_blank", "noopener,noreferrer");
+      setState("idle");
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleDownload}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-60"
+      disabled={state === "loading"}
+    >
+      {state === "loading" ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      ) : state === "done" ? (
+        <Check className="h-3.5 w-3.5 text-emerald-600" />
+      ) : (
+        <Download className="h-3.5 w-3.5" />
+      )}
+      Download
+    </button>
+  );
+}
+
 export const PdfNotes = ({ notes }: PdfNotesProps) => {
   if (!notes.length) return null;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-3">
-        <FileText className="h-4 w-4 text-muted-foreground wiggle-hover" />
-        <h3 className="text-sm font-medium text-muted-foreground animated-underline">
-          PDF Notes ({notes.length})
-        </h3>
+      <div className="flex items-center gap-2 mb-2">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+          <FileText className="h-4 w-4 text-primary" />
+        </span>
+        <div>
+          <h3 className="text-sm font-semibold text-foreground leading-none">PDF Notes</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            {notes.length} {notes.length === 1 ? "document" : "documents"}
+          </p>
+        </div>
       </div>
-      {notes.map((note, i) => {
+
+      {notes.map((note) => {
         const driveEmbedUrl = getGoogleDriveEmbedUrl(note.url);
         const canEmbed = driveEmbedUrl || isPdfUrl(note.url);
         const embedUrl = driveEmbedUrl || note.url;
 
         return (
-          <div key={note.id} className="space-y-3">
-            <div className="flex items-center gap-3 p-4 glass-card rounded-2xl group card-pop">
-              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-primary/10 flex-shrink-0">
+          <div key={note.id} className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+            {/* Header row */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border/70 bg-muted/30">
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
                 <FileText className="h-4 w-4 text-primary" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate text-foreground">{note.title}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{note.url}</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm truncate">{note.title}</span>
-                </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <DownloadButton url={note.url} title={note.title} />
+                <a
+                  href={note.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open
+                </a>
               </div>
-              <a
-                href={note.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors no-animate"
-              >
-                <ExternalLink className="h-3 w-3" />
-                Open
-              </a>
             </div>
-            {canEmbed && (
-              <div className="glass-card rounded-2xl overflow-hidden">
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-[500px] border-0"
-                  title={note.title}
-                  allow="autoplay"
-                />
+
+            {/* Embedded reader */}
+            {canEmbed ? (
+              <iframe
+                src={embedUrl}
+                className={cn("w-full border-0 bg-white", driveEmbedUrl ? "h-[440px]" : "h-[520px]")}
+                title={`${note.title} (embedded PDF viewer)`}
+                allow="autoplay; fullscreen"
+              />
+            ) : (
+              <div className="px-4 py-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  This resource can&rsquo;t be embedded inline.
+                </p>
+                <a
+                  href={note.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Open in new tab
+                </a>
               </div>
             )}
           </div>

@@ -12,36 +12,36 @@ body,
 
 @layer base {
   :root {
-    /* Warm off-white page, not pure #fff */
-    --background: 40 30% 98%;
-    --foreground: 224 24% 12%;
+    /* Neutral cool off-white page background */
+    --background: 214 28% 97%;
+    --foreground: 222 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 24% 12%;
+    --card-foreground: 222 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 24% 12%;
+    --popover-foreground: 222 30% 12%;
 
-    --primary: 248 68% 56%;
+    --primary: 239 55% 42%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 20% 95%;
-    --secondary-foreground: 224 20% 16%;
+    --secondary: 214 20% 95%;
+    --secondary-foreground: 222 25% 18%;
 
-    --muted: 40 20% 95%;
-    --muted-foreground: 224 10% 46%;
+    --muted: 214 22% 95%;
+    --muted-foreground: 218 12% 46%;
 
-    --accent: 40 20% 94%;
-    --accent-foreground: 224 20% 16%;
+    --accent: 214 22% 94%;
+    --accent-foreground: 222 25% 18%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 14% 90%;
-    --input: 40 14% 90%;
-    --ring: 248 68% 56%;
+    --border: 214 18% 90%;
+    --input: 214 18% 90%;
+    --ring: 239 55% 42%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
     --lp-accent: oklch(0.269 0 0);
 
@@ -53,33 +53,33 @@ body,
   }
 
   .dark {
-    --background: 226 30% 8%;
-    --foreground: 210 30% 96%;
+    --background: 222 30% 8%;
+    --foreground: 214 25% 96%;
 
-    --card: 226 28% 11%;
-    --card-foreground: 210 30% 96%;
+    --card: 222 28% 11%;
+    --card-foreground: 214 25% 96%;
 
-    --popover: 226 30% 10%;
-    --popover-foreground: 210 30% 96%;
+    --popover: 222 30% 10%;
+    --popover-foreground: 214 25% 96%;
 
-    --primary: 248 80% 70%;
-    --primary-foreground: 226 40% 8%;
+    --primary: 239 75% 66%;
+    --primary-foreground: 222 40% 8%;
 
-    --secondary: 226 24% 16%;
-    --secondary-foreground: 210 25% 95%;
+    --secondary: 222 24% 16%;
+    --secondary-foreground: 214 22% 95%;
 
-    --muted: 226 24% 15%;
+    --muted: 222 24% 15%;
     --muted-foreground: 218 14% 64%;
 
-    --accent: 226 26% 16%;
-    --accent-foreground: 210 25% 95%;
+    --accent: 222 26% 16%;
+    --accent-foreground: 214 22% 95%;
 
-    --destructive: 0 64% 42%;
+    --destructive: 0 64% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 226 22% 18%;
-    --input: 226 22% 18%;
-    --ring: 248 80% 70%;
+    --border: 222 22% 18%;
+    --input: 222 22% 18%;
+    --ring: 239 75% 66%;
 
     --lp-accent: oklch(0.97 0 0);
     --lp-primary: oklch(0.205 0 0);
