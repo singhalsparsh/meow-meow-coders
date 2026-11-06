@@ -20,6 +20,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/providers/toaster-provider";
 import { ConfettiProvider } from "@/components/providers/confetti-provider";
 import { ContextMenuProvider } from "@/components/context-menu";
+import { CookieConsent } from "@/components/cookie-consent";
 import { enUS } from "@clerk/localizations";
 
 export const metadata: Metadata = {
@@ -50,6 +51,7 @@ export default function RootLayout({
             <ContextMenuProvider>
               {children}
             </ContextMenuProvider>
+            <CookieConsent />
           </ThemeProvider>
         </body>
       </html>

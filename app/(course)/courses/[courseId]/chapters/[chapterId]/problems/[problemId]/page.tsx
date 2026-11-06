@@ -1,9 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Code2 } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Code2, ListChecks } from "lucide-react";
 import { db } from "@/lib/db";
-import { findCodingProblem, findStaticChapter } from "@/lib/content";
+import {
+  findCodingProblem,
+  findStaticChapter,
+  getChapterCodingProblems,
+} from "@/lib/content";
 import { isCourseFresh } from "@/actions/course-freshness";
 import { CodingWorkspace } from "@/components/coding-workspace/coding-workspace";
 import type { CodingProblemPayload, ProblemSubmissionPayload } from "@/lib/coding/types";
@@ -26,6 +30,9 @@ const ProblemPage = async (
   let payload: CodingProblemPayload | null = null;
   let chapterTitle: string | undefined;
 
+  // Ordered list of this chapter's problems, used for prev/next navigation.
+  let navList: { id: string; title: string }[] = [];
+
   // Only use the static snapshot when the host course is fresh (no teacher
   // edits since the last export); otherwise fall back to the DB below.
   const fresh = await isCourseFresh(params.courseId);
@@ -34,6 +41,10 @@ const ProblemPage = async (
   if (staticProblem) {
     const chapter = findStaticChapter(params.courseId, params.chapterId);
     chapterTitle = chapter?.title;
+    navList = getChapterCodingProblems(params.chapterId).map((p) => ({
+      id: p.id,
+      title: p.title,
+    }));
     payload = {
       id: staticProblem.id,
       chapterId: staticProblem.chapterId,
@@ -67,7 +78,7 @@ const ProblemPage = async (
     });
 
     if (!problem) {
-      return redirect(`/courses/${params.courseId}/chapters/${params.chapterId}`);
+      return redirect(`/courses/${params.courseId}/chapters/${params.chapterId}?tab=coding`);
     }
 
     const chapter = await db.chapter.findUnique({
@@ -75,6 +86,14 @@ const ProblemPage = async (
       select: { title: true },
     });
     chapterTitle = chapter?.title ?? undefined;
+
+    navList = await db.codingProblem
+      .findMany({
+        where: { chapterId: params.chapterId },
+        orderBy: { position: "asc" },
+        select: { id: true, title: true },
+      })
+      .catch(() => []);
 
     payload = {
       id: problem.id,
@@ -117,23 +136,75 @@ const ProblemPage = async (
     )
     .catch(() => []);
 
+  const currentIdx = navList.findIndex((p) => p.id === params.problemId);
+  const prevProblem = currentIdx > 0 ? navList[currentIdx - 1] : null;
+  const nextProblem =
+    currentIdx >= 0 && currentIdx < navList.length - 1
+      ? navList[currentIdx + 1]
+      : null;
+  const questionsHref = `/courses/${params.courseId}/chapters/${params.chapterId}?tab=coding`;
+
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col">
-      <div className="flex items-center gap-3 border-b border-border bg-card px-4 sm:px-6 h-12 flex-shrink-0">
+      <div className="flex items-center gap-2 border-b border-border bg-card px-3 sm:px-4 h-12 flex-shrink-0">
         <Link
-          href={`/courses/${params.courseId}/chapters/${params.chapterId}`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          href={questionsHref}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline truncate max-w-[180px]">
+          <span className="hidden sm:inline truncate max-w-[160px]">
             {chapterTitle ?? "Lesson"}
           </span>
+          <span className="hidden md:inline text-muted-foreground/60">·</span>
+          <span className="hidden md:inline-flex items-center gap-1">
+            <ListChecks className="h-3.5 w-3.5" />
+            Questions
+          </span>
         </Link>
-        <div className="flex items-center gap-2 min-w-0">
+
+        <div className="flex items-center gap-2 min-w-0 flex-1 justify-center">
           <Code2 className="h-4 w-4 text-primary flex-shrink-0" />
           <h1 className="truncate text-sm font-semibold text-foreground">
             {payload.title}
           </h1>
+          {navList.length > 1 && (
+            <span className="hidden sm:inline text-xs text-muted-foreground shrink-0">
+              {currentIdx + 1}/{navList.length}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {prevProblem ? (
+            <Link
+              href={`/courses/${params.courseId}/chapters/${params.chapterId}/problems/${prevProblem.id}`}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              title={`Previous: ${prevProblem.title}`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden md:inline">Prev</span>
+            </Link>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden md:inline">Prev</span>
+            </span>
+          )}
+          {nextProblem ? (
+            <Link
+              href={`/courses/${params.courseId}/chapters/${params.chapterId}/problems/${nextProblem.id}`}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              title={`Next: ${nextProblem.title}`}
+            >
+              <span className="hidden md:inline">Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-muted-foreground/40 cursor-not-allowed">
+              <span className="hidden md:inline">Next</span>
+              <ChevronRight className="h-4 w-4" />
+            </span>
+          )}
         </div>
       </div>
 

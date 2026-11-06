@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Play,
   Code2,
@@ -12,6 +13,7 @@ import {
   X,
   BrainCircuit,
   ChevronRight,
+  ChevronLeft,
   BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,7 +59,9 @@ interface LessonShellProps {
   codingProblems: any[];
 }
 
-export const LessonShell = ({
+const VALID_TABS: ViewMode[] = ["video", "coding", "practice", "pdf", "blog"];
+
+function LessonShellContent({
   courseTitle,
   chapterTitle,
   description,
@@ -78,8 +82,16 @@ export const LessonShell = ({
   pdfNotes,
   leetcodeQuestions,
   codingProblems,
-}: LessonShellProps) => {
-  const [mode, setMode] = useState<ViewMode>("video");
+}: LessonShellProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Allow deep-linking to a specific tab (e.g. `?tab=coding` from the "Back
+  // to questions" link on the problem page).
+  const tabParam = searchParams.get("tab");
+  const [mode, setMode] = useState<ViewMode>(() =>
+    VALID_TABS.includes(tabParam as ViewMode) ? (tabParam as ViewMode) : "video"
+  );
   const [dockOpen, setDockOpen] = useState(false);
 
   const modes = [
@@ -93,6 +105,13 @@ export const LessonShell = ({
   const selectMode = (id: ViewMode) => {
     setMode(id);
     setDockOpen(false);
+    // Keep the active tab in the URL so back/forward and deep links (from the
+    // problem page) land on the right section.
+    const params = new URLSearchParams(searchParams.toString());
+    if (id === "video") params.delete("tab");
+    else params.set("tab", id);
+    const qs = params.toString();
+    router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false });
   };
 
   return (
@@ -100,9 +119,13 @@ export const LessonShell = ({
       {/* Page header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
-            {courseTitle}
-          </p>
+          <Link
+            href={`/courses/${courseId}`}
+            className="group inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors mb-1"
+          >
+            <ChevronLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <span className="truncate">{courseTitle}</span>
+          </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground truncate">
             {chapterTitle}
           </h1>
@@ -117,6 +140,18 @@ export const LessonShell = ({
           />
         )}
       </div>
+
+      {/* Back to lesson (visible whenever a non-video tab is open) */}
+      {mode !== "video" && (
+        <button
+          type="button"
+          onClick={() => selectMode("video")}
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          Back to lesson
+        </button>
+      )}
 
       {/* Main stage */}
       <div className="min-w-0">
@@ -317,7 +352,13 @@ export const LessonShell = ({
       </div>
     </div>
   );
-};
+}
+
+export const LessonShell = (props: LessonShellProps) => (
+  <Suspense fallback={null}>
+    <LessonShellContent {...props} />
+  </Suspense>
+);
 
 function EmptyState({
   icon: Icon,
