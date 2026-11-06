@@ -340,7 +340,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
               <div className="flex-1 min-w-0">
                 <p className="font-medium">{mcq.question}</p>
                 {multi && (
-                  <p className="text-xs text-violet-600 dark:text-violet-400 mt-1">
+                  <p className="text-xs text-primary mt-1">
                     Select all that apply
                   </p>
                 )}

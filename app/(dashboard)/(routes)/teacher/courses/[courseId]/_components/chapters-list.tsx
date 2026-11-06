@@ -139,9 +139,9 @@ export const ChaptersList = ({
                     <div
                         key={chapter.id}
                         className={cn(
-                            "flex items-center gap-x-2 bg-slate-200 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600 border text-slate-700 dark:text-slate-200 rounded-xl mb-4 text-sm transition-all duration-200",
+                            "flex items-center gap-x-2 bg-muted/60 border-border border text-foreground/80 rounded-xl mb-4 text-sm transition-all duration-200",
                             isSubChapter && "ml-6 border-dashed",
-                            chapter.isPublished && "bg-sky-100 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300"
+                            chapter.isPublished && "bg-primary/10 border-primary/40 text-primary"
                         )}
                     >
                         <span className="truncate pl-3 py-3">
@@ -151,8 +151,8 @@ export const ChaptersList = ({
                         <div className="ml-auto pr-2 flex items-center gap-x-2">
                             <Badge
                                 className={cn(
-                                    "bg-slate-500",
-                                    chapter.isPublished && "bg-sky-700"
+                                    "bg-muted text-muted-foreground",
+                                    chapter.isPublished && "bg-primary text-primary-foreground"
                                 )}
                             >
                                 {chapter.isPublished ? "Published" : "Draft"}

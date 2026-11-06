@@ -199,7 +199,7 @@ export const McqForm = ({ initialData, testId }: McqFormProps) => {
                     {mcq.question.trim() || "Untitled question"}
                   </span>
                   {multi && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20 shrink-0">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-primary bg-primary/10 border-primary/25 shrink-0">
                       multi
                     </span>
                   )}
@@ -216,7 +216,7 @@ export const McqForm = ({ initialData, testId }: McqFormProps) => {
                       onClick={() => setEditing(mid)}
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-sky-600"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
                       aria-label="Edit question"
                     >
                       <Pencil className="h-3.5 w-3.5" />

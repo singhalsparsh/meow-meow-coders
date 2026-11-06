@@ -258,10 +258,10 @@ export function CodingWorkspace({
       <button
         type="button"
         onClick={() => setIsExpanded(true)}
-        className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 p-4 text-left transition-all duration-200 hover:border-sky-300 hover:shadow-md dark:hover:border-sky-700"
+        className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left transition-all duration-200 hover:border-primary/50 hover:shadow-md"
       >
-        <div className="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-xl bg-sky-100 dark:bg-sky-500/15">
-          <Code2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+        <div className="flex items-center justify-center w-9 h-9 flex-shrink-0 rounded-xl bg-primary/10">
+          <Code2 className="h-4 w-4 text-primary" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -272,7 +272,7 @@ export function CodingWorkspace({
             Click to open the coding challenge
           </p>
         </div>
-        <ChevronDown className="h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-y-0.5" />
+        <ChevronDown className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
       </button>
     );
   }
@@ -280,10 +280,10 @@ export function CodingWorkspace({
   return (
     <div
       ref={containerRef}
-      className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/60 backdrop-blur md:h-[calc(100vh-190px)] md:min-h-[560px]"
+      className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card md:h-[calc(100vh-190px)] md:min-h-[560px]"
     >
       {/* Top control bar */}
-      <div className="flex flex-shrink-0 flex-col gap-2 border-b border-slate-200 dark:border-slate-700 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-shrink-0 flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <h3 className="truncate text-sm font-semibold sm:text-base">
             {problem.title}
@@ -343,9 +343,9 @@ export function CodingWorkspace({
 
       {/* Toolchain load progress */}
       {loading && (
-        <div className="h-1 w-full flex-shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-800">
+        <div className="h-1 w-full flex-shrink-0 overflow-hidden bg-muted">
           <div
-            className="h-full bg-sky-500 transition-all duration-300"
+            className="h-full bg-primary transition-all duration-300"
             style={{
               width: `${
                 typeof judge.progress === "number"
@@ -361,7 +361,7 @@ export function CodingWorkspace({
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* Left: problem context + history */}
         <div
-          className="min-h-0 min-w-0 flex-shrink-0 overflow-hidden md:border-r md:border-slate-200 md:dark:border-slate-700"
+          className="min-h-0 min-w-0 flex-shrink-0 overflow-hidden md:border-r md:border-border"
           style={isMobile ? { height: "38%", flexShrink: 0 } : { width: `${leftWidth}%` }}
         >
           <ProblemPanel
@@ -375,7 +375,7 @@ export function CodingWorkspace({
         {!isMobile && (
           <div
             onPointerDown={startVerticalDrag}
-            className="w-1.5 flex-shrink-0 cursor-col-resize bg-slate-200/60 transition-colors hover:bg-sky-400 dark:bg-slate-700/60 dark:hover:bg-sky-500"
+            className="w-1.5 flex-shrink-0 cursor-col-resize bg-muted transition-colors hover:bg-primary/50"
           />
         )}
 
@@ -391,12 +391,12 @@ export function CodingWorkspace({
           {!isMobile ? (
             <div
               onPointerDown={startHorizontalDrag}
-              className="h-1.5 flex-shrink-0 cursor-row-resize bg-slate-200/60 transition-colors hover:bg-sky-400 dark:bg-slate-700/60 dark:hover:bg-sky-500"
+              className="h-1.5 flex-shrink-0 cursor-row-resize bg-muted transition-colors hover:bg-primary/50"
             />
           ) : null}
 
           <div
-            className="min-h-0 flex-1 overflow-hidden border-t border-slate-200 dark:border-slate-700"
+            className="min-h-0 flex-1 overflow-hidden border-t border-border"
             style={isMobile ? { height: `${editorHeight}%`, flexShrink: 0 } : undefined}
           >
             <ResultsPanel

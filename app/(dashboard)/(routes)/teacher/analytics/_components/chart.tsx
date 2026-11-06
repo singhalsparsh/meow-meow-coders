@@ -41,7 +41,7 @@ export const Chart = ({
                     />
                     <Bar
                         dataKey="total"
-                        fill="#0369a1"
+                        fill="hsl(var(--primary))"
                         radius={[4, 4, 0, 0]}
                     />
                 </BarChart>

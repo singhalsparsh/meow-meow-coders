@@ -78,7 +78,7 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
         }
 
         return (
-          <div key={q.id} className={cn("glass-card rounded-2xl overflow-hidden transition-all duration-300 card-pop", isExpanded && "ring-1 ring-sky-200 dark:ring-sky-700/50 shadow-lg")}>
+          <div key={q.id} className={cn("glass-card rounded-2xl overflow-hidden transition-all duration-300 card-pop", isExpanded && "ring-1 ring-border shadow-lg")}>
             {/* Header */}
             <button
               onClick={() => {
@@ -86,10 +86,10 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
               }}
               className={cn(
                 "w-full flex items-center gap-3 p-4 text-left transition-colors",
-                custom ? "hover:bg-white/30 dark:hover:bg-white/5 cursor-pointer" : "cursor-default"
+                custom ? "hover:bg-accent/60 cursor-pointer" : "cursor-default"
               )}
             >
-              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-sm font-bold text-muted-foreground flex-shrink-0">
+              <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted text-sm font-bold text-muted-foreground flex-shrink-0">
                 {i + 1}
               </div>
               <div className="flex-1 min-w-0">
@@ -122,11 +122,11 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
 
             {/* Expanded custom question */}
             {custom && isExpanded && (
-              <div className="px-4 pb-4 space-y-4 border-t border-slate-200/50 dark:border-slate-700/50">
+              <div className="px-4 pb-4 space-y-4 border-t border-border/60">
                 {/* Problem Statement */}
                 <div className="mt-4">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Problem Statement</h4>
-                  <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-700/30">
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border/60">
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{q.problemStatement}</p>
                   </div>
                 </div>
@@ -137,19 +137,19 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Test Cases</h4>
                     <div className="space-y-2">
                       {parsedTestCases.map((tc, idx) => (
-                        <div key={idx} className="p-3 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-700/30 space-y-2">
+                        <div key={idx} className="p-3 rounded-xl bg-muted/50 border border-border/60 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-medium text-muted-foreground">Case {idx + 1}</span>
                             <CopyButton text={`Input: ${tc.input}\nExpected: ${tc.expectedOutput}`} />
                           </div>
                           <div className="space-y-1">
                             <div className="flex gap-2">
-                              <span className="text-xs font-medium text-sky-600 dark:text-sky-400 w-16 flex-shrink-0">Input:</span>
-                              <code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded flex-1">{tc.input}</code>
+                              <span className="text-xs font-medium text-primary w-16 flex-shrink-0">Input:</span>
+                              <code className="text-xs font-mono bg-muted px-2 py-0.5 rounded flex-1">{tc.input}</code>
                             </div>
                             <div className="flex gap-2">
                               <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 w-16 flex-shrink-0">Output:</span>
-                              <code className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded flex-1">{tc.expectedOutput}</code>
+                              <code className="text-xs font-mono bg-muted px-2 py-0.5 rounded flex-1">{tc.expectedOutput}</code>
                             </div>
                             {tc.explanation && (
                               <div className="flex gap-2">
@@ -172,7 +172,7 @@ export const LeetcodeQuestions = ({ questions }: LeetcodeQuestionsProps) => {
                       {showSolution ? "Hide Solution" : "Show Solution"}
                     </Button>
                     {showSolution && (
-                      <div className="mt-2 p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-700/30">
+                      <div className="mt-2 p-4 rounded-xl bg-muted/50 border border-border/60">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-medium text-muted-foreground">Solution</span>
                           <CopyButton text={q.solution!} />

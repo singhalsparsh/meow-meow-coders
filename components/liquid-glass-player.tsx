@@ -465,7 +465,7 @@ export const LiquidGlassPlayer = ({
                 style={{ width: `${bufferedPct}%` }}
               />
               <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400 shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+                className="absolute inset-y-0 left-0 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--ring)/0.45)]"
                 style={{ width: `${progressPct}%` }}
               />
               <div

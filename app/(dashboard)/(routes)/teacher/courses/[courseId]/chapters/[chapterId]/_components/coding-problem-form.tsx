@@ -247,7 +247,7 @@ export const CodingProblemForm = ({
                       onClick={() => setEditing(pid)}
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-sky-600"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
                       aria-label="Edit question"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -641,7 +641,7 @@ const ProblemEditor = ({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-sky-600 dark:text-sky-400">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-primary">
                     Input
                   </span>
                   <Textarea

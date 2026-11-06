@@ -74,7 +74,7 @@ function TabButton({
       className={cn(
         "flex items-center gap-1.5 rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition-colors",
         active
-          ? "border-sky-500 text-sky-600 dark:text-sky-400"
+          ? "border-primary text-primary"
           : "border-transparent text-muted-foreground hover:text-foreground"
       )}
     >
@@ -138,7 +138,7 @@ function DescriptionTab({
                 </div>
                 <div className="space-y-1.5 font-mono text-xs">
                   <div>
-                    <span className="font-sans font-medium text-sky-600 dark:text-sky-400">
+                    <span className="font-sans font-medium text-primary">
                       Input:{" "}
                     </span>
                     <pre className="mt-0.5 whitespace-pre-wrap rounded-md bg-white dark:bg-slate-950/60 p-2">

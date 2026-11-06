@@ -79,7 +79,7 @@ const CourseLayout = async (
         />
       </div>
       <div className="hidden md:flex h-[calc(100%-24px)] w-72 flex-col fixed top-3 left-3 bottom-3 z-50">
-        <div className="h-full rounded-3xl overflow-hidden glass-sidebar shadow-[0_4px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-shadow duration-300 hover:shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+        <div className="h-full rounded-2xl overflow-hidden glass-sidebar border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.3)] transition-shadow duration-300">
           <CourseSidebar
             course={course}
             progressCount={progressCount}

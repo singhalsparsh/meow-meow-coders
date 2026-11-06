@@ -124,9 +124,9 @@ export const PdfNotesForm = ({
           {notes.map((note) => (
             <div
               key={note.id}
-              className="flex items-center gap-3 p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 hover:shadow-sm transition-all group"
+              className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/60 hover:shadow-sm transition-all group"
             >
-              <FileText className="h-4 w-4 text-sky-600 dark:text-sky-400 flex-shrink-0" />
+              <FileText className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <a
                   href={note.url}

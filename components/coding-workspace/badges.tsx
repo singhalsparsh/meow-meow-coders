@@ -23,7 +23,7 @@ const VERDICT_STYLES: Record<SubmissionVerdict, string> = {
   TIME_LIMIT_EXCEEDED:
     "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/25",
   COMPILE_ERROR:
-    "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/25",
+    "text-primary bg-primary/10 border-primary/25",
   RUNTIME_ERROR:
     "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/25",
 };

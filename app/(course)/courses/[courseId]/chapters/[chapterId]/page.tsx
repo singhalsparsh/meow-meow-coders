@@ -130,7 +130,7 @@ const ChapterIdPage = async (
                                         target="_blank"
                                         key={attachment.id}
                                         href={attachment.url}
-                                        className="flex items-center gap-3 p-3 w-full glass-btn rounded-xl text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-md wiggle-hover"
+                                        className="flex items-center gap-3 p-3 w-full glass-btn rounded-xl text-primary hover:bg-primary/10 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] hover:shadow-sm"
                                     >
                                         <File className="h-4 w-4 flex-shrink-0" />
                                         <p className="text-sm truncate">{attachment.name}</p>

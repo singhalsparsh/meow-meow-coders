@@ -27,17 +27,17 @@ export const ChapterNav = ({
             "glass-card rounded-2xl p-4 no-animate",
             "transition-all duration-300",
             "hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]",
-            "hover:border-slate-300 dark:hover:border-slate-600"
+            "hover:border-border"
           )}
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/[0.06] group-hover:bg-sky-100 dark:group-hover:bg-sky-500/15 transition-all duration-300 group-hover:scale-110 flex-shrink-0">
-            <ChevronLeft className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted group-hover:bg-primary/10 transition-all duration-300 group-hover:scale-110 flex-shrink-0">
+            <ChevronLeft className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
               Previous
             </p>
-            <p className="text-sm font-medium truncate text-slate-700 dark:text-slate-200 group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">
+            <p className="text-sm font-medium truncate text-foreground group-hover:text-primary transition-colors">
               {previousChapter.title}
             </p>
           </div>
@@ -54,19 +54,19 @@ export const ChapterNav = ({
             "glass-card rounded-2xl p-4 no-animate",
             "transition-all duration-300",
             "hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]",
-            "hover:border-slate-300 dark:hover:border-slate-600"
+            "hover:border-border"
           )}
         >
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
               Next
             </p>
-            <p className="text-sm font-medium truncate text-slate-700 dark:text-slate-200 group-hover:text-sky-700 dark:group-hover:text-sky-400 transition-colors">
+            <p className="text-sm font-medium truncate text-foreground group-hover:text-primary transition-colors">
               {nextChapter.title}
             </p>
           </div>
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/[0.06] group-hover:bg-sky-100 dark:group-hover:bg-sky-500/15 transition-all duration-300 group-hover:scale-110 flex-shrink-0">
-            <ChevronRight className="h-5 w-5 text-slate-500 dark:text-slate-400 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-muted group-hover:bg-primary/10 transition-all duration-300 group-hover:scale-110 flex-shrink-0">
+            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
         </Link>
       ) : (
