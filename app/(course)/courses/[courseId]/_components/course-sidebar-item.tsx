@@ -11,6 +11,8 @@ interface CourseSidebarItemProps {
   isCompleted: boolean;
   courseId: string;
   isLocked: boolean;
+  /** When provided, renders a quick complete/incomplete toggle on the row. */
+  onToggleComplete?: (done: boolean) => void;
 };
 
 export const CourseSidebarItem = ({
@@ -19,6 +21,7 @@ export const CourseSidebarItem = ({
   isCompleted,
   courseId,
   isLocked,
+  onToggleComplete,
 }: CourseSidebarItemProps) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -28,6 +31,12 @@ export const CourseSidebarItem = ({
 
   const onClick = () => {
     router.push(`/courses/${courseId}/chapters/${id}`);
+  }
+
+  const onToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onToggleComplete?.(!isCompleted);
   }
 
   return (
@@ -68,6 +77,28 @@ export const CourseSidebarItem = ({
         </div>
         <span className="truncate">{label}</span>
       </div>
+      {onToggleComplete && (
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={isCompleted ? "Mark as incomplete" : "Mark as complete"}
+          title={isCompleted ? "Mark as incomplete" : "Mark as complete"}
+          onClick={onToggle}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onToggle(e as unknown as React.MouseEvent);
+            }
+          }}
+          className="ml-2 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {isCompleted ? (
+            <CheckCircle size={15} className="text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <PlayCircle size={15} />
+          )}
+        </span>
+      )}
     </button>
   )
 }

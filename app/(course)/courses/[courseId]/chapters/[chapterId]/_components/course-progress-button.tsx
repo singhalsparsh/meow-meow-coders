@@ -8,23 +8,30 @@ import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
+import { useLocalProgress } from "@/hooks/use-local-progress";
 
 interface CourseProgressButtonProps {
   chapterId: string;
   courseId: string;
   isCompleted?: boolean;
   nextChapterId?: string;
+  userId?: string;
 };
 
 export const CourseProgressButton = ({
   chapterId,
   courseId,
   isCompleted,
-  nextChapterId
+  nextChapterId,
+  userId,
 }: CourseProgressButtonProps) => {
   const router = useRouter();
   const confetti = useConfettiStore();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Write the new completion state straight into the browser cache so the
+  // sidebar updates instantly, before the server refresh round-trip resolves.
+  const { setChapterCompleted } = useLocalProgress(courseId, userId ?? "");
 
   const onClick = async () => {
     try {
@@ -33,6 +40,8 @@ export const CourseProgressButton = ({
       await axios.put(`/api/courses/${courseId}/chapters/${chapterId}/progress`, {
         isCompleted: !isCompleted
       });
+
+      setChapterCompleted(chapterId, !isCompleted);
 
       if (!isCompleted && !nextChapterId) {
         confetti.onOpen();

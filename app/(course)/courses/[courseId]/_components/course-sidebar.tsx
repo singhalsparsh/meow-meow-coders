@@ -1,9 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-import { CourseSidebarItem } from "./course-sidebar-item";
-import { CourseProgress } from "@/components/course-progress";
 import type { StaticCourseTree } from "@/lib/content";
+import { CourseSidebarContent, type LessonNode } from "./course-sidebar-content";
 
 interface CourseSidebarProps {
   course: StaticCourseTree;
@@ -20,53 +19,33 @@ export const CourseSidebar = async ({
     return redirect("/");
   }
 
+  // Build the static lesson structure (no per-user data) + the server-seeded
+  // progress map. The client component renders from the browser cache for
+  // instant restore on revisit.
+  const lessons: LessonNode[] = course.chapters.map((chapter) => ({
+    id: chapter.id,
+    title: chapter.title,
+    subChapters: chapter.subChapters.map((sub) => ({
+      id: sub.id,
+      title: sub.title,
+    })),
+  }));
+
+  const seedProgress: Record<string, boolean> = {};
+  for (const chapter of course.chapters) {
+    if (chapter.userProgress?.[0]?.isCompleted) seedProgress[chapter.id] = true;
+    for (const sub of chapter.subChapters) {
+      if (sub.userProgress?.[0]?.isCompleted) seedProgress[sub.id] = true;
+    }
+  }
+
   return (
-    <div className="h-full flex flex-col overflow-y-auto">
-      <div className="px-4 pb-4 pt-5 border-b border-border/60">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-3">
-          Course content
-        </p>
-        <h1 className="font-semibold text-base truncate px-3 text-foreground">
-          {course.title}
-        </h1>
-        <div className="mt-4 px-3">
-          <CourseProgress
-            variant="success"
-            value={progressCount}
-          />
-        </div>
-      </div>
-      <div className="flex flex-col w-full px-3 gap-1 flex-1 pt-4">
-        {course.chapters.map((chapter, index) => (
-          <div
-            key={chapter.id}
-            className="animate-in fade-in slide-in-from-left-2"
-            style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'backwards' }}
-          >
-            <CourseSidebarItem
-              id={chapter.id}
-              label={chapter.title}
-              isCompleted={!!chapter.userProgress?.[0]?.isCompleted}
-              courseId={course.id}
-              isLocked={false}
-            />
-            {chapter.subChapters?.length > 0 && (
-              <div className="flex flex-col gap-1 mt-0.5 ml-4 border-l border-border/70 pl-3">
-                {chapter.subChapters.map((subChapter) => (
-                  <CourseSidebarItem
-                    key={subChapter.id}
-                    id={subChapter.id}
-                    label={subChapter.title}
-                    isCompleted={!!subChapter.userProgress?.[0]?.isCompleted}
-                    courseId={course.id}
-                    isLocked={false}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+    <CourseSidebarContent
+      courseTitle={course.title}
+      courseId={course.id}
+      userId={userId}
+      lessons={lessons}
+      seedProgress={seedProgress}
+    />
+  );
 }

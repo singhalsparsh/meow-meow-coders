@@ -139,6 +139,7 @@ const ChapterIdPage = async (
                 previousChapter={previousChapter ? { id: previousChapter.id, title: previousChapter.title } : null}
                 nextChapter={nextChapter ? { id: nextChapter.id, title: nextChapter.title } : null}
                 isOwner={isOwner}
+                userId={userId}
                 isCompleted={!!userProgress?.isCompleted}
                 playbackId={muxData?.playbackId || ""}
                 videoUrl={videoUrl || undefined}

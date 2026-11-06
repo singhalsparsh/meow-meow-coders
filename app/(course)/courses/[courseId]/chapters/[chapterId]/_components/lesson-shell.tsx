@@ -43,6 +43,8 @@ interface LessonShellProps {
   previousChapter: { id: string; title: string } | null;
   nextChapter: { id: string; title: string } | null;
   isOwner: boolean;
+  /** Used to keep the browser-side progress cache keyed per user. */
+  userId?: string;
   isCompleted: boolean;
   playbackId: string;
   videoUrl?: string;
@@ -65,6 +67,7 @@ export const LessonShell = ({
   previousChapter,
   nextChapter,
   isOwner,
+  userId,
   isCompleted,
   playbackId,
   videoUrl,
@@ -110,6 +113,7 @@ export const LessonShell = ({
             courseId={courseId}
             nextChapterId={nextChapterId}
             isCompleted={isCompleted}
+            userId={userId}
           />
         )}
       </div>

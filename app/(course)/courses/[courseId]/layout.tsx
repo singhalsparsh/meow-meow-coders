@@ -37,42 +37,26 @@ const CourseLayout = async (
   let progressCount: number;
 
   if (staticCourse) {
-    // Static path: content from the snapshot, only per-user progress from the DB.
+    // Static path: content from the snapshot. Per-user progress is rendered
+    // client-side from the browser cache (seeded once via /api/my-progress on
+    // a cold cache), so we don't hit the DB for progress on every visit.
     const topics = staticCourse.chapters.filter(
       (ch) => ch.parentId === null && ch.isPublished,
     );
-    const chapterIds: string[] = [];
     const treeChapters: StaticChapterTree[] = topics.map((topic) => {
-      chapterIds.push(topic.id);
       const subChapters = staticCourse.chapters
         .filter((sub) => sub.parentId === topic.id && sub.isPublished)
         .map((sub) => ({ ...sub, userProgress: null }));
-      for (const sub of subChapters) chapterIds.push(sub.id);
       return { ...topic, userProgress: null, subChapters };
     });
 
-    const completedRows = await db.userProgress.findMany({
-      where: { userId, chapterId: { in: chapterIds }, isCompleted: true },
-      select: { chapterId: true },
-    });
-    const completed = new Set(completedRows.map((r) => r.chapterId));
-
     courseTree = {
       ...staticCourse,
-      chapters: treeChapters.map((topic) => ({
-        ...topic,
-        userProgress: completed.has(topic.id) ? [{ isCompleted: true }] : null,
-        subChapters: topic.subChapters.map((sub) => ({
-          ...sub,
-          userProgress: completed.has(sub.id) ? [{ isCompleted: true }] : null,
-        })),
-      })),
+      chapters: treeChapters,
     };
 
-    progressCount =
-      chapterIds.length === 0
-        ? 0
-        : Math.round((completed.size / chapterIds.length) * 100);
+    // The sidebar computes its own progress bar from the local cache.
+    progressCount = 0;
   } else {
     // Fallback: course is not yet in the static snapshot (newly created /
     // edited), so load it from the DB with the original join + progress query.
