@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Play,
   Code2,
@@ -10,6 +11,7 @@ import {
   LayoutGrid,
   X,
   BrainCircuit,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +21,7 @@ import { ChapterNav } from "./chapter-nav";
 import { Preview } from "@/components/preview";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
-import { CodingWorkspace } from "@/components/coding-workspace/coding-workspace";
+import { DifficultyBadge } from "@/components/coding-workspace/badges";
 
 type ViewMode = "video" | "coding" | "practice" | "pdf";
 
@@ -139,33 +141,41 @@ export const LessonShell = ({
         )}
 
         {mode === "coding" && (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {codingProblems.length === 0 ? (
-              <EmptyState
-                icon={Terminal}
-                title="No coding questions yet"
-                hint="Coding challenges for this chapter will appear here."
-              />
+              <div className="sm:col-span-2">
+                <EmptyState
+                  icon={Terminal}
+                  title="No coding questions yet"
+                  hint="Coding challenges for this chapter will appear here."
+                />
+              </div>
             ) : (
-              codingProblems.map((problem, index) => (
-                <section
+              codingProblems.map((problem) => (
+                <Link
                   key={problem.id}
-                  className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm"
+                  href={`/courses/${courseId}/chapters/${chapterId}/problems/${problem.id}`}
+                  className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-primary/40 hover:bg-accent/40"
                 >
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
                       <Code2 className="h-4 w-4 text-primary" />
                     </div>
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {"Coding Challenge" + (codingProblems.length > 1 ? " " + (index + 1) : "")}
-                    </h3>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </div>
-                  <CodingWorkspace
-                    problem={problem}
-                    submissions={problem.submissions}
-                    apiBase={`/api/courses/${courseId}/chapters/${chapterId}`}
-                  />
-                </section>
+                  <h3 className="mt-4 text-sm font-semibold text-foreground leading-snug">
+                    {problem.title}
+                  </h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <DifficultyBadge difficulty={problem.difficulty} />
+                    <span className="text-xs text-muted-foreground">
+                      {problem.timeLimitMs} ms
+                    </span>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Open in the full-screen editor with resizable panes
+                  </p>
+                </Link>
               ))
             )}
           </div>
@@ -208,8 +218,9 @@ export const LessonShell = ({
         nextChapter={nextChapter}
       />
 
-      {/* Floating dock: pinned to right-middle edge */}
-      <div className="fixed right-0 top-1/2 z-40 -translate-y-1/2 flex items-stretch">
+      {/* Floating dock: pinned to the right-middle of the viewer content area
+          (below the 80px navbar, so centered on it = viewport half + 40px) */}
+      <div className="fixed right-0 top-[calc(50%+40px)] z-40 -translate-y-1/2 flex items-stretch">
         {!dockOpen && (
           <button
             type="button"

@@ -6,6 +6,7 @@ import { getProgress } from "@/actions/get-progress";
 
 import { CourseSidebar } from "./_components/course-sidebar";
 import { CourseNavbar } from "./_components/course-navbar";
+import { CourseLayoutShell } from "./_components/course-layout-shell";
 
 const CourseLayout = async (
   props: {
@@ -71,25 +72,16 @@ const CourseLayout = async (
   const progressCount = await getProgress(userId, course.id);
 
   return (
-    <div className="h-full">
-      <div className="h-[80px] md:pl-[300px] fixed inset-y-0 w-full z-50">
-        <CourseNavbar
-          course={course}
-          progressCount={progressCount}
-        />
-      </div>
-      <div className="hidden md:flex h-[calc(100%-24px)] w-72 flex-col fixed top-3 left-3 bottom-3 z-50">
-        <div className="h-full rounded-2xl overflow-hidden glass-sidebar border border-border/60 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.3)] transition-shadow duration-300">
-          <CourseSidebar
-            course={course}
-            progressCount={progressCount}
-          />
-        </div>
-      </div>
-      <main className="md:pl-[300px] pt-[80px] h-full bg-page-gradient">
-        {children}
-      </main>
-    </div>
+    <CourseLayoutShell
+      navbar={
+        <CourseNavbar course={course} progressCount={progressCount} />
+      }
+      sidebar={
+        <CourseSidebar course={course} progressCount={progressCount} />
+      }
+    >
+      {children}
+    </CourseLayoutShell>
   )
 }
 

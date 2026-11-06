@@ -28,6 +28,9 @@ interface CodingWorkspaceProps {
   // Fired when a submission is fully accepted. A test uses this to mark the
   // problem solved in its own scoring; a lesson ignores it.
   onAccepted?: () => void;
+  // Render as a standalone full-page workspace (always expanded, fills the
+  // viewport below the top navbar) instead of an embedded card.
+  fullPage?: boolean;
 }
 
 const MOBILE_BREAKPOINT = "(max-width: 768px)";
@@ -37,6 +40,7 @@ export function CodingWorkspace({
   submissions: initialSubmissions,
   apiBase,
   onAccepted,
+  fullPage = false,
 }: CodingWorkspaceProps) {
   const storageKey = `cpp-code:${problem.id}`;
 
@@ -69,7 +73,8 @@ export function CodingWorkspace({
   const [editorHeight, setEditorHeight] = useState(58);
   // Collapsed by default so the tall workspace only mounts once the learner
   // opts in; otherwise it pushes the rest of the chapter far down the page.
-  const [isExpanded, setIsExpanded] = useState(false);
+  // Full-page mode is always expanded.
+  const [isExpanded, setIsExpanded] = useState(fullPage);
 
   const judge = useCppJudge();
   const confetti = useConfettiStore();
@@ -280,7 +285,11 @@ export function CodingWorkspace({
   return (
     <div
       ref={containerRef}
-      className="flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card md:h-[calc(100vh-190px)] md:min-h-[560px]"
+      className={
+        fullPage
+          ? "flex h-full min-h-0 flex-col overflow-hidden bg-card"
+          : "flex h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card md:h-[calc(100vh-190px)] md:min-h-[560px]"
+      }
     >
       {/* Top control bar */}
       <div className="flex flex-shrink-0 flex-col gap-2 border-b border-border p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -295,14 +304,16 @@ export function CodingWorkspace({
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setIsExpanded(false)}
-            variant="ghost"
-            size="sm"
-          >
-            <ChevronDown className="h-3.5 w-3.5 rotate-180 sm:mr-1.5" />
-            <span className="hidden sm:inline">Collapse</span>
-          </Button>
+          {!fullPage && (
+            <Button
+              onClick={() => setIsExpanded(false)}
+              variant="ghost"
+              size="sm"
+            >
+              <ChevronDown className="h-3.5 w-3.5 rotate-180 sm:mr-1.5" />
+              <span className="hidden sm:inline">Collapse</span>
+            </Button>
+          )}
           <Button
             onClick={handleReset}
             variant="ghost"
