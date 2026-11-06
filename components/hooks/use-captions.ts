@@ -58,14 +58,22 @@ export function captionsFeature(): MediaFeature<
           const captions = get().captions
 
           if (captions.visible) {
-            player.selectTextTrack(null)
+            try {
+              player.selectTextTrack(null)
+            } catch {
+              // Native playback: Shaka has no manifest to update.
+            }
             return
           }
 
           const track =
             captions.activeTrack ?? findDefaultTrack(captions.tracks)
           if (track) {
-            player.selectTextTrack(track)
+            try {
+              player.selectTextTrack(track)
+            } catch {
+              // Native playback: Shaka has no manifest to update.
+            }
           }
         },
         tracks: undefined,
@@ -104,7 +112,14 @@ function CaptionsSetup() {
       return
     }
 
-    const tracks = player.getTextTracks()
+    let tracks: shaka.extern.TextTrack[] = []
+    try {
+      tracks = player.getTextTracks()
+    } catch {
+      // Shaka throws when text displayer isn't initialized (native playback,
+      // where Shaka isn't used). No text tracks exist in that case.
+      tracks = []
+    }
     const activeTrack = tracks.find(
       (track: shaka.extern.TextTrack) => track.active
     )
