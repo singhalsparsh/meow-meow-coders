@@ -66,6 +66,7 @@
     "react-hot-toast": "^2.4.1",
     "react-icons": "^4.11.0",
     "react-markdown": "^10.1.0",
+    "react-pdf": "^11.0.0",
     "react-quill": "^2.0.0",
     "recharts": "^2.8.0",
     "remark-gfm": "^4.0.1",

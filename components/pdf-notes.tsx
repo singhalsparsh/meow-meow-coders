@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { FileText, ExternalLink, Download, Loader2, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useChapterLocal } from "@/components/hooks/use-chapter-local";
+import { PdfViewer } from "@/components/pdf-viewer";
 
 interface PdfNote {
   id: string;
@@ -151,14 +151,17 @@ export const PdfNotes = ({ notes, chapterId }: PdfNotesProps) => {
               </div>
             </div>
 
-            {/* Embedded reader */}
-            {canEmbed ? (
+            {/* Embedded reader — Google Drive uses its native preview; direct PDFs
+                use the styled in-app viewer (react-pdf). */}
+            {driveEmbedUrl ? (
               <iframe
-                src={embedUrl}
-                className={cn("w-full border-0 bg-white", driveEmbedUrl ? "h-[440px]" : "h-[520px]")}
-                title={`${note.title} (embedded PDF viewer)`}
+                src={driveEmbedUrl}
+                className="block w-full h-[440px] border-0 bg-white"
+                title={`${note.title} (Google Drive preview)`}
                 allow="autoplay; fullscreen"
               />
+            ) : isPdfUrl(note.url) ? (
+              <PdfViewer url={note.url} title={note.title} />
             ) : (
               <div className="px-4 py-6 text-center">
                 <p className="text-sm text-muted-foreground">

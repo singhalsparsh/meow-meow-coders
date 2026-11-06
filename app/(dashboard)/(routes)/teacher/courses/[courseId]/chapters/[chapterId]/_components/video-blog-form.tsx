@@ -1,5 +1,9 @@
 "use client";
 
+// Blog editor — lives only in the course editor (teacher). The published
+// content is stored client-side per-chapter (same localStorage key the student
+// viewer reads) and rendered read-only on the lesson page.
+
 import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -15,22 +19,18 @@ import {
   Eye,
   Pencil,
   Save,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChapterLocal } from "@/components/hooks/use-chapter-local";
 
-interface VideoBlogProps {
+interface VideoBlogFormProps {
   chapterId: string;
   /** The lesson/video title shown in the editor header. */
   title?: string;
 }
 
-/**
- * Video-wise blog/notes editor. Markdown (with GFM) is stored per-chapter in
- * localStorage — no server calls. Supports a formatting toolbar and a live
- * preview toggle.
- */
-export const VideoBlog = ({ chapterId, title }: VideoBlogProps) => {
+export const VideoBlogForm = ({ chapterId, title }: VideoBlogFormProps) => {
   const { value: content, set: setContent } = useChapterLocal<string>(
     `${chapterId}:blog`,
     ""
@@ -48,7 +48,6 @@ export const VideoBlog = ({ chapterId, title }: VideoBlogProps) => {
     const after = content.slice(selectionEnd);
     const next = `${before}${prefix}${sel}${suffix}${after}`;
     setContent(next);
-    // Restore focus/selection after the state update.
     requestAnimationFrame(() => {
       el.focus();
       const start = before.length + prefix.length;
@@ -80,18 +79,18 @@ export const VideoBlog = ({ chapterId, title }: VideoBlogProps) => {
     "inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-40";
 
   return (
-    <div className="space-y-4">
+    <div className="mt-6 glass-card rounded-2xl p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <Pencil className="h-4 w-4 text-primary" />
+            <BookOpen className="h-4 w-4 text-primary" />
           </span>
           <div>
             <h3 className="text-sm font-semibold text-foreground leading-none">
               {title ? `${title}` : "Video Blog"}
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Write markdown notes for this video &mdash; saved in your browser
+              Publish a blog for this video &mdash; shows on the lesson page (read-only)
             </p>
           </div>
         </div>
@@ -132,8 +131,7 @@ export const VideoBlog = ({ chapterId, title }: VideoBlogProps) => {
       </div>
 
       {view === "edit" ? (
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-          {/* Formatting toolbar */}
+        <div className="mt-4 rounded-xl border border-border bg-card shadow-sm overflow-hidden">
           <div className="flex items-center gap-1 border-b border-border/70 bg-muted/30 px-2 py-1.5 flex-wrap">
             <button type="button" className={toolbarBtn} title="Bold" onClick={() => wrapSelection("**")}>
               <Bold className="h-4 w-4" />
@@ -173,14 +171,14 @@ export const VideoBlog = ({ chapterId, title }: VideoBlogProps) => {
           />
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="mt-4 rounded-xl border border-border bg-card shadow-sm overflow-hidden">
           {content.trim() ? (
             <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none px-5 py-4">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
             </div>
           ) : (
             <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
-              Nothing written yet &mdash; switch to Write and draft your notes.
+              Nothing written yet &mdash; switch to Write and draft your blog.
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ import {
   FileText,
   LayoutDashboard,
   Video,
+  BookOpen,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -17,6 +18,7 @@ import { ChapterDescriptionForm } from "./_components/chapter-description-form";
 import { ChapterVideoForm } from "./_components/chapter-video-form";
 import { LeetcodeForm } from "./_components/leetcode-form";
 import { PdfNotesForm } from "./_components/pdf-notes-form";
+import { VideoBlogForm } from "./_components/video-blog-form";
 import { CodingProblemForm } from "./_components/coding-problem-form";
 import { Banner } from "@/components/ui/banner";
 import { ChapterActions } from "./_components/chapter-actions";
@@ -194,6 +196,15 @@ const ChapterIdPage = async (
                             initialData={{ pdfNotes: (chapter as any).pdfNotes ?? [] }}
                             courseId={params.courseId}
                             chapterId={params.chapterId}
+                        />
+
+                        <div className="mt-6 flex items-center gap-x-2">
+                            <IconBadge icon={BookOpen} />
+                            <h2 className="text-xl">Blog</h2>
+                        </div>
+                        <VideoBlogForm
+                            chapterId={params.chapterId}
+                            title={chapter.title}
                         />
 
                         <div className="mt-6 flex items-center gap-x-2">

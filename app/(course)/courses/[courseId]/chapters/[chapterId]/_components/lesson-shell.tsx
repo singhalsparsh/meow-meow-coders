@@ -22,7 +22,7 @@ import { ChapterNav } from "./chapter-nav";
 import { Preview } from "@/components/preview";
 import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
-import { VideoBlog } from "@/components/video-blog";
+import { VideoBlogViewer } from "@/components/video-blog-viewer";
 import { DifficultyBadge } from "@/components/coding-workspace/badges";
 
 type ViewMode = "video" | "coding" | "practice" | "pdf" | "blog";
@@ -216,7 +216,7 @@ export const LessonShell = ({
 
         {mode === "blog" && (
           <section className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
-            <VideoBlog chapterId={chapterId} title={chapterTitle} />
+            <VideoBlogViewer chapterId={chapterId} title={chapterTitle} />
           </section>
         )}
       </div>
