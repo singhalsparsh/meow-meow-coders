@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { CourseProgress } from "@/components/course-progress";
-import { CourseSidebarItem } from "./course-sidebar-item";
+import { TreeNav, type TreeNavItem } from "@/components/spectrumui/tree-nav";
 import { useLocalProgress } from "@/hooks/use-local-progress";
 import { writeCache } from "@/lib/client-cache";
 
@@ -37,6 +39,8 @@ export const CourseSidebarContent = ({
   lessons,
   seedProgress,
 }: CourseSidebarContentProps) => {
+  const pathname = usePathname();
+
   const {
     completedCount,
     isCompleted,
@@ -79,6 +83,19 @@ export const CourseSidebarContent = ({
   const progressValue =
     totalChapters === 0 ? 0 : Math.round((completedCount / totalChapters) * 100);
 
+  const navItems: TreeNavItem[] = lessons.map((lesson) => ({
+    label: lesson.title,
+    href: `/courses/${courseId}/chapters/${lesson.id}`,
+    completed: isCompleted(lesson.id),
+    onToggleComplete: (done) => setChapterCompleted(lesson.id, done),
+    children: lesson.subChapters.map((subChapter) => ({
+      label: subChapter.title,
+      href: `/courses/${courseId}/chapters/${subChapter.id}`,
+      completed: isCompleted(subChapter.id),
+      onToggleComplete: (done) => setChapterCompleted(subChapter.id, done),
+    })),
+  }));
+
   return (
     <div className="h-full flex flex-col overflow-y-auto">
       <div className="px-4 pb-4 pt-5 border-b border-border/60">
@@ -93,43 +110,13 @@ export const CourseSidebarContent = ({
         </div>
       </div>
 
-      <div className="flex flex-col w-full px-3 gap-1 flex-1 pt-4">
-        {lessons.map((lesson, index) => (
-          <div
-            key={lesson.id}
-            className="animate-in fade-in slide-in-from-left-2"
-            style={{
-              animationDelay: `${index * 40}ms`,
-              animationFillMode: "backwards",
-            }}
-          >
-            <CourseSidebarItem
-              id={lesson.id}
-              label={lesson.title}
-              isCompleted={isCompleted(lesson.id)}
-              courseId={courseId}
-              isLocked={false}
-              onToggleComplete={(done) => setChapterCompleted(lesson.id, done)}
-            />
-            {lesson.subChapters.length > 0 && (
-              <div className="flex flex-col gap-1 mt-0.5 ml-4 border-l border-border/70 pl-3">
-                {lesson.subChapters.map((subChapter) => (
-                  <CourseSidebarItem
-                    key={subChapter.id}
-                    id={subChapter.id}
-                    label={subChapter.title}
-                    isCompleted={isCompleted(subChapter.id)}
-                    courseId={courseId}
-                    isLocked={false}
-                    onToggleComplete={(done) =>
-                      setChapterCompleted(subChapter.id, done)
-                    }
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+      <div className="flex flex-col w-full px-3 flex-1 pt-4">
+        <TreeNav
+          items={navItems}
+          activeHref={pathname}
+          linkComponent={Link}
+          className="w-full"
+        />
       </div>
     </div>
   );

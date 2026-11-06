@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
+import { CheckCircle, PlayCircle } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { usePrefersReducedMotion } from '@/components/spectrumui/use-typewriter';
@@ -13,6 +14,12 @@ export interface TreeNavItem {
   badge?: string;
   /** Opens in a new tab. */
   external?: boolean;
+  /** Nested rows rendered beneath this item (indented). */
+  children?: TreeNavItem[];
+  /** Marks the row as complete (shows a green check in the trailing toggle). */
+  completed?: boolean;
+  /** When provided, renders a quick complete/incomplete toggle on the row. */
+  onToggleComplete?: (done: boolean) => void;
 }
 
 type LinkComponent =
@@ -41,6 +48,11 @@ const RAIL_X = 10;
 const GLIDE = { type: 'spring', visualDuration: 0.22, bounce: 0 } as const;
 const FADE = { duration: 0.12, ease: 'easeOut' } as const;
 
+interface FlatRow {
+  item: TreeNavItem;
+  depth: number;
+}
+
 export function TreeNav({
   items,
   activeHref,
@@ -54,7 +66,24 @@ export function TreeNav({
   const centersRef = React.useRef<number[]>([]);
   const hoveredRef = React.useRef<number | null>(null);
   const reduced = usePrefersReducedMotion();
-  const activeIndex = items.findIndex((item) => item.href === activeHref);
+
+  // Flatten the tree into a single column of rows (parents first, then their
+  // nested children indented). All rows live in the same <ul>, so measurement
+  // and the animated marker/pill work uniformly across the whole tree.
+  const rows = React.useMemo<FlatRow[]>(() => {
+    const out: FlatRow[] = [];
+    const walk = (level: TreeNavItem[], depth: number) => {
+      for (const item of level) {
+        out.push({ item, depth });
+        if (item.children && item.children.length > 0) walk(item.children, depth + 1);
+      }
+    };
+    walk(items, 0);
+    return out;
+  }, [items]);
+
+  const activeIndex = rows.findIndex((row) => row.item.href === activeHref);
+
   // Handlers and the measurer read these through refs so they never go stale
   // and never need to be re-created; the sync runs before the measure effect.
   const reducedRef = React.useRef(reduced);
@@ -98,7 +127,7 @@ export function TreeNav({
     if (!list) return;
     const measure = () => {
       const next = rowRefs.current
-        .slice(0, items.length)
+        .slice(0, rows.length)
         .map((el) => (el ? el.offsetTop + el.offsetHeight / 2 : 0));
       centersRef.current = next;
       setEnd(next.length > 0 ? next[next.length - 1] : 0);
@@ -110,7 +139,7 @@ export function TreeNav({
     const observer = new ResizeObserver(measure);
     observer.observe(list);
     return () => observer.disconnect();
-  }, [items.length, moveTo]);
+  }, [rows.length, moveTo]);
 
   // Route changes glide; a hover in progress keeps priority.
   React.useEffect(() => {
@@ -126,6 +155,12 @@ export function TreeNav({
     if (!followHover) return;
     hoveredRef.current = null;
     moveTo(activeRef.current);
+  };
+
+  const onToggle = (e: React.MouseEvent, row: FlatRow) => {
+    e.stopPropagation();
+    e.preventDefault();
+    row.item.onToggleComplete?.(!row.item.completed);
   };
 
   return (
@@ -175,7 +210,8 @@ export function TreeNav({
         style={{ height: ROW_H, y: pillY, opacity: visibility }}
       />
 
-      {items.map((item, index) => {
+      {rows.map((row, index) => {
+        const { item, depth } = row;
         const isActive = index === activeIndex;
         return (
           <li
@@ -194,8 +230,9 @@ export function TreeNav({
               onClick={onSelect ? (event) => onSelect(item, event) : undefined}
               onFocus={() => enter(index)}
               onBlur={leave}
+              style={{ paddingLeft: 12 + depth * 16 }}
               className={cn(
-                'flex h-8 items-center gap-2 rounded-lg px-3 text-[13px] leading-5 antialiased transition-colors duration-150 ease-out',
+                'flex h-8 items-center gap-2 rounded-lg pr-3 text-[13px] leading-5 antialiased transition-colors duration-150 ease-out',
                 // Before the first measurement the pill has no position yet, so
                 // the active row paints its own background for that one frame.
                 isActive && !measured && 'bg-black/4 dark:bg-white/6',
@@ -210,6 +247,31 @@ export function TreeNav({
                   {item.badge}
                 </span>
               )}
+              {item.onToggleComplete ? (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={item.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                  title={item.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                  onClick={(e) => onToggle(e, row)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onToggle(e as unknown as React.MouseEvent, row);
+                    }
+                  }}
+                  className={cn(
+                    'ml-auto flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground',
+                    item.completed && 'text-emerald-600 dark:text-emerald-400',
+                  )}
+                >
+                  {item.completed ? (
+                    <CheckCircle size={15} className="text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <PlayCircle size={15} />
+                  )}
+                </span>
+              ) : null}
             </Link>
           </li>
         );
