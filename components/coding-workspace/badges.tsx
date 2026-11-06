@@ -44,7 +44,7 @@ export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
 
 export function TopicBadge({ topic }: { topic: DsaTopic }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+    <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-zinc-700 bg-slate-100 dark:bg-zinc-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
       {TOPIC_LABEL[topic]}
     </span>
   );

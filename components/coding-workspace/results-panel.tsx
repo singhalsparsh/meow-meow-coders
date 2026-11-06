@@ -79,7 +79,7 @@ export function ResultsPanel({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header / verdict summary */}
-      <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-700 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-slate-200 dark:border-zinc-700 px-3 py-2">
         <div className="flex items-center gap-2">
           <Terminal className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Console</span>
@@ -119,7 +119,7 @@ export function ResultsPanel({
         <>
           {/* Case tabs */}
           {tabs.length > 0 && (
-            <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-700 px-2 py-1">
+            <div className="flex items-center gap-1 overflow-x-auto border-b border-slate-200 dark:border-zinc-700 px-2 py-1">
               {tabs.map((tab) => {
                 const tabResult = result?.results.find((r) => r.id === tab.id);
                 return (
@@ -129,7 +129,7 @@ export function ResultsPanel({
                     className={cn(
                       "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                       activeId === tab.id
-                        ? "bg-slate-100 dark:bg-slate-800 text-foreground"
+                        ? "bg-slate-100 dark:bg-zinc-800 text-foreground"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
@@ -252,7 +252,7 @@ function CompileError({ output }: { output: string }) {
           Compilation error
         </span>
       </div>
-      <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-950 p-3 font-mono text-xs leading-relaxed text-slate-200">
+      <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-950 p-3 font-mono text-xs leading-relaxed text-slate-200">
         {output}
       </pre>
     </div>
@@ -305,7 +305,7 @@ function CaseDetail({
       </div>
 
       {result.hidden ? (
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-4 text-center">
+        <div className="rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50 p-4 text-center">
           <p className="text-sm text-muted-foreground">
             This is a hidden grading case — its input and expected output are
             not shown.
@@ -388,7 +388,7 @@ function Pre({
   return (
     <pre
       className={cn(
-        "overflow-x-auto whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-slate-200",
+        "overflow-x-auto whitespace-pre-wrap rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-950 p-2.5 font-mono text-xs leading-relaxed text-slate-200",
         className
       )}
     >

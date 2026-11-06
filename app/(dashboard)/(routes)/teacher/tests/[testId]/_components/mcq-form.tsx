@@ -179,7 +179,7 @@ export const McqForm = ({ initialData, testId }: McqFormProps) => {
           return (
             <div
               key={mid}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 overflow-hidden"
+              className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white/40 dark:bg-zinc-800/30 overflow-hidden"
             >
               <div className="flex items-center gap-2 p-2.5">
                 <button
@@ -192,7 +192,7 @@ export const McqForm = ({ initialData, testId }: McqFormProps) => {
                   ) : (
                     <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                   )}
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0">
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-700 text-muted-foreground shrink-0">
                     Q{index + 1}
                   </span>
                   <span className="text-sm font-medium truncate">
@@ -348,7 +348,7 @@ const McqEditor = ({ draft, testId, onCancel, onSaved }: McqEditorProps) => {
   };
 
   return (
-    <div className="px-3 pb-3 space-y-4 border-t border-slate-200 dark:border-slate-700">
+    <div className="px-3 pb-3 space-y-4 border-t border-slate-200 dark:border-zinc-700">
       <div className="pt-4 space-y-2">
         <label className="text-xs text-muted-foreground">Question</label>
         <Textarea
@@ -382,7 +382,7 @@ const McqEditor = ({ draft, testId, onCancel, onSaved }: McqEditorProps) => {
                     "h-7 w-7 shrink-0 rounded-md border flex items-center justify-center transition",
                     isCorrect
                       ? "bg-emerald-600 border-emerald-600 text-white"
-                      : "border-slate-300 dark:border-slate-600 text-transparent hover:border-emerald-500"
+                      : "border-slate-300 dark:border-zinc-600 text-transparent hover:border-emerald-500"
                   )}
                   aria-label={isCorrect ? "Correct answer" : "Mark as correct"}
                   title={isCorrect ? "Correct answer" : "Mark as correct"}

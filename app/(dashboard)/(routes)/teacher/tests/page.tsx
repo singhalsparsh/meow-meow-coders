@@ -71,7 +71,7 @@ const TestsPage = async () => {
                                             Published
                                         </span>
                                     ) : (
-                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-500/10 border-slate-200 dark:border-slate-500/20">
+                                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-zinc-500/10 border-slate-200 dark:border-zinc-500/20">
                                             Draft
                                         </span>
                                     )}

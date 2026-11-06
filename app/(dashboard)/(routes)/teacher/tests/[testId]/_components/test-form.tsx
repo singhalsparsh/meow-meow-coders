@@ -219,7 +219,7 @@ export const TestForm = ({ initialData }: TestFormProps) => {
       </div>
 
       {isPublished && shareUrl && (
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/40 dark:bg-slate-800/30 p-2">
+        <div className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-zinc-700 bg-white/40 dark:bg-zinc-800/30 p-2">
           <Globe className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
           <span className="text-xs truncate text-muted-foreground">{shareUrl}</span>
         </div>

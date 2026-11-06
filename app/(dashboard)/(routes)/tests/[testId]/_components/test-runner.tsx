@@ -217,7 +217,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
             return (
               <div key={mcq.id} className="glass-card rounded-2xl p-4">
                 <div className="flex items-start gap-2">
-                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0 mt-0.5">
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-700 text-muted-foreground shrink-0 mt-0.5">
                     Q{index + 1}
                   </span>
                   <div className="flex-1 min-w-0">
@@ -234,7 +234,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
                                 ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10"
                                 : wasSelected
                                 ? "border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10"
-                                : "border-slate-200 dark:border-slate-700"
+                                : "border-slate-200 dark:border-zinc-700"
                             )}
                           >
                             <span
@@ -244,7 +244,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
                                   ? "bg-emerald-600 border-emerald-600 text-white"
                                   : wasSelected
                                   ? "bg-red-600 border-red-600 text-white"
-                                  : "border-slate-300 dark:border-slate-600"
+                                  : "border-slate-300 dark:border-zinc-600"
                               )}
                             >
                               {wasSelected && <CheckCheck className="h-3 w-3" />}
@@ -269,7 +269,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
             const res = solvedById.get(problem.id);
             return (
               <div key={problem.id} className="glass-card rounded-2xl p-4 flex items-center gap-2">
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-700 text-muted-foreground shrink-0">
                   C{index + 1}
                 </span>
                 <span className="text-sm font-medium flex-1 truncate">{problem.title}</span>
@@ -334,7 +334,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
         return (
           <div key={mcq.id} className="glass-card rounded-2xl p-4">
             <div className="flex items-start gap-2">
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0 mt-0.5">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-700 text-muted-foreground shrink-0 mt-0.5">
                 Q{index + 1}
               </span>
               <div className="flex-1 min-w-0">
@@ -356,7 +356,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
                           "w-full flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition",
                           isActive
                             ? "border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10"
-                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                            : "border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-slate-600"
                         )}
                       >
                         <span
@@ -365,7 +365,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
                             multi ? "rounded-sm" : "rounded-full",
                             isActive
                               ? "bg-emerald-600 border-emerald-600 text-white"
-                              : "border-slate-300 dark:border-slate-600"
+                              : "border-slate-300 dark:border-zinc-600"
                           )}
                         >
                           {isActive && <CheckCheck className="h-3 w-3" />}
@@ -384,7 +384,7 @@ export const TestRunner = ({ test, initialAttempt }: TestRunnerProps) => {
       {test.problems.map((problem, index) => (
         <div key={problem.id} className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-muted-foreground shrink-0">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-700 text-muted-foreground shrink-0">
               C{index + 1}
             </span>
             <Code2 className="h-4 w-4 text-muted-foreground shrink-0" />

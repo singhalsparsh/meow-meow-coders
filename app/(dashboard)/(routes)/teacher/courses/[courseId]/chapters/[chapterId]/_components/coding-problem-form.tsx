@@ -662,7 +662,7 @@ const ProblemEditor = ({
                         "relative inline-flex h-4 w-7 items-center rounded-full transition-colors",
                         tc.isHidden
                           ? "bg-amber-500"
-                          : "bg-slate-300 dark:bg-slate-600"
+                          : "bg-slate-300 dark:bg-zinc-600"
                       )}
                     >
                       <span

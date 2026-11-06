@@ -28,7 +28,7 @@ export function ProblemPanel({
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-700 px-2 pt-1">
+      <div className="flex items-center gap-1 border-b border-slate-200 dark:border-zinc-700 px-2 pt-1">
         <TabButton
           active={activeTab === "description"}
           onClick={() => onTabChange("description")}
@@ -81,7 +81,7 @@ function TabButton({
       {icon}
       {label}
       {count !== undefined && (
-        <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-1.5 text-[10px] font-semibold">
+        <span className="rounded-full bg-slate-100 dark:bg-zinc-800 px-1.5 text-[10px] font-semibold">
           {count}
         </span>
       )}
@@ -109,7 +109,7 @@ function DescriptionTab({
           <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Constraints
           </h4>
-          <div className="prose prose-sm dark:prose-invert max-w-none rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-3">
+          <div className="prose prose-sm dark:prose-invert max-w-none rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50 p-3">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {problem.constraints}
             </ReactMarkdown>
@@ -126,7 +126,7 @@ function DescriptionTab({
             {publicCases.map((tc, index) => (
               <div
                 key={tc.id}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 p-3"
+                className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50 p-3"
               >
                 <div className="mb-2 flex items-center gap-2">
                   <span className="text-xs font-semibold">Example {index + 1}</span>
@@ -141,7 +141,7 @@ function DescriptionTab({
                     <span className="font-sans font-medium text-primary">
                       Input:{" "}
                     </span>
-                    <pre className="mt-0.5 whitespace-pre-wrap rounded-md bg-white dark:bg-slate-950/60 p-2">
+                    <pre className="mt-0.5 whitespace-pre-wrap rounded-md bg-white dark:bg-zinc-950/60 p-2">
                       {tc.input || "(empty)"}
                     </pre>
                   </div>
@@ -149,7 +149,7 @@ function DescriptionTab({
                     <span className="font-sans font-medium text-emerald-600 dark:text-emerald-400">
                       Output:{" "}
                     </span>
-                    <pre className="mt-0.5 whitespace-pre-wrap rounded-md bg-white dark:bg-slate-950/60 p-2">
+                    <pre className="mt-0.5 whitespace-pre-wrap rounded-md bg-white dark:bg-zinc-950/60 p-2">
                       {tc.expectedOutput || "(empty)"}
                     </pre>
                   </div>
@@ -194,7 +194,7 @@ function SubmissionsTab({
       {submissions.map((submission) => (
         <div
           key={submission.id}
-          className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/40 p-3"
+          className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white/50 dark:bg-zinc-800/40 p-3"
         >
           <div className="flex items-center gap-3">
             <VerdictBadge verdict={submission.status} />
