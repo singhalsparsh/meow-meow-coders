@@ -385,7 +385,7 @@ export function LeetCodeLayout({
                             )}
                           </button>
                         </div>
-                        <CodeEditor value={problem.solution} readOnly height={360} />
+                        <CodeEditor value={problem.solution} readOnly height={360} theme={editorTheme} />
                       </div>
                     ) : (
                       <EmptyState
