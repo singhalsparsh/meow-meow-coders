@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "./code-editor";
+import { HydratedDate } from "@/components/ui/hydrated-date";
 import { ResultsPanel } from "./results-panel";
 import { EDITOR_THEMES } from "./editor-themes";
 import { DifficultyBadge, TopicBadge, VerdictBadge } from "./badges";
@@ -1054,7 +1055,7 @@ function SubmissionsTab({ submissions }: { submissions: ProblemSubmissionPayload
           </div>
           <div className="text-right text-xs text-[color:var(--ide-foreground-muted)]">
             {s.runtimeMs != null && <p>{s.runtimeMs} ms</p>}
-            <p>{new Date(s.createdAt).toLocaleString()}</p>
+            <HydratedDate value={s.createdAt} />
           </div>
         </div>
       ))}

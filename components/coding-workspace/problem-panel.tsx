@@ -10,6 +10,7 @@ import type {
   ProblemSubmissionPayload,
 } from "@/lib/coding/types";
 import { VerdictBadge } from "./badges";
+import { HydratedDate } from "@/components/ui/hydrated-date";
 
 interface ProblemPanelProps {
   problem: CodingProblemPayload;
@@ -208,7 +209,7 @@ function SubmissionsTab({
                   ? `${submission.runtimeMs} ms`
                   : "—"}
                 {" · "}
-                {formatDate(submission.createdAt)}
+                <HydratedDate value={submission.createdAt} />
               </p>
             </div>
           </div>
@@ -218,12 +219,4 @@ function SubmissionsTab({
   );
 }
 
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+

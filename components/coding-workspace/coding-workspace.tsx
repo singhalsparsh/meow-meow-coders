@@ -45,15 +45,21 @@ export function CodingWorkspace({
   // Auto-save key: code_draft_<problemId>_<language>.
   const storageKey = `code_draft_${problem.id}_cpp`;
 
-  const [code, setCode] = useState<string>(() => {
-    if (typeof window === "undefined") return problem.starterCode;
-    try {
-      return window.localStorage.getItem(storageKey) ?? problem.starterCode;
-    } catch {
-      return problem.starterCode;
-    }
-  });
+  const [code, setCode] = useState<string>(problem.starterCode);
   const [draftSaved, setDraftSaved] = useState(false);
+
+  // Load a previously saved draft after mount so the server-rendered initial
+  // value matches the client's first paint (avoids hydration mismatch).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let saved: string | null = null;
+    try {
+      saved = window.localStorage.getItem(storageKey);
+    } catch {
+      // ignore
+    }
+    if (saved) setCode(saved);
+  }, [storageKey]);
 
   // Debounced auto-save (1000 ms) so typing doesn't hammer localStorage.
   useEffect(() => {
@@ -79,15 +85,10 @@ export function CodingWorkspace({
   const [caseInputs, setCaseInputs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  // Editor theme selection, persisted to localStorage.
-  const [editorTheme, setEditorTheme] = useState<string>(() => {
-    if (typeof window === "undefined") return "lms-dark";
-    try {
-      return window.localStorage.getItem("code_editor_theme") ?? "lms-dark";
-    } catch {
-      return "lms-dark";
-    }
-  });
+  // Editor theme selection. Initialized with the default so server & client
+  // first paint agree; the manual picker and the site-theme sync effect below
+  // set the effective theme right after mount.
+  const [editorTheme, setEditorTheme] = useState<string>("lms-dark");
 
   const { resolvedTheme } = useTheme();
 
