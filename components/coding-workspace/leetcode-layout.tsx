@@ -125,6 +125,7 @@ export function LeetCodeLayout({
   const [consoleOpen, setConsoleOpen] = useState(true);
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [copied, setCopied] = useState(false);
+  const [editorialCopied, setEditorialCopied] = useState(false);
   const [dockTab, setDockTab] = useState<"cases" | "output">("cases");
   const [dockOpen, setDockOpen] = useState(true);
 
@@ -353,6 +354,37 @@ export function LeetCodeLayout({
                   <div>
                     {problem.solution?.trim() ? (
                       <div className="overflow-hidden rounded-lg border border-white/10 bg-[#1a1a24]">
+                        <div className="flex h-9 items-center justify-between border-b border-white/10 px-3">
+                          <span className="text-xs font-medium text-zinc-400">
+                            Editorial / Solution
+                          </span>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(problem.solution ?? "");
+                                setEditorialCopied(true);
+                                setTimeout(() => setEditorialCopied(false), 1500);
+                              } catch {
+                                /* clipboard unavailable */
+                              }
+                            }}
+                            className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-white"
+                            title="Copy solution code"
+                          >
+                            {editorialCopied ? (
+                              <>
+                                <CheckCheck className="h-3.5 w-3.5 text-emerald-400" />
+                                <span className="text-emerald-400">Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3.5 w-3.5" />
+                                Copy
+                              </>
+                            )}
+                          </button>
+                        </div>
                         <CodeEditor value={problem.solution} readOnly height={360} />
                       </div>
                     ) : (

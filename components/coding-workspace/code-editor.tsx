@@ -123,7 +123,10 @@ export function CodeEditor({
           cursorBlinking: "smooth",
           cursorSmoothCaretAnimation: "on",
           bracketPairColorization: { enabled: true },
-          guides: { bracketPairs: true, indentation: true },
+          guides: { bracketPairs: false, indentation: false },
+          // Don't draw the bracket-match outline/underline behind the current
+          // bracket pair — it reads as stray underscores under the code.
+          matchBrackets: "never",
           wordWrap: wordWrap ? "on" : "off",
           // C++ has no language service in the browser, so completion is
           // word-based from the open document — still genuinely useful.

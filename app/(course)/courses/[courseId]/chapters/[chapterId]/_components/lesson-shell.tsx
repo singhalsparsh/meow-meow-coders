@@ -214,9 +214,6 @@ function LessonShellContent({
                       {problem.timeLimitMs} ms
                     </span>
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Open in the full-screen editor with resizable panes
-                  </p>
                 </Link>
               ))
             )}
