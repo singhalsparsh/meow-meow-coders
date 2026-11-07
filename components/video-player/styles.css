@@ -56,19 +56,49 @@
 }
 
 /*
- * Fullscreen sizing: when the browser is zoomed below 100%, some browsers do
- * not stretch a fullscreened element to the true viewport, leaving black bars
- * along the right and bottom edges. Force the fullscreen element to fill the
- * actual screen.
+ * Fullscreen sizing.
+ *
+ * Use percentage sizes + a fixed inset — NOT viewport units (vw/vh). When the
+ * browser is zoomed below 100%, vw/vh resolve against the zoomed-out layout
+ * viewport (which is larger than the physical screen), so a fullscreened
+ * element forced to 100vw/100vh overflows: the video appears shrunk toward the
+ * top-left with black space to the right/bottom. Percentages resolve against
+ * the fullscreen containing block (the actual screen), so they fill correctly
+ * at any zoom level.
  */
 [data-layout-type="root-container"]:fullscreen,
 [data-layout-type="root-container"]:-webkit-full-screen,
 [data-layout-type="root-container"]:-moz-full-screen {
-  width: 100vw !important;
-  height: 100vh !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   max-width: none !important;
   max-height: none !important;
   margin: 0 !important;
   border-radius: 0 !important;
   aspect-ratio: auto !important;
+  z-index: 2147483647 !important;
+}
+
+/*
+ * Fill fix for the inner player layers.
+ *
+ * The player layout relies on Tailwind's `size-*` utilities (size-full,
+ * size-7, etc.), which are NOT available in Tailwind 3.3. Because of that the
+ * inner player layer and the <video> collapse to their intrinsic/default size
+ * instead of filling the frame — this is what makes the video render small at
+ * the top-left with black space to the right/bottom (and "zoom out" in
+ * fullscreen). Force the player layer and the media element to fill the frame.
+ */
+[data-layout-type="root-container"] [data-layout-type="player-container"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+[data-layout-type="root-container"] video,
+[data-layout-type="root-container"] img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
 }
