@@ -91,14 +91,10 @@ export function CodingWorkspace({
 
   const { resolvedTheme } = useTheme();
 
-  // Sync the editor theme with the site theme unless the user has explicitly
-  // chosen an editor theme (stored in localStorage).
+  // Keep the editor theme in sync with the site theme. The manual editor-theme
+  // picker (handleThemeChange) still works for that session, but toggling the
+  // site light/dark mode always re-syncs the editor to match.
   useEffect(() => {
-    try {
-      if (window.localStorage.getItem("code_editor_theme")) return;
-    } catch {
-      // ignore
-    }
     setEditorTheme(resolvedTheme === "light" ? "lms-light" : "lms-dark");
   }, [resolvedTheme]);
   const [leftWidth, setLeftWidth] = useState(42);
