@@ -56,6 +56,11 @@ export function CodeEditor({
   const themeRef = useRef<string | undefined>(theme);
   themeRef.current = theme;
 
+  // Resolve the effective theme once so Monaco renders with it on first paint
+  // (no dark flash before setTheme runs after mount).
+  const resolvedTheme =
+    theme ?? (getSystemTheme() === "dark" ? "lms-dark" : "lms-light");
+
   const handleMount = useCallback((editor: any, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
@@ -99,9 +104,9 @@ export function CodeEditor({
         height={height}
         language={language}
         value={value}
-        // Pass a placeholder theme; the effect above overrides it after mount
-        // with the resolved/selected theme.
-        theme="lms-dark"
+        // Render with the resolved theme immediately so there is no dark flash
+        // while the theme effect below settles after mount.
+        theme={resolvedTheme}
         onChange={(newValue) => onChange?.(newValue ?? "")}
         onMount={handleMount}
         options={{
