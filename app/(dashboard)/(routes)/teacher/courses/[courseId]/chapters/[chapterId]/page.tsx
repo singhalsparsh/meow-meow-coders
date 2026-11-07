@@ -16,7 +16,6 @@ import { redirect } from "next/navigation";
 import { ChapterTitleForm } from "./_components/chapter-title-form";
 import { ChapterDescriptionForm } from "./_components/chapter-description-form";
 import { ChapterVideoForm } from "./_components/chapter-video-form";
-import { LeetcodeForm } from "./_components/leetcode-form";
 import { PdfNotesForm } from "./_components/pdf-notes-form";
 import { VideoBlogForm } from "./_components/video-blog-form";
 import { CodingProblemForm } from "./_components/coding-problem-form";
@@ -52,18 +51,6 @@ const ChapterIdPage = async (
         return redirect("/")
     }
 
-    // Fetch leetcode questions separately so a missing table doesn't block chapter loading
-    let leetcodeQuestions: any[] = [];
-    try {
-        leetcodeQuestions = await db.leetCodeQuestion.findMany({
-            where: { chapterId: params.chapterId },
-            orderBy: { position: "asc" },
-        });
-    } catch {
-        // Table may not exist yet
-    }
-    (chapter as any).leetcodeQuestions = leetcodeQuestions;
-
     // Fetch PDF notes separately
     let pdfNotes: any[] = [];
     try {
@@ -76,20 +63,26 @@ const ChapterIdPage = async (
     }
     (chapter as any).pdfNotes = pdfNotes;
 
-    // Fetch the chapter's coding problems separately so a missing table does not
-    // block the chapter editor. A chapter may hold several problems.
-    let codingProblems: any[] = [];
-    try {
-        codingProblems = await db.codingProblem.findMany({
-            where: { chapterId: params.chapterId },
-            orderBy: { position: "asc" },
-            include: { testCases: { orderBy: { order: "asc" } } },
-        });
-    } catch (error) {
-        // Table or column may not exist yet (e.g. a pending migration). Log it
-        // so a schema drift can't silently hide every problem.
-        console.error("[TEACHER_CHAPTER_CODING_PROBLEMS]", error);
-    }
+    // Fetch the chapter's coding problems (lesson problems vs. extra practice)
+    // separately so a missing table does not block the chapter editor. A
+    // chapter may hold several problems in each bucket.
+    const fetchProblems = async (category: "CODING" | "PRACTICE") => {
+        try {
+            return await db.codingProblem.findMany({
+                where: { chapterId: params.chapterId, category },
+                orderBy: { position: "asc" },
+                include: { testCases: { orderBy: { order: "asc" } } },
+            });
+        } catch (error) {
+            // Table or column may not exist yet (e.g. a pending migration). Log
+            // it so a schema drift can't silently hide every problem.
+            console.error("[TEACHER_CHAPTER_CODING_PROBLEMS]", error);
+            return [];
+        }
+    };
+
+    const codingProblems: any[] = await fetchProblems("CODING");
+    const practiceProblems: any[] = await fetchProblems("PRACTICE");
 
     // A video is NOT required to publish a chapter: a lesson can be purely a
     // set of coding questions (or other content). Only the title is required.
@@ -210,10 +203,11 @@ const ChapterIdPage = async (
                             <IconBadge icon={BrainCircuit} />
                             <h2 className="text-xl">Extra practice questions</h2>
                         </div>
-                        <LeetcodeForm
-                            initialData={{ leetcodeQuestions: (chapter as any).leetcodeQuestions ?? [] }}
-                            courseId={params.courseId}
-                            chapterId={params.chapterId}
+                        <CodingProblemForm
+                            initialData={{ problems: practiceProblems }}
+                            apiBase={`/api/courses/${params.courseId}/chapters/${params.chapterId}`}
+                            category="PRACTICE"
+                            title="Extra Practice Questions"
                         />
 
                         <div className="mt-6 flex items-center gap-x-2">

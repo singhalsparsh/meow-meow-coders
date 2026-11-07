@@ -30,15 +30,24 @@ const ChapterIdPage = async (
 
     const { contentSource } = chapterData;
 
-    let codingProblems: any[];
-    if (contentSource === "static") {
-        codingProblems = getChapterCodingProblems(params.chapterId);
-    } else if (chapterData.chapter) {
-        // DB fallback: chapter is not in the static snapshot. Public cases only;
-        // hidden cases are fetched on Submit by the submission-suite endpoint.
-        codingProblems = await db.codingProblem
-            .findMany({
-                where: { chapterId: params.chapterId },
+    // Load a chapter's problems from one bucket (lesson problems or extra
+    // practice). Static snapshot content predates the category column, so the
+    // snapshot path returns the whole snapshot set for coding and nothing for
+    // practice; the DB path filters by category (public cases only — hidden
+    // cases are fetched on Submit by the submission-suite endpoint).
+    const fetchChapterProblems = async (
+        category: "CODING" | "PRACTICE"
+    ): Promise<any[]> => {
+        if (contentSource === "static") {
+            if (category === "CODING") {
+                return getChapterCodingProblems(params.chapterId);
+            }
+            return [];
+        }
+        if (!chapterData.chapter) return [];
+        try {
+            const rows = await db.codingProblem.findMany({
+                where: { chapterId: params.chapterId, category },
                 orderBy: { position: "asc" },
                 include: {
                     testCases: {
@@ -46,35 +55,36 @@ const ChapterIdPage = async (
                         orderBy: { order: "asc" },
                     },
                 },
-            })
-            .then((rows) =>
-                rows.map((p) => ({
-                    id: p.id,
-                    chapterId: p.chapterId ?? "",
-                    title: p.title,
-                    difficulty: p.difficulty,
-                    topic: p.topic,
-                    description: p.description,
-                    constraints: p.constraints,
-                    solution: p.solution,
-                    starterCode: p.starterCode,
-                    driverCode: p.driverCode,
-                    timeLimitMs: p.timeLimitMs,
-                    position: p.position,
-                    testCases: p.testCases.map((tc) => ({
-                        id: tc.id,
-                        input: tc.input,
-                        expectedOutput: tc.expectedOutput,
-                        explanation: tc.explanation,
-                        isHidden: tc.isHidden,
-                        order: tc.order,
-                    })),
+            });
+            return rows.map((p) => ({
+                id: p.id,
+                chapterId: p.chapterId ?? "",
+                title: p.title,
+                difficulty: p.difficulty,
+                topic: p.topic,
+                description: p.description,
+                constraints: p.constraints,
+                solution: p.solution,
+                starterCode: p.starterCode,
+                driverCode: p.driverCode,
+                timeLimitMs: p.timeLimitMs,
+                position: p.position,
+                testCases: p.testCases.map((tc) => ({
+                    id: tc.id,
+                    input: tc.input,
+                    expectedOutput: tc.expectedOutput,
+                    explanation: tc.explanation,
+                    isHidden: tc.isHidden,
+                    order: tc.order,
                 })),
-            )
-            .catch(() => []);
-    } else {
-        codingProblems = [];
-    }
+            }));
+        } catch {
+            return [];
+        }
+    };
+
+    const codingProblems = await fetchChapterProblems("CODING");
+    const practiceProblems = await fetchChapterProblems("PRACTICE");
 
     const {
         chapter,
@@ -97,21 +107,6 @@ const ChapterIdPage = async (
         url: n.url,
         position: n.position,
     }));
-    const leetcodeQuestions = ((chapter as any).leetcodeQuestions || []).map(
-        (q: any) => ({
-            id: q.id,
-            title: q.title,
-            url: q.url,
-            difficulty: q.difficulty,
-            tags: q.tags,
-            notes: q.notes,
-            position: q.position,
-            problemStatement: q.problemStatement,
-            testCases: q.testCases,
-            solution: q.solution,
-        })
-    );
-
     if (!chapter || !course) {
         return redirect("/")
     }
@@ -148,7 +143,7 @@ const ChapterIdPage = async (
                 completeOnEnd={completeOnEnd}
                 attachments={attachments.map((a) => ({ id: a.id, name: a.name, url: a.url }))}
                 pdfNotes={pdfNotes}
-                leetcodeQuestions={leetcodeQuestions}
+                practiceProblems={practiceProblems}
                 codingProblems={codingProblems}
             />
         </div>

@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-import type { Difficulty, DsaTopic } from "@prisma/client";
+import type { Difficulty, DsaTopic, ProblemCategory } from "@prisma/client";
 
 const VALID_DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 const VALID_TOPICS: DsaTopic[] = [
@@ -10,6 +10,7 @@ const VALID_TOPICS: DsaTopic[] = [
     "TREES", "GRAPHS", "DYNAMIC_PROGRAMMING", "SORTING_SEARCHING",
     "FUNDAMENTAL", "OTHER",
 ];
+const VALID_CATEGORIES = ["CODING", "PRACTICE"] as const;
 
 interface TestCaseInput {
     input: string;
@@ -23,7 +24,7 @@ interface TestCaseInput {
 // Only public test cases are returned here: hidden cases are fetched on demand
 // from /submission-suite, which is the single place the full suite is handed out.
 export async function GET(
-    _req: Request,
+    req: Request,
     props: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
     const params = await props.params;
@@ -34,8 +35,19 @@ export async function GET(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
+        // Optional `?category=CODING|PRACTICE` filter. Omitted, the full
+        // chapter list is returned (legacy behavior); used by the practice
+        // surface to ask for only one bucket.
+        const url = new URL(req.url);
+        const rawCategory = url.searchParams.get("category");
+        const category = rawCategory?.trim().toUpperCase();
+        const where = { chapterId: params.chapterId } as Record<string, unknown>;
+        if (category && (VALID_CATEGORIES as readonly string[]).includes(category)) {
+            where.category = category;
+        }
+
         const problems = await db.codingProblem.findMany({
-            where: { chapterId: params.chapterId },
+            where,
             orderBy: { position: "asc" },
             include: {
                 testCases: {
@@ -120,6 +132,7 @@ export async function POST(
         const body = await req.json();
         const {
             id,
+            category,
             title,
             difficulty,
             topic,
@@ -131,6 +144,14 @@ export async function POST(
             timeLimitMs,
             testCases,
         } = body ?? {};
+
+        const normalizedCategory =
+            (typeof category === "string" && category.trim()
+                ? category.trim().toUpperCase()
+                : "CODING") as ProblemCategory;
+        if (!(VALID_CATEGORIES as readonly string[]).includes(normalizedCategory)) {
+            return new NextResponse("Invalid category", { status: 400 });
+        }
 
         if (typeof title !== "string" || !title.trim()) {
             return new NextResponse("Title is required", { status: 400 });
@@ -188,6 +209,7 @@ export async function POST(
 
         const sharedFields = {
             title: title.trim(),
+            category: normalizedCategory,
             difficulty: normalizedDifficulty,
             topic: normalizedTopic,
             description,

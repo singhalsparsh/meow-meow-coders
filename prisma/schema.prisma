@@ -221,6 +221,11 @@ enum SubmissionVerdict {
   RUNTIME_ERROR
 }
 
+enum ProblemCategory {
+  CODING
+  PRACTICE
+}
+
 model CodingProblem {
   id        String  @id @default(uuid())
 
@@ -230,6 +235,11 @@ model CodingProblem {
   chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
   testId    String?
   test      Test?    @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  // Distinguishes the chapter's main lesson problems from its Extra Practice
+  // set. Both reuse the same authoring/workspace machinery; only the bucket
+  // differs. Defaults to CODING so existing rows are unambiguous.
+  category ProblemCategory @default(CODING)
 
   title      String
   difficulty Difficulty @default(EASY)

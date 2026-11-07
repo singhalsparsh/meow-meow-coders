@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-import type { Difficulty, DsaTopic } from "@prisma/client";
+import type { Difficulty, DsaTopic, ProblemCategory } from "@prisma/client";
 
 const VALID_DIFFICULTIES: Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 const VALID_TOPICS: DsaTopic[] = [
@@ -10,6 +10,7 @@ const VALID_TOPICS: DsaTopic[] = [
     "TREES", "GRAPHS", "DYNAMIC_PROGRAMMING", "SORTING_SEARCHING",
     "FUNDAMENTAL", "OTHER",
 ];
+const VALID_CATEGORIES = ["CODING", "PRACTICE"] as const;
 
 interface TestCaseInput {
     input: string;
@@ -169,6 +170,17 @@ export async function POST(
             return new NextResponse("No problems provided", { status: 400 });
         }
 
+        // Everything in one import lands in the same bucket. Defaults to CODING
+        // so a legacy caller that predates the category column still imports
+        // into the lesson problems set.
+        const normalizedCategory =
+            (typeof body?.category === "string" && body.category.trim()
+                ? String(body.category).trim().toUpperCase()
+                : "CODING") as ProblemCategory;
+        if (!(VALID_CATEGORIES as readonly string[]).includes(normalizedCategory)) {
+            return new NextResponse("Invalid category", { status: 400 });
+        }
+
         const count = await db.codingProblem.count({
             where: { chapterId: params.chapterId },
         });
@@ -224,6 +236,7 @@ export async function POST(
             const created = await db.codingProblem.create({
                 data: {
                     ...problem,
+                    category: normalizedCategory,
                     chapterId: params.chapterId,
                     position: position++,
                 },

@@ -54,7 +54,7 @@ interface LessonShellProps {
   completeOnEnd: boolean;
   attachments: Attachment[];
   pdfNotes: any[];
-  leetcodeQuestions: any[];
+  practiceProblems: any[];
   codingProblems: any[];
 }
 
@@ -79,7 +79,7 @@ function LessonShellContent({
   completeOnEnd,
   attachments,
   pdfNotes,
-  leetcodeQuestions,
+  practiceProblems,
   codingProblems,
 }: LessonShellProps) {
   const router = useRouter();
@@ -112,7 +112,7 @@ function LessonShellContent({
       ? [{ id: "video" as const, label: "Video", icon: Play, count: null }]
       : []),
     { id: "coding" as const, label: "Coding Questions", icon: Code2, count: codingProblems.length },
-    { id: "practice" as const, label: "Extra Practice", icon: BrainCircuit, count: leetcodeQuestions.length },
+    { id: "practice" as const, label: "Extra Practice", icon: BrainCircuit, count: practiceProblems.length },
     { id: "pdf" as const, label: "PDF Notes", icon: FileText, count: pdfNotes.length },
     { id: "blog" as const, label: "Blog", icon: BookOpen, count: null },
   ];
@@ -238,7 +238,7 @@ function LessonShellContent({
 
         {mode === "practice" && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {leetcodeQuestions.length === 0 ? (
+            {practiceProblems.length === 0 ? (
               <div className="sm:col-span-2">
                 <EmptyState
                   icon={BrainCircuit}
@@ -247,10 +247,10 @@ function LessonShellContent({
                 />
               </div>
             ) : (
-              leetcodeQuestions.map((q) => (
+              practiceProblems.map((problem) => (
                 <Link
-                  key={q.id}
-                  href={`/courses/${courseId}/chapters/${chapterId}/practice/${q.id}`}
+                  key={problem.id}
+                  href={`/courses/${courseId}/chapters/${chapterId}/problems/${problem.id}`}
                   className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-primary/40 hover:bg-accent/40"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -260,15 +260,13 @@ function LessonShellContent({
                     <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </div>
                   <h3 className="mt-4 text-sm font-semibold text-foreground leading-snug">
-                    {q.title}
+                    {problem.title}
                   </h3>
                   <div className="mt-2 flex items-center gap-2">
-                    <DifficultyBadge difficulty={q.difficulty} />
-                    {q.tags && (
-                      <span className="truncate text-xs text-muted-foreground">
-                        {q.tags}
-                      </span>
-                    )}
+                    <DifficultyBadge difficulty={problem.difficulty} />
+                    <span className="text-xs text-muted-foreground">
+                      {problem.timeLimitMs} ms
+                    </span>
                   </div>
                 </Link>
               ))

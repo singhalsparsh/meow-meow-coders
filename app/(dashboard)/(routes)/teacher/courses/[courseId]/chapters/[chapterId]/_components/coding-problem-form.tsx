@@ -67,6 +67,10 @@ interface CodingProblemDraft {
 interface CodingProblemFormProps {
   initialData: { problems: CodingProblemDraft[] };
   apiBase: string;
+  /** Bucket this form writes into: CODING (default) or PRACTICE. */
+  category?: "CODING" | "PRACTICE";
+  /** Card header label. Defaults to "Coding Problems". */
+  title?: string;
 }
 
 const DEFAULT_STARTER_CODE = `#include <iostream>
@@ -124,6 +128,8 @@ const blankProblem = (): CodingProblemDraft => ({
 export const CodingProblemForm = ({
   initialData,
   apiBase,
+  category = "CODING",
+  title = "Coding Problems",
 }: CodingProblemFormProps) => {
   const router = useRouter();
 
@@ -238,7 +244,7 @@ export const CodingProblemForm = ({
         <div className="font-medium flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Code2 className="h-4 w-4 text-muted-foreground" />
-            <span>Coding Problems</span>
+            <span>{title}</span>
             {problems.length > 0 && (
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20">
                 {problems.length} attached
@@ -248,6 +254,7 @@ export const CodingProblemForm = ({
           <div className="flex items-center gap-2">
             <QuestionImporter
               apiBase={apiBase}
+              category={category}
               onImported={handleImported}
               onDone={refresh}
               problems={problems.map((p) => ({
@@ -387,6 +394,7 @@ export const CodingProblemForm = ({
                   key={activeProblem.id}
                   draft={activeProblem}
                   apiBase={apiBase}
+                  category={category}
                   onCancel={closeEditor}
                   onSaved={(saved) => handleSaved(activeProblem.id as string, saved)}
                 />
@@ -407,6 +415,7 @@ export const CodingProblemForm = ({
 interface ProblemEditorProps {
   draft: CodingProblemDraft;
   apiBase: string;
+  category: "CODING" | "PRACTICE";
   onCancel: () => void;
   onSaved: (saved: CodingProblemDraft) => void;
 }
@@ -414,6 +423,7 @@ interface ProblemEditorProps {
 const ProblemEditor = ({
   draft,
   apiBase,
+  category,
   onCancel,
   onSaved,
 }: ProblemEditorProps) => {
@@ -476,6 +486,7 @@ const ProblemEditor = ({
         {
           // Omit the temp id on create; send the real id to update.
           ...(isNew ? {} : { id: form.id }),
+          category,
           title: form.title,
           difficulty: form.difficulty,
           topic: form.topic,

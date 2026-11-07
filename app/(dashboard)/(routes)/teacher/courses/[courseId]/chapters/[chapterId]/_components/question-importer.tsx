@@ -37,6 +37,8 @@ interface ImportResult {
 
 interface QuestionImporterProps {
   apiBase: string;
+  /** Bucket the imported problems land in: CODING (default) or PRACTICE. */
+  category?: "CODING" | "PRACTICE";
   /** Called with every successfully created problem so the parent can update its list. */
   onImported: (problems: ImportedProblem[]) => void;
   /** Called after the import request completes (created or not) to refetch. */
@@ -47,7 +49,7 @@ interface QuestionImporterProps {
 
 export const TEMPLATE_URL = "/coding-problems-import-template.json";
 
-export function QuestionImporter({ apiBase, onImported, onDone, problems }: QuestionImporterProps) {
+export function QuestionImporter({ apiBase, category = "CODING", onImported, onDone, problems }: QuestionImporterProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export function QuestionImporter({ apiBase, onImported, onDone, problems }: Ques
 
       const { data } = await axios.post<{ results: ImportResult[] }>(
         `${apiBase}/problem/import`,
-        { problems: list }
+        { problems: list, category }
       );
 
       const created = data.results.filter(
