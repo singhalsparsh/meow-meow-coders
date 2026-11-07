@@ -23,17 +23,12 @@ import {
   RotateCcw,
   Settings,
   Loader2,
-  Sparkles,
   Type,
   Undo2,
   Wand2,
   X,
   Minus,
-  AlertTriangle,
-  MessageSquare,
-  StickyNote,
   SearchCheck,
-  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -53,14 +48,7 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
 
-type NavTab =
-  | "description"
-  | "editorial"
-  | "ai"
-  | "discussion"
-  | "submission"
-  | "review"
-  | "notes";
+type NavTab = "description" | "editorial" | "submission" | "review";
 type CategoryFilter = "all" | "sample" | "hidden";
 
 interface LeetCodeLayoutProps {
@@ -99,11 +87,8 @@ interface LeetCodeLayoutProps {
 const NAV_TABS: { id: NavTab; label: string; icon: ReactNode }[] = [
   { id: "description", label: "Description", icon: <FileText className="h-4 w-4" /> },
   { id: "editorial", label: "Editorial", icon: <BookMarked className="h-4 w-4" /> },
-  { id: "ai", label: "AI", icon: <Sparkles className="h-4 w-4" /> },
-  { id: "discussion", label: "Discussion", icon: <MessageSquare className="h-4 w-4" /> },
   { id: "submission", label: "Submission", icon: <CheckCheck className="h-4 w-4" /> },
   { id: "review", label: "Review", icon: <SearchCheck className="h-4 w-4" /> },
-  { id: "notes", label: "Notes", icon: <StickyNote className="h-4 w-4" /> },
 ];
 
 export function LeetCodeLayout({
@@ -140,7 +125,6 @@ export function LeetCodeLayout({
   const [consoleOpen, setConsoleOpen] = useState(true);
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [copied, setCopied] = useState(false);
-  const [panel, setPanel] = useState<"hint" | "info" | null>(null);
   const [dockTab, setDockTab] = useState<"cases" | "output">("cases");
   const [dockOpen, setDockOpen] = useState(true);
 
@@ -292,28 +276,6 @@ export function LeetCodeLayout({
                       <Bookmark className="h-4 w-4" />
                     )}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setPanel(panel === "info" ? null : "info")}
-                    className={cn(
-                      "rounded-md p-1.5 text-zinc-400 transition-colors hover:text-white",
-                      panel === "info" && "bg-white/10 text-white"
-                    )}
-                    aria-label="Warning / info"
-                  >
-                    <AlertTriangle className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPanel(panel === "hint" ? null : "hint")}
-                    className={cn(
-                      "rounded-md p-1.5 text-zinc-400 transition-colors hover:text-white",
-                      panel === "hint" && "bg-white/10 text-white"
-                    )}
-                    aria-label="Lightbulb / hints"
-                  >
-                    <Lightbulb className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
 
@@ -403,12 +365,10 @@ export function LeetCodeLayout({
                   </div>
                 )}
 
-                {(navTab === "ai" || navTab === "discussion" || navTab === "review" || navTab === "notes") && (
+                {navTab === "review" && (
                   <EmptyState
-                    icon={
-                      navTab === "ai" ? <Sparkles /> : navTab === "discussion" ? <Users /> : navTab === "notes" ? <StickyNote /> : <SearchCheck />
-                    }
-                    title={NAV_TABS.find((t) => t.id === navTab)?.label ?? "Panel"}
+                    icon={<SearchCheck />}
+                    title="Review"
                     subtitle="This panel is ready for content."
                   />
                 )}
@@ -875,40 +835,6 @@ function Stepper({
           <Plus className="h-3 w-3" />
         </button>
       </div>
-    </div>
-  );
-}
-
-function FooterPopover({
-  title,
-  onClose,
-  align,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  align: "left" | "right";
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className={cn(
-        "absolute top-11 z-50 w-72 rounded-xl border border-white/10 bg-[#1a1a24] p-3 shadow-2xl",
-        align === "left" ? "left-0" : "right-0"
-      )}
-    >
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-white">{title}</span>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded p-0.5 text-zinc-500 transition-colors hover:text-white"
-          title="Close"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
-      </div>
-      {children}
     </div>
   );
 }
