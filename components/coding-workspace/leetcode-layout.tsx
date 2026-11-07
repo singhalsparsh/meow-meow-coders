@@ -474,12 +474,14 @@ export function LeetCodeLayout({
           </div>
         )}
 
-        {/* Draggable vertical divider */}
+        {/* Draggable vertical divider — 1px visible line on a wide hit area */}
         {!isMobile && !isFullscreen && (
-          <div
-            onPointerDown={onVerticalDragStart}
-            className="w-px flex-shrink-0 cursor-col-resize bg-[color:var(--ide-overlay-strong)] transition-colors hover:bg-indigo-500/60"
-          />
+          <div className="group/div relative flex w-2 flex-shrink-0 items-stretch justify-center">
+            <div
+              onPointerDown={onVerticalDragStart}
+              className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 cursor-col-resize bg-[color:var(--ide-overlay-strong)] transition-colors group-hover/div:bg-indigo-500/70"
+            />
+          </div>
         )}
 
         {/* ============================= RIGHT PANE ============================= */}
@@ -602,12 +604,14 @@ export function LeetCodeLayout({
             </div>
           )}
 
-          {/* Horizontal divider (editor vs console) */}
+          {/* Horizontal divider (editor vs console) — 1px visible line on a wide hit area */}
           {!isMobile && consoleOpen && (
-            <div
-              onPointerDown={onHorizontalDragStart}
-              className="h-px flex-shrink-0 cursor-row-resize bg-[color:var(--ide-overlay-strong)] transition-colors hover:bg-indigo-500/60"
-            />
+            <div className="group/hdiv relative flex h-2 flex-shrink-0 items-center justify-center">
+              <div
+                onPointerDown={onHorizontalDragStart}
+                className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 cursor-row-resize bg-[color:var(--ide-overlay-strong)] transition-colors group-hover/hdiv:bg-indigo-500/70"
+              />
+            </div>
           )}
 
           {/* Console / test-case panel */}
