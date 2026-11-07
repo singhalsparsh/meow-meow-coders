@@ -53,6 +53,9 @@
 }
 [data-layout-type="controls-container"] [data-slot="button"] svg {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.85));
+  /* Bump control icons ~20% larger (buttons were enlarged in button.tsx). */
+  width: 17px !important;
+  height: 17px !important;
 }
 
 /*

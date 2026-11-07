@@ -15,9 +15,9 @@ const buttonVariants = cva(
     motion-reduce:active:scale-100
     @md/root:gap-2 @md/root:text-sm
     [&_svg]:pointer-events-none [&_svg]:shrink-0
-    [&_svg:not([class*='size-'])]:size-3.5
-    @md/root:[&_svg:not([class*='size-'])]:size-4
-    @3xl/root:[&_svg:not([class*='size-'])]:size-4.5
+    [&_svg:not([class*='size-'])]:size-4
+    @md/root:[&_svg:not([class*='size-'])]:size-4.5
+    @3xl/root:[&_svg:not([class*='size-'])]:size-5
   `,
   {
     defaultVariants: {
@@ -35,9 +35,9 @@ const buttonVariants = cva(
           @3xl/root:has-[>svg]:px-4
         `,
         icon: `
-          size-7 rounded-lg p-1.5
-          @md/root:size-8 @md/root:p-2
-          @3xl/root:size-9
+          size-8 rounded-lg p-2
+          @md/root:size-9 @md/root:p-2.5
+          @3xl/root:size-10
         `,
         lg: `
           h-9 rounded-md px-4
