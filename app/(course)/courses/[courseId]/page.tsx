@@ -9,7 +9,12 @@ type CourseRedirectSource = {
   id: string;
   userId: string;
   isPublished: boolean;
-  chapters: { id: string; isPublished: boolean }[];
+  chapters: {
+    id: string;
+    isPublished: boolean;
+    position: number;
+    parentId: string | null;
+  }[];
 };
 
 const CourseIdPage = async (
@@ -42,23 +47,35 @@ const CourseIdPage = async (
 
     const isOwner = !!userId && course.userId === userId
 
-    // Public visitors only see published chapters; the owner can preview everything.
-    const chapters = isOwner
-        ? course.chapters
-        : course.chapters.filter((chapter) => chapter.isPublished)
-
     // Unpublished courses are invisible to everyone except the owner.
     if (!course.isPublished && !isOwner) {
         return redirect("/")
     }
 
-    const firstChapter = chapters[0]
+    // Always start the course at the beginning: the first published top-level
+    // topic, and if it has published subchapters, its first subchapter. This is
+    // deterministic regardless of how the raw chapters array is ordered, so
+    // opening a course never lands on an arbitrary later section.
+    const published = course.chapters.filter((chapter) => chapter.isPublished);
+    const byPosition = (a: { position: number; id: string }, b: { position: number; id: string }) =>
+      a.position - b.position || a.id.localeCompare(b.id);
 
-    if (!firstChapter) {
+    const topics = published
+      .filter((chapter) => !chapter.parentId)
+      .sort(byPosition);
+    const firstTopic = topics[0];
+
+    const subChapters = published
+      .filter((chapter) => chapter.parentId === firstTopic?.id)
+      .sort(byPosition);
+
+    const startChapter = subChapters[0] ?? firstTopic;
+
+    if (!startChapter) {
         return redirect("/")
     }
 
-    return redirect(`/courses/${course.id}/chapters/${firstChapter.id}`)
+    return redirect(`/courses/${course.id}/chapters/${startChapter.id}`)
 }
 
 export default CourseIdPage

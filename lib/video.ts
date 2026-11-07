@@ -174,9 +174,12 @@ export function buildPlayerSources(opts: {
   }
   if (opts.videoUrl) push(opts.videoUrl, "");
 
-  return list.map((source, index) => ({
+  // Never invent placeholder labels like "Server 1" — leave untitled sources
+  // blank so the player's overlay/playlist hides them instead of showing raw
+  // technical labels.
+  return list.map((source) => ({
     ...source,
-    title: source.title || `Server ${index + 1}`,
+    title: source.title || opts.fallbackTitle || "",
   }));
 }
 
@@ -192,8 +195,8 @@ export const toLimeplayAssets = (
 ): { id: string; src: string; title: string }[] =>
   sources
     .filter((source) => getVideoUrlInfo(source.src).kind !== "youtube")
-    .map((source, index) => ({
+    .map((source) => ({
       id: source.id,
       src: source.src,
-      title: source.title || fallbackTitle || `Stream ${index + 1}`,
+      title: source.title || fallbackTitle || "",
     }));

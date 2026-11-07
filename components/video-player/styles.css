@@ -24,3 +24,51 @@
     hsla(0, 0%, 0%, 0.636) 77.5%, hsla(0, 0%, 0%, 0.675) 84.5%,
     hsla(0, 0%, 0%, 0.701) 91.9%, hsla(0, 0%, 0%, 0.71) 100%;
 }
+
+/*
+ * Control legibility over any video surface (white or black).
+ *
+ * The player always renders in the dark theme, so its control glyphs are light
+ * and can disappear against a pure-white video. Give the controls a thin,
+ * always-on shadow + ring so they stay visible regardless of what the video
+ * shows underneath.
+ */
+[data-layout-type="controls-container"] {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75), 0 0 2px rgba(0, 0, 0, 0.55);
+}
+[data-layout-type="controls-container"] [data-slot="button"] {
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 1px 4px rgba(0, 0, 0, 0.45);
+}
+[data-layout-type="controls-container"] [data-slot="button"]:hover {
+  background: rgba(0, 0, 0, 0.32);
+}
+[data-layout-type="controls-container"] svg,
+[data-layout-type="controls-container"] img {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+}
+[data-layout-type="controls-container"] [data-slot="button"] svg {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.85));
+}
+
+/*
+ * Fullscreen sizing: when the browser is zoomed below 100%, some browsers do
+ * not stretch a fullscreened element to the true viewport, leaving black bars
+ * along the right and bottom edges. Force the fullscreen element to fill the
+ * actual screen.
+ */
+[data-layout-type="root-container"]:fullscreen,
+[data-layout-type="root-container"]:-webkit-full-screen,
+[data-layout-type="root-container"]:-moz-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  aspect-ratio: auto !important;
+}
