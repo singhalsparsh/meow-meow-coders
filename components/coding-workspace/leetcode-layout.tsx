@@ -7,24 +7,33 @@ import remarkGfm from "remark-gfm";
 import {
   Bookmark,
   BookMarked,
+  Braces,
+  CheckCheck,
   ChevronDown,
   ChevronUp,
   Copy,
   FileText,
-  Info,
   Lightbulb,
   ListChecks,
   Maximize2,
   Minimize2,
   Play,
   Plus,
+  Redo2,
   RotateCcw,
   Settings,
   Loader2,
-  CheckCheck,
+  Sparkles,
+  Type,
+  Undo2,
   Wand2,
   X,
   Minus,
+  AlertTriangle,
+  MessageSquare,
+  StickyNote,
+  SearchCheck,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +53,14 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
 
-type LeftTab = "problem" | "solution" | "submissions";
+type NavTab =
+  | "description"
+  | "editorial"
+  | "ai"
+  | "discussion"
+  | "submission"
+  | "review"
+  | "notes";
 type CategoryFilter = "all" | "sample" | "hidden";
 
 interface LeetCodeLayoutProps {
@@ -80,6 +96,16 @@ interface LeetCodeLayoutProps {
   onEditorThemeChange?: (theme: string) => void;
 }
 
+const NAV_TABS: { id: NavTab; label: string; icon: ReactNode }[] = [
+  { id: "description", label: "Description", icon: <FileText className="h-4 w-4" /> },
+  { id: "editorial", label: "Editorial", icon: <BookMarked className="h-4 w-4" /> },
+  { id: "ai", label: "AI", icon: <Sparkles className="h-4 w-4" /> },
+  { id: "discussion", label: "Discussion", icon: <MessageSquare className="h-4 w-4" /> },
+  { id: "submission", label: "Submission", icon: <CheckCheck className="h-4 w-4" /> },
+  { id: "review", label: "Review", icon: <SearchCheck className="h-4 w-4" /> },
+  { id: "notes", label: "Notes", icon: <StickyNote className="h-4 w-4" /> },
+];
+
 export function LeetCodeLayout({
   problem,
   submissions,
@@ -109,12 +135,14 @@ export function LeetCodeLayout({
   editorTheme = "lms-dark",
   onEditorThemeChange,
 }: LeetCodeLayoutProps) {
-  const [leftTab, setLeftTab] = useState<LeftTab>("problem");
+  const [navTab, setNavTab] = useState<NavTab>("description");
   const [bookmarked, setBookmarked] = useState(false);
   const [consoleOpen, setConsoleOpen] = useState(true);
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [copied, setCopied] = useState(false);
   const [panel, setPanel] = useState<"hint" | "info" | null>(null);
+  const [dockTab, setDockTab] = useState<"cases" | "output">("cases");
+  const [dockOpen, setDockOpen] = useState(true);
 
   // Editor / settings state
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -172,338 +200,384 @@ export function LeetCodeLayout({
   return (
     <div
       className={cn(
-        "flex flex-col min-h-0 bg-[var(--ide-bg)] text-[var(--ide-foreground)] selection:bg-primary/30",
+        "flex flex-col min-h-0 bg-[#0e0e11] text-zinc-200 selection:bg-indigo-500/30",
         isFullscreen ? "fixed inset-0 z-[90]" : "h-full"
       )}
     >
+      {/* ============================= TOP NAV ============================= */}
+      <div className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-white/10 bg-[#0e0e11] px-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          {NAV_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setNavTab(t.id)}
+              className={cn(
+                "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors",
+                navTab === t.id
+                  ? "bg-zinc-800/50 text-white"
+                  : "text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+              )}
+            >
+              {t.icon}
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            onClick={onRun}
+            disabled={busy || submitting}
+            className="h-8 gap-1.5 border border-white/10 bg-zinc-800 px-3.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 hover:text-white"
+          >
+            {busy ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Running…
+              </>
+            ) : (
+              <>
+                <Play className="h-3.5 w-3.5" />
+                Run
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            onClick={onSubmit}
+            disabled={busy || submitting}
+            className="h-8 gap-1.5 bg-indigo-500 px-3.5 text-xs font-semibold text-white hover:bg-indigo-400"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Submitting…
+              </>
+            ) : (
+              <>
+                <CheckCheck className="h-3.5 w-3.5" />
+                Submit
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* ============================= SPLIT ============================= */}
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         {/* ============================= LEFT PANE ============================= */}
         {!isFullscreen && (
-        <div
-          className="flex min-w-0 flex-col border-r border-[var(--ide-border)]"
-          style={isMobile ? { height: "42%" } : { width: `${leftWidth}%` }}
-        >
-          {/* Left tabs */}
-          <div className="flex h-10 flex-shrink-0 items-center border-b border-[var(--ide-border)] text-[13px]">
-            {(
-              [
-                ["problem", "Problem"],
-                ["solution", "Solution"],
-                ["submissions", "Submissions"],
-              ] as [LeftTab, string][]
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setLeftTab(id)}
-                className={cn(
-                  "relative h-full px-4 font-medium transition-colors",
-                  leftTab === id
-                    ? "text-[var(--ide-active)]"
-                    : "text-[var(--ide-foreground-muted)] hover:text-[var(--ide-active)]"
-                )}
-              >
-                {label}
-                {leftTab === id && (
-                  <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-[#3d8ef7]" />
-                )}
-              </button>
-            ))}
-            <div className="ml-auto flex items-center pr-3">
-              <button
-                type="button"
-                onClick={() => setBookmarked((b) => !b)}
-                className="p-1.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)]"
-                aria-label="Bookmark"
-              >
-                {bookmarked ? (
-                  <BookMarked className="h-4 w-4 fill-[#3d8ef7] text-[#3d8ef7]" />
-                ) : (
-                  <Bookmark className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Left scroll content */}
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            {leftTab === "problem" && (
-              <div className="space-y-4">
-                <div>
-                  <h1 className="text-xl font-semibold text-[var(--ide-active)]">{problem.title}</h1>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <DifficultyBadge difficulty={problem.difficulty} />
-                    <TopicBadge topic={problem.topic} />
-                    <span className="text-xs text-[var(--ide-foreground-muted)]">
-                      {problem.timeLimitMs} ms
-                    </span>
-                  </div>
+          <div
+            className="flex min-w-0 flex-col border-r border-white/10 md:p-2.5 md:bg-[#131318]"
+            style={isMobile ? { height: "42%" } : { width: `${leftWidth}%` }}
+          >
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0e0e11]">
+              {/* Left card header */}
+              <div className="flex h-11 flex-shrink-0 items-center border-b border-white/10 px-3">
+                <span className="text-sm font-semibold text-white">
+                  {navTab === "description" ? "Description" : NAV_TABS.find((t) => t.id === navTab)?.label}
+                </span>
+                <div className="ml-auto flex items-center gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setBookmarked((b) => !b)}
+                    className="rounded-md p-1.5 text-zinc-400 transition-colors hover:text-white"
+                    aria-label="Bookmark"
+                  >
+                    {bookmarked ? (
+                      <BookMarked className="h-4 w-4 fill-indigo-500 text-indigo-500" />
+                    ) : (
+                      <Bookmark className="h-4 w-4" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPanel(panel === "info" ? null : "info")}
+                    className={cn(
+                      "rounded-md p-1.5 text-zinc-400 transition-colors hover:text-white",
+                      panel === "info" && "bg-white/10 text-white"
+                    )}
+                    aria-label="Warning / info"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPanel(panel === "hint" ? null : "hint")}
+                    className={cn(
+                      "rounded-md p-1.5 text-zinc-400 transition-colors hover:text-white",
+                      panel === "hint" && "bg-white/10 text-white"
+                    )}
+                    aria-label="Lightbulb / hints"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                  </button>
                 </div>
+              </div>
 
-                {problem.description && (
-                  <div className="prose prose-sm max-w-none leading-relaxed dark:prose-invert prose-headings:text-[var(--ide-active)] prose-p:text-[var(--ide-foreground)] prose-strong:text-[var(--ide-active)] prose-code:rounded prose-code:bg-[var(--ide-surface)] prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-[var(--ide-foreground)] prose-code:before:content-none prose-code:after:content-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {problem.description}
-                    </ReactMarkdown>
-                  </div>
-                )}
+              {/* Left scroll content */}
+              <div className="relative flex-1 overflow-y-auto px-4 py-4">
+                {navTab === "description" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h1 className="text-xl font-semibold text-white">{problem.title}</h1>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <DifficultyBadge difficulty={problem.difficulty} />
+                        <TopicBadge topic={problem.topic} />
+                        <span className="text-xs text-zinc-500">
+                          {problem.timeLimitMs} ms
+                        </span>
+                      </div>
+                    </div>
 
-                {problem.constraints && (
-                  <div>
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--ide-foreground-muted)]">
-                      Constraints
-                    </h4>
-                    <div className="prose prose-sm max-w-none leading-relaxed dark:prose-invert rounded-lg border border-[var(--ide-border)] bg-[var(--ide-surface)] p-3 prose-code:rounded prose-code:bg-[var(--ide-bg-deep)] prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-[var(--ide-foreground)] prose-code:before:content-none prose-code:after:content-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {problem.constraints}
-                      </ReactMarkdown>
+                    {problem.description && (
+                      <div className="prose prose-sm max-w-none leading-relaxed prose-invert prose-headings:text-white prose-p:text-zinc-300 prose-strong:text-white prose-code:rounded prose-code:bg-[#1a1a24] prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-indigo-300 prose-code:before:content-none prose-code:after:content-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {problem.description}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+
+                    {problem.constraints && (
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                          Constraints
+                        </h4>
+                        <div className="prose prose-sm max-w-none leading-relaxed prose-invert rounded-lg border border-white/10 bg-[#1a1a24] p-3 prose-code:rounded prose-code:bg-[#0e0e11] prose-code:px-1 prose-code:py-0.5 prose-code:font-mono prose-code:text-indigo-300 prose-code:before:content-none prose-code:after:content-none">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {problem.constraints}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+
+                    {examples.map((tc, i) => (
+                      <div key={tc.id} className="space-y-1.5">
+                        <p className="text-sm font-semibold text-white">Example {i + 1}:</p>
+                        <MacWindow title={`Example ${i + 1}`} onCopy={() => {}}>
+                          {`Input: ${tc.input}\nOutput: ${tc.expectedOutput}`}
+                        </MacWindow>
+                        {tc.explanation && (
+                          <p className="text-[13px] text-zinc-400">
+                            <span className="font-medium text-white">Explanation: </span>
+                            {tc.explanation}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* "Now Your Turn!" callout */}
+                    <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-4">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-indigo-300" />
+                        <p className="text-sm font-semibold text-white">Now Your Turn!</p>
+                      </div>
+                      <p className="mt-1.5 text-[13px] text-zinc-400">
+                        Write your solution in the editor on the right, then press{" "}
+                        <span className="font-medium text-indigo-300">Run</span> to test it
+                        against the sample cases, or{" "}
+                        <span className="font-medium text-indigo-300">Submit</span> to check
+                        it against the full grading suite.
+                      </p>
                     </div>
                   </div>
                 )}
 
-                {examples.map((tc, i) => (
-                  <div key={tc.id} className="border-l-2 border-[#3d8ef7] pl-4 space-y-1.5">
-                    <p className="text-sm font-semibold text-[var(--ide-active)]">Example {i + 1}:</p>
-                    <pre className="whitespace-pre-wrap font-mono text-[13px] leading-relaxed text-[var(--ide-foreground)]">
-                      Input: {tc.input}
-                      {"\n"}Output: {tc.expectedOutput}
-                    </pre>
-                    {tc.explanation && (
-                      <p className="text-[13px] text-[var(--ide-foreground-muted)]">
-                        <span className="font-medium text-[var(--ide-active)]">Explanation: </span>
-                        {tc.explanation}
-                      </p>
+                {navTab === "submission" && <SubmissionsTab submissions={submissions} />}
+
+                {navTab === "editorial" && (
+                  <div>
+                    {problem.solution?.trim() ? (
+                      <div className="overflow-hidden rounded-lg border border-white/10 bg-[#1a1a24]">
+                        <CodeEditor value={problem.solution} readOnly height={360} />
+                      </div>
+                    ) : (
+                      <EmptyState
+                        icon={<BookMarked className="h-8 w-8" />}
+                        title="No editorial yet"
+                        subtitle="The official approach for this problem hasn't been published."
+                      />
                     )}
                   </div>
-                ))}
+                )}
 
-                {/* "Now Your Turn!" callout */}
-                <div className="mt-6 rounded-lg border border-[#3d8ef7]/40 bg-primary/5 p-4">
-                  <div className="flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-[#ffc107]" />
-                    <p className="text-sm font-semibold text-[var(--ide-active)]">Now Your Turn!</p>
-                  </div>
-                  <p className="mt-1.5 text-[13px] text-[var(--ide-foreground-muted)]">
-                    Write your solution in the editor on the right, then press{" "}
-                    <span className="font-medium text-[var(--ide-active)]">Run</span> to test it
-                    against the sample cases, or{" "}
-                    <span className="font-medium text-[var(--ide-active)]">Submit</span> to check
-                    it against the full grading suite.
-                  </p>
+                {(navTab === "ai" || navTab === "discussion" || navTab === "review" || navTab === "notes") && (
+                  <EmptyState
+                    icon={
+                      navTab === "ai" ? <Sparkles /> : navTab === "discussion" ? <Users /> : navTab === "notes" ? <StickyNote /> : <SearchCheck />
+                    }
+                    title={NAV_TABS.find((t) => t.id === navTab)?.label ?? "Panel"}
+                    subtitle="This panel is ready for content."
+                  />
+                )}
+              </div>
+
+              {/* Left bottom dock: test cases / output */}
+              <div className="flex flex-shrink-0 flex-col border-t border-white/10">
+                <div className="flex h-9 items-center gap-1 px-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setDockTab("cases")}
+                    className={cn(
+                      "rounded px-2.5 py-1 font-medium transition-colors",
+                      dockTab === "cases"
+                        ? "bg-white/10 text-white"
+                        : "text-zinc-500 hover:text-white"
+                    )}
+                  >
+                    Test Cases
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDockTab("output")}
+                    className={cn(
+                      "rounded px-2.5 py-1 font-medium transition-colors",
+                      dockTab === "output"
+                        ? "bg-white/10 text-white"
+                        : "text-zinc-500 hover:text-white"
+                    )}
+                  >
+                    Output
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDockOpen((o) => !o)}
+                    className="ml-auto rounded p-1 text-zinc-500 transition-colors hover:text-white"
+                    aria-label={dockOpen ? "Collapse dock" : "Expand dock"}
+                  >
+                    {dockOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
-              </div>
-            )}
-
-            {leftTab === "submissions" && (
-              <SubmissionsTab submissions={submissions} />
-            )}
-
-            {leftTab === "solution" && (
-              <div>
-                {problem.solution?.trim() ? (
-                  <div className="rounded-lg overflow-hidden border border-[var(--ide-border)] bg-[var(--ide-surface)]">
-                    <CodeEditor value={problem.solution} readOnly height={360} />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <FileText className="h-8 w-8 text-[var(--ide-foreground-muted)]" />
-                    <p className="mt-3 text-sm text-[var(--ide-foreground-muted)]">
-                      No official solution for this problem yet.
-                    </p>
+                {dockOpen && (
+                  <div className="max-h-32 overflow-y-auto border-t border-white/10 px-3 py-2 text-xs">
+                    {dockTab === "cases" ? (
+                      <div className="space-y-2">
+                        {examples.map((tc, i) => (
+                          <div key={tc.id} className="space-y-0.5">
+                            <p className="font-medium text-zinc-400">Case {i + 1}</p>
+                            <pre className="whitespace-pre-wrap rounded bg-[#1a1a24] p-2 font-mono text-[11px] text-zinc-300">
+                              {tc.input}
+                            </pre>
+                          </div>
+                        ))}
+                      </div>
+                    ) : result ? (
+                      <div className="space-y-1">
+                        <p className="text-zinc-400">
+                          {result.passedCount}/{result.totalCount} passed
+                        </p>
+                        <pre className="whitespace-pre-wrap rounded bg-[#1a1a24] p-2 font-mono text-[11px] text-zinc-300">
+                          {result.results.find((r) => r.id === activeCaseId)?.stdout || "(no output)"}
+                        </pre>
+                      </div>
+                    ) : (
+                      <p className="text-zinc-500">Run code to see output.</p>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-
-          {/* Left footer: hint / info */}
-          <div className="relative flex h-11 flex-shrink-0 items-center gap-1 border-t border-[var(--ide-border)] px-3 text-xs text-[var(--ide-foreground-muted)]">
-            <span className="mx-1 h-4 w-px bg-[var(--ide-surface-hover)]" />
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setPanel(panel === "hint" ? null : "hint")}
-                className={cn(
-                  "rounded p-1.5 transition-colors hover:text-[var(--ide-active)]",
-                  panel === "hint" && "bg-[var(--ide-surface)] text-[var(--ide-active)]"
-                )}
-                title="Hint"
-              >
-                <Lightbulb className="h-3.5 w-3.5" />
-              </button>
-              {panel === "hint" && (
-                <FooterPopover
-                  title="Hints"
-                  onClose={() => setPanel(null)}
-                  align="left"
-                >
-                  <ul className="space-y-2">
-                    {getHints(problem.topic, problem.difficulty).map((h, i) => (
-                      <li key={i} className="flex gap-2 text-[13px] leading-snug text-[var(--ide-foreground)]">
-                        <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[#3d8ef7]/20 text-[10px] font-semibold text-[#3d8ef7]">
-                          {i + 1}
-                        </span>
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
-                </FooterPopover>
-              )}
             </div>
-            <button
-              type="button"
-              onClick={() => setPanel(panel === "info" ? null : "info")}
-              className={cn(
-                "ml-auto rounded p-1.5 transition-colors hover:text-[var(--ide-active)]",
-                panel === "info" && "bg-[var(--ide-surface)] text-[var(--ide-active)]"
-              )}
-              title="Info"
-            >
-              <Info className="h-3.5 w-3.5" />
-            </button>
-            {panel === "info" && (
-              <FooterPopover
-                title="Problem info"
-                onClose={() => setPanel(null)}
-                align="right"
-              >
-                <dl className="space-y-1.5 text-[13px]">
-                  <div className="flex justify-between gap-6">
-                    <dt className="text-[var(--ide-foreground-muted)]">Difficulty</dt>
-                    <dd className="font-medium text-[var(--ide-active)]">
-                      <DifficultyBadge difficulty={problem.difficulty} />
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-6">
-                    <dt className="text-[var(--ide-foreground-muted)]">Topic</dt>
-                    <dd className="font-medium text-[var(--ide-active)]">
-                      <TopicBadge topic={problem.topic} />
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-6">
-                    <dt className="text-[var(--ide-foreground-muted)]">Time limit</dt>
-                    <dd className="font-medium text-[var(--ide-active)]">{problem.timeLimitMs} ms</dd>
-                  </div>
-                  <div className="flex justify-between gap-6">
-                    <dt className="text-[var(--ide-foreground-muted)]">Language</dt>
-                    <dd className="font-medium text-[var(--ide-active)]">C++</dd>
-                  </div>
-                  <div className="flex justify-between gap-6">
-                    <dt className="text-[var(--ide-foreground-muted)]">Test cases</dt>
-                    <dd className="font-medium text-[var(--ide-active)]">
-                      {problem.testCases.filter((t) => !t.isHidden).length} public •{" "}
-                      {problem.testCases.filter((t) => t.isHidden).length} hidden
-                    </dd>
-                  </div>
-                </dl>
-              </FooterPopover>
-            )}
           </div>
-        </div>
         )}
 
         {/* Draggable vertical divider */}
         {!isMobile && !isFullscreen && (
           <div
             onPointerDown={onVerticalDragStart}
-            className="w-1 flex-shrink-0 cursor-col-resize bg-[var(--ide-surface)] transition-colors hover:bg-[var(--ide-surface)]"
+            className="w-px flex-shrink-0 cursor-col-resize bg-white/10 transition-colors hover:bg-indigo-500/60"
           />
         )}
 
         {/* ============================= RIGHT PANE ============================= */}
         <div className="flex min-w-0 min-h-0 flex-1 flex-col">
-          {/* Editor nav */}
-          <div className="flex h-10 flex-shrink-0 items-center border-b border-[var(--ide-border)] text-[13px]">
-            {/* Draft auto-save indicator */}
-            <div className="min-w-0 pl-3">
-              {draftSaved ? (
-                <span className="inline-flex items-center gap-1.5 text-xs text-[#4caf50]">
-                  <CheckCheck className="h-3.5 w-3.5" />
-                  Draft saved
-                </span>
-              ) : (
-                <span className="text-xs text-[var(--ide-foreground-muted)]">Auto-saves</span>
-              )}
-            </div>
-            <div className="ml-auto flex items-center gap-1.5 pr-2">
-              {/* Format code */}
+          {/* Editor toolbar */}
+          <div className="flex h-11 flex-shrink-0 items-center gap-1 border-b border-white/10 bg-[#0e0e11] px-2">
+            {/* Language selector */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={handleFormat}
-                title="Format code (Shift+Alt+F)"
-                className="flex items-center gap-1.5 rounded border border-[var(--ide-border)] bg-[var(--ide-surface)] px-2.5 py-1 text-xs font-medium text-[var(--ide-foreground)] transition-colors hover:border-[var(--ide-border)] hover:text-[var(--ide-active)]"
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-[#1a1a24] px-2.5 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:border-white/20"
               >
-                <Wand2 className="h-3.5 w-3.5" />
-                Format
-              </button>
-
-              {/* Language dropdown */}
-              <button
-                type="button"
-                className="flex items-center gap-1.5 rounded border border-[var(--ide-border)] bg-[var(--ide-surface)] px-2.5 py-1 text-xs font-medium text-[var(--ide-foreground)] transition-colors hover:border-[var(--ide-border)]"
-              >
+                <Braces className="h-3.5 w-3.5 text-indigo-400" />
                 C++
-                <ChevronDown className="h-3 w-3 text-[var(--ide-foreground-muted)]" />
+                <ChevronDown className="h-3 w-3 text-zinc-500" />
               </button>
+            </div>
 
-              {/* Run */}
-              <Button
-                type="button"
-                onClick={onRun}
-                disabled={busy || submitting}
-                className="h-7 gap-1.5 border border-[var(--ide-border)] bg-[var(--ide-surface)] px-3 text-xs font-medium text-[var(--ide-foreground)] hover:bg-[var(--ide-surface-hover)] hover:text-[var(--ide-active)]"
+            <div className="ml-auto flex items-center gap-1">
+              {/* Format */}
+              <ToolbarIconButton onClick={handleFormat} title="Format code (Shift+Alt+F)">
+                <Wand2 className="h-4 w-4" />
+              </ToolbarIconButton>
+              {/* Font size */}
+              <ToolbarIconButton onClick={() => setFontSize((f) => Math.min(24, f + 1))} title="Increase font size">
+                <Type className="h-4 w-4" />
+              </ToolbarIconButton>
+              {/* Braces toggle (tab size) */}
+              <ToolbarIconButton onClick={() => setTabSize(tabSize === 4 ? 2 : 4)} title="Toggle tab size">
+                <Braces className="h-4 w-4" />
+              </ToolbarIconButton>
+              {/* Undo / Redo */}
+              <ToolbarIconButton
+                onClick={() => editorRef.current?.trigger?.("toolbar", "undo")}
+                title="Undo"
               >
-                {busy ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Running…
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-3.5 w-3.5" />
-                    Run
-                  </>
-                )}
-              </Button>
-
-              {/* Submit */}
-              <Button
-                type="button"
-                onClick={onSubmit}
-                disabled={busy || submitting}
-                className="h-7 gap-1.5 bg-[#2e7d32] px-3 text-xs font-semibold text-[var(--ide-active)] hover:bg-[#388e3c]"
+                <Undo2 className="h-4 w-4" />
+              </ToolbarIconButton>
+              <ToolbarIconButton
+                onClick={() => editorRef.current?.trigger?.("toolbar", "redo")}
+                title="Redo"
               >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Submitting…
-                  </>
+                <Redo2 className="h-4 w-4" />
+              </ToolbarIconButton>
+              {/* Copy */}
+              <ToolbarIconButton onClick={handleCopy} title="Copy code">
+                {copied ? (
+                  <CheckCheck className="h-4 w-4 text-emerald-400" />
                 ) : (
-                  <>
-                    <CheckCheck className="h-3.5 w-3.5" />
-                    Submit
-                  </>
+                  <Copy className="h-4 w-4" />
                 )}
-              </Button>
-
-              {/* Fullscreen / Maximize */}
-              <button
-                type="button"
+              </ToolbarIconButton>
+              {/* Expand / fullscreen */}
+              <ToolbarIconButton
                 onClick={() => setIsFullscreen((f) => !f)}
-                title={isFullscreen ? "Exit fullscreen" : "Fullscreen editor"}
-                className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded border transition-colors",
-                  isFullscreen
-                    ? "border-[#3d8ef7] bg-[#3d8ef7]/20 text-[#3d8ef7]"
-                    : "border-[var(--ide-border)] bg-[var(--ide-surface)] text-[var(--ide-foreground)] hover:border-[var(--ide-border)] hover:text-[var(--ide-active)]"
-                )}
+                title={isFullscreen ? "Exit fullscreen" : "Expand editor"}
               >
                 {isFullscreen ? (
-                  <Minimize2 className="h-3.5 w-3.5" />
+                  <Minimize2 className="h-4 w-4" />
                 ) : (
-                  <Maximize2 className="h-3.5 w-3.5" />
+                  <Maximize2 className="h-4 w-4" />
                 )}
-              </button>
+              </ToolbarIconButton>
+              {/* Settings */}
+              <div className="relative">
+                <ToolbarIconButton
+                  onClick={() => setSettingsOpen((o) => !o)}
+                  title="Settings"
+                  active={settingsOpen}
+                >
+                  <Settings className="h-4 w-4" />
+                </ToolbarIconButton>
+                {settingsOpen && (
+                  <SettingsPopover
+                    tab={settingsTab}
+                    onTabChange={setSettingsTab}
+                    fontSize={fontSize}
+                    onFontSizeChange={setFontSize}
+                    tabSize={tabSize}
+                    onTabSizeChange={setTabSize}
+                    wordWrap={wordWrap}
+                    onWordWrapChange={setWordWrap}
+                    consoleOpen={consoleOpen}
+                    onConsoleOpenChange={setConsoleOpen}
+                    theme={editorTheme}
+                    onThemeChange={onEditorThemeChange}
+                    onClose={() => setSettingsOpen(false)}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -528,9 +602,9 @@ export function LeetCodeLayout({
 
           {/* Toolchain load progress */}
           {loading && (
-            <div className="h-0.5 w-full flex-shrink-0 overflow-hidden bg-[var(--ide-surface)]">
+            <div className="h-0.5 w-full flex-shrink-0 overflow-hidden bg-white/5">
               <div
-                className="h-full bg-[#3d8ef7] transition-all duration-300"
+                className="h-full bg-indigo-500 transition-all duration-300"
                 style={{ width: `${Math.max(5, (progress ?? 0.3) * 100)}%` }}
               />
             </div>
@@ -540,19 +614,19 @@ export function LeetCodeLayout({
           {!isMobile && consoleOpen && (
             <div
               onPointerDown={onHorizontalDragStart}
-              className="h-1 flex-shrink-0 cursor-row-resize bg-[var(--ide-surface)] transition-colors hover:bg-[var(--ide-surface)]"
+              className="h-px flex-shrink-0 cursor-row-resize bg-white/10 transition-colors hover:bg-indigo-500/60"
             />
           )}
 
           {/* Console / test-case panel */}
           <div
             className={cn(
-              "flex min-h-0 flex-col border-t border-[var(--ide-border)] bg-[var(--ide-bg-deep)]",
+              "flex min-h-0 flex-col border-t border-white/10 bg-[#0a0a0d]",
               consoleOpen ? "flex-1" : "flex-shrink-0"
             )}
           >
             {/* Console header */}
-            <div className="flex h-9 flex-shrink-0 items-center gap-1 border-b border-[var(--ide-border)] px-2 text-xs">
+            <div className="flex h-9 flex-shrink-0 items-center gap-1 border-b border-white/10 px-2 text-xs">
               {(
                 [
                   ["all", "Test Case"],
@@ -567,8 +641,8 @@ export function LeetCodeLayout({
                   className={cn(
                     "rounded px-2.5 py-1 font-medium transition-colors",
                     category === id
-                      ? "bg-[var(--ide-surface-hover)] text-[var(--ide-active)]"
-                      : "text-[var(--ide-foreground-muted)] hover:text-[var(--ide-active)]"
+                      ? "bg-white/10 text-white"
+                      : "text-zinc-500 hover:text-white"
                   )}
                 >
                   {label}
@@ -580,7 +654,7 @@ export function LeetCodeLayout({
                   type="button"
                   onClick={onReset}
                   disabled={busy || submitting}
-                  className="rounded p-1.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)] disabled:opacity-40"
+                  className="rounded p-1.5 text-zinc-500 transition-colors hover:text-white disabled:opacity-40"
                   title="Reset code"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
@@ -588,50 +662,19 @@ export function LeetCodeLayout({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="rounded p-1.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)]"
+                  className="rounded p-1.5 text-zinc-500 transition-colors hover:text-white"
                   title="Copy code"
                 >
                   {copied ? (
-                    <CheckCheck className="h-3.5 w-3.5 text-[#4caf50]" />
+                    <CheckCheck className="h-3.5 w-3.5 text-emerald-400" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
                 </button>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setSettingsOpen((o) => !o)}
-                    className={cn(
-                      "rounded p-1.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)]",
-                      settingsOpen && "bg-[var(--ide-surface)] text-[var(--ide-active)]"
-                    )}
-                    title="Settings"
-                  >
-                    <Settings className="h-3.5 w-3.5" />
-                  </button>
-
-                  {settingsOpen && (
-                    <SettingsPopover
-                      tab={settingsTab}
-                      onTabChange={setSettingsTab}
-                      fontSize={fontSize}
-                      onFontSizeChange={setFontSize}
-                      tabSize={tabSize}
-                      onTabSizeChange={setTabSize}
-                      wordWrap={wordWrap}
-                      onWordWrapChange={setWordWrap}
-                      consoleOpen={consoleOpen}
-                      onConsoleOpenChange={setConsoleOpen}
-                      theme={editorTheme}
-                      onThemeChange={onEditorThemeChange}
-                      onClose={() => setSettingsOpen(false)}
-                    />
-                  )}
-                </div>
                 <button
                   type="button"
                   onClick={() => setConsoleOpen((o) => !o)}
-                  className="rounded p-1.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)]"
+                  className="rounded p-1.5 text-zinc-500 transition-colors hover:text-white"
                   title={consoleOpen ? "Collapse console" : "Expand console"}
                 >
                   {consoleOpen ? (
@@ -668,6 +711,84 @@ export function LeetCodeLayout({
   );
 }
 
+function ToolbarIconButton({
+  children,
+  onClick,
+  title,
+  active,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  title: string;
+  active?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white/10 hover:text-white",
+        active && "bg-white/10 text-white"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function MacWindow({
+  title,
+  onCopy,
+  children,
+}: {
+  title?: string;
+  onCopy: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-[#1a1a24]">
+      <div className="flex items-center gap-1.5 border-b border-white/10 px-3 py-2">
+        <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+        <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+        <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+        {title && <span className="ml-2 text-[11px] text-zinc-500">{title}</span>}
+        <button
+          type="button"
+          onClick={onCopy}
+          className="ml-auto rounded p-1 text-zinc-500 transition-colors hover:text-white"
+          aria-label="Copy example"
+        >
+          <Copy className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <pre className="whitespace-pre-wrap p-3 font-mono text-[13px] leading-relaxed text-zinc-300">
+        {children}
+      </pre>
+    </div>
+  );
+}
+
+function EmptyState({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-zinc-500">
+        {icon}
+      </div>
+      <p className="mt-4 text-sm font-medium text-white">{title}</p>
+      <p className="mt-1 text-[13px] text-zinc-500">{subtitle}</p>
+    </div>
+  );
+}
+
 type SettingsTab = "layout" | "editor" | "shortcuts";
 
 interface SettingsPopoverProps {
@@ -699,13 +820,13 @@ function ToggleRow({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs text-[var(--ide-foreground)] transition-colors hover:bg-[var(--ide-surface-hover)]"
+      className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs text-zinc-200 transition-colors hover:bg-white/5"
     >
       <span>{label}</span>
       <span
         className={cn(
           "relative h-4 w-7 rounded-full transition-colors",
-          checked ? "bg-[#3d8ef7]" : "bg-[var(--ide-foreground-muted)]"
+          checked ? "bg-indigo-500" : "bg-zinc-600"
         )}
       >
         <span
@@ -734,22 +855,22 @@ function Stepper({
 }) {
   return (
     <div className="flex items-center justify-between px-2 py-1.5 text-xs">
-      <span className="text-[var(--ide-foreground)]">{label}</span>
+      <span className="text-zinc-200">{label}</span>
       <div className="flex items-center gap-1">
         <button
           type="button"
           disabled={value <= min}
           onClick={() => onChange(value - 1)}
-          className="rounded p-1 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)] disabled:opacity-40"
+          className="rounded p-1 text-zinc-500 transition-colors hover:text-white disabled:opacity-40"
         >
           <Minus className="h-3 w-3" />
         </button>
-        <span className="w-6 text-center font-mono text-[var(--ide-foreground)]">{value}</span>
+        <span className="w-6 text-center font-mono text-zinc-200">{value}</span>
         <button
           type="button"
           disabled={value >= max}
           onClick={() => onChange(value + 1)}
-          className="rounded p-1 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)] disabled:opacity-40"
+          className="rounded p-1 text-zinc-500 transition-colors hover:text-white disabled:opacity-40"
         >
           <Plus className="h-3 w-3" />
         </button>
@@ -772,16 +893,16 @@ function FooterPopover({
   return (
     <div
       className={cn(
-        "absolute bottom-10 z-50 w-72 rounded-lg border border-[var(--ide-border)] bg-[var(--ide-surface)] p-3 shadow-2xl",
+        "absolute top-11 z-50 w-72 rounded-xl border border-white/10 bg-[#1a1a24] p-3 shadow-2xl",
         align === "left" ? "left-0" : "right-0"
       )}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold text-[var(--ide-active)]">{title}</span>
+        <span className="text-xs font-semibold text-white">{title}</span>
         <button
           type="button"
           onClick={onClose}
-          className="rounded p-0.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)]"
+          className="rounded p-0.5 text-zinc-500 transition-colors hover:text-white"
           title="Close"
         >
           <X className="h-3.5 w-3.5" />
@@ -814,20 +935,20 @@ function SettingsPopover({
   ];
 
   return (
-    <div className="absolute bottom-9 right-0 z-50 w-72 overflow-hidden rounded-lg border border-[var(--ide-border)] bg-[var(--ide-surface)] shadow-2xl">
-      <div className="flex items-center border-b border-[var(--ide-border)] px-3 py-2">
-        <span className="text-xs font-semibold text-[var(--ide-active)]">Settings</span>
+    <div className="absolute top-10 right-0 z-50 w-72 overflow-hidden rounded-xl border border-white/10 bg-[#1a1a24] shadow-2xl">
+      <div className="flex items-center border-b border-white/10 px-3 py-2">
+        <span className="text-xs font-semibold text-white">Settings</span>
         <button
           type="button"
           onClick={onClose}
-          className="ml-auto rounded p-0.5 text-[var(--ide-foreground-muted)] transition-colors hover:text-[var(--ide-active)]"
+          className="ml-auto rounded p-0.5 text-zinc-500 transition-colors hover:text-white"
           title="Close settings"
         >
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <div className="flex gap-1 border-b border-[var(--ide-border)] px-2 py-1.5">
+      <div className="flex gap-1 border-b border-white/10 px-2 py-1.5">
         {tabs.map(([id, label]) => (
           <button
             key={id}
@@ -836,8 +957,8 @@ function SettingsPopover({
             className={cn(
               "rounded px-2.5 py-1 text-xs font-medium transition-colors",
               tab === id
-                ? "bg-[var(--ide-surface-hover)] text-[var(--ide-active)]"
-                : "text-[var(--ide-foreground-muted)] hover:text-[var(--ide-active)]"
+                ? "bg-white/10 text-white"
+                : "text-zinc-500 hover:text-white"
             )}
           >
             {label}
@@ -853,7 +974,7 @@ function SettingsPopover({
               checked={consoleOpen}
               onChange={onConsoleOpenChange}
             />
-            <p className="px-2 pt-1 text-[11px] leading-snug text-[var(--ide-foreground-muted)]">
+            <p className="px-2 pt-1 text-[11px] leading-snug text-zinc-500">
               The console shows sample and hidden test cases, output and verdicts.
             </p>
           </div>
@@ -861,9 +982,8 @@ function SettingsPopover({
 
         {tab === "editor" && (
           <div className="space-y-0.5">
-            {/* Theme selector */}
             <div className="px-2 py-1.5 text-xs">
-              <span className="block text-[var(--ide-foreground)] mb-1.5">Editor theme</span>
+              <span className="mb-1.5 block text-zinc-200">Editor theme</span>
               <div className="grid grid-cols-2 gap-1">
                 {EDITOR_THEMES.map((t) => (
                   <button
@@ -873,8 +993,8 @@ function SettingsPopover({
                     className={cn(
                       "rounded px-2 py-1 text-left text-xs transition-colors",
                       theme === t.id
-                        ? "bg-[#3d8ef7] text-[var(--ide-active)]"
-                        : "text-[var(--ide-foreground)] hover:bg-[var(--ide-surface-hover)] hover:text-[var(--ide-active)]"
+                        ? "bg-indigo-500 text-white"
+                        : "text-zinc-300 hover:bg-white/5 hover:text-white"
                     )}
                   >
                     {t.label}
@@ -882,7 +1002,7 @@ function SettingsPopover({
                 ))}
               </div>
             </div>
-            <div className="mx-2 my-1.5 h-px bg-[var(--ide-surface)]" />
+            <div className="mx-2 my-1.5 h-px bg-white/10" />
             <Stepper
               label="Font size"
               value={fontSize}
@@ -891,7 +1011,7 @@ function SettingsPopover({
               onChange={onFontSizeChange}
             />
             <div className="flex items-center justify-between px-2 py-1.5 text-xs">
-              <span className="text-[var(--ide-foreground)]">Tab size</span>
+              <span className="text-zinc-200">Tab size</span>
               <div className="flex gap-1">
                 {[2, 4, 8].map((n) => (
                   <button
@@ -901,8 +1021,8 @@ function SettingsPopover({
                     className={cn(
                       "rounded px-2 py-0.5 font-mono text-xs transition-colors",
                       tabSize === n
-                        ? "bg-[#3d8ef7] text-[var(--ide-active)]"
-                        : "text-[var(--ide-foreground-muted)] hover:text-[var(--ide-active)]"
+                        ? "bg-indigo-500 text-white"
+                        : "text-zinc-500 hover:text-white"
                     )}
                   >
                     {n}
@@ -933,8 +1053,8 @@ function SettingsPopover({
                 key={action}
                 className="flex items-center justify-between py-1 text-xs"
               >
-                <span className="text-[var(--ide-foreground-muted)]">{action}</span>
-                <kbd className="rounded border border-[var(--ide-border)] bg-[var(--ide-surface-hover)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--ide-foreground)]">
+                <span className="text-zinc-500">{action}</span>
+                <kbd className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-mono text-[11px] text-zinc-300">
                   {keys}
                 </kbd>
               </div>
@@ -949,12 +1069,11 @@ function SettingsPopover({
 function SubmissionsTab({ submissions }: { submissions: ProblemSubmissionPayload[] }) {
   if (!submissions.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <ListChecks className="h-8 w-8 text-[var(--ide-foreground-muted)]" />
-        <p className="mt-3 text-sm text-[var(--ide-foreground-muted)]">
-          No submissions yet. Write your solution and press Submit.
-        </p>
-      </div>
+      <EmptyState
+        icon={<ListChecks className="h-8 w-8" />}
+        title="No submissions yet"
+        subtitle="Write your solution and press Submit."
+      />
     );
   }
 
@@ -963,15 +1082,15 @@ function SubmissionsTab({ submissions }: { submissions: ProblemSubmissionPayload
       {submissions.map((s) => (
         <div
           key={s.id}
-          className="flex items-center justify-between gap-3 rounded-lg border border-[var(--ide-border)] bg-[var(--ide-surface)] px-3 py-2.5"
+          className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1a1a24] px-3 py-2.5"
         >
           <div>
             <VerdictBadge verdict={s.status} />
-            <p className="mt-1 text-xs text-[var(--ide-foreground-muted)]">
+            <p className="mt-1 text-xs text-zinc-500">
               {s.passedCount}/{s.totalCount} test cases passed
             </p>
           </div>
-          <div className="text-right text-xs text-[var(--ide-foreground-muted)]">
+          <div className="text-right text-xs text-zinc-500">
             {s.runtimeMs != null && <p>{s.runtimeMs} ms</p>}
             <p>{new Date(s.createdAt).toLocaleString()}</p>
           </div>

@@ -51,15 +51,15 @@ body,
 
     --lp-timeline-buffered-color: oklch(0.985 0 0 / 0.4);
 
-    /* Coding workspace (IDE) palette — light theme */
-    --ide-bg: #f4f5f7;
-    --ide-bg-deep: #ffffff;
-    --ide-surface: #e8eaed;
-    --ide-surface-hover: #dde1e6;
-    --ide-border: #d0d4da;
-    --ide-foreground: #24292e;
-    --ide-foreground-muted: #6b7280;
-    --ide-active: #111827;
+    /* Coding workspace (IDE) palette — always dark, high-end surface */
+    --ide-bg: #0e0e11;
+    --ide-bg-deep: #0a0a0d;
+    --ide-surface: #1a1a24;
+    --ide-surface-hover: #26262f;
+    --ide-border: rgba(255, 255, 255, 0.08);
+    --ide-foreground: #e4e4e7;
+    --ide-foreground-muted: #8e8e96;
+    --ide-active: #ffffff;
   }
 
   .dark {
@@ -97,14 +97,14 @@ body,
     --lp-primary-foreground: oklch(0.985 0 0);
     --lp-timeline-buffered-color: oklch(0.985 0 0 / 0.4);
 
-    /* Coding workspace (IDE) palette — dark theme */
-    --ide-bg: #1e1e1e;
-    --ide-bg-deep: #1a1a1a;
-    --ide-surface: #2a2d2e;
-    --ide-surface-hover: #3a3a3a;
-    --ide-border: #3a3a3a;
-    --ide-foreground: #d4d4d4;
-    --ide-foreground-muted: #6e6e6e;
+    /* Coding workspace (IDE) palette — always dark, high-end surface */
+    --ide-bg: #0e0e11;
+    --ide-bg-deep: #0a0a0d;
+    --ide-surface: #1a1a24;
+    --ide-surface-hover: #26262f;
+    --ide-border: rgba(255, 255, 255, 0.08);
+    --ide-foreground: #e4e4e7;
+    --ide-foreground-muted: #8e8e96;
     --ide-active: #ffffff;
 
     /* System font stack (replaces Google-hosted DM Sans, which Next 16
