@@ -505,6 +505,58 @@ export function findCodingProblem(problemId: string): CodingProblemView | undefi
   return undefined;
 }
 
+/** Lightweight shape for a single practice (LeetCode-style) question. */
+export interface PracticeQuestionView {
+  id: string;
+  title: string;
+  url: string | null;
+  difficulty: string;
+  tags: string | null;
+  notes: string | null;
+  position: number;
+  problemStatement: string | null;
+  testCases: string | null;
+  solution: string | null;
+}
+
+function serializePracticeQuestion(q: StaticLeetCodeQuestion): PracticeQuestionView {
+  return {
+    id: q.id,
+    title: q.title,
+    url: q.url,
+    difficulty: q.difficulty,
+    tags: q.tags,
+    notes: q.notes,
+    position: q.position,
+    problemStatement: q.problemStatement,
+    testCases: q.testCases,
+    solution: q.solution,
+  };
+}
+
+/** Practice questions attached to a chapter, ordered by position. */
+export function getChapterPracticeQuestions(chapterId: string): PracticeQuestionView[] {
+  const chapter = staticCourses
+    .flatMap((c) => c.chapters)
+    .find((ch) => ch.id === chapterId);
+  if (!chapter) return [];
+  return chapter.leetcodeQuestions
+    .slice()
+    .sort((a, b) => a.position - b.position)
+    .map(serializePracticeQuestion);
+}
+
+/** Find a single practice question by id. */
+export function findPracticeQuestion(questionId: string): PracticeQuestionView | undefined {
+  for (const c of staticCourses) {
+    for (const ch of c.chapters) {
+      const q = ch.leetcodeQuestions.find((item) => item.id === questionId);
+      if (q) return serializePracticeQuestion(q);
+    }
+  }
+  return undefined;
+}
+
 // Shapes used by the course sidebar/navbar (static content + per-user progress).
 export interface ChapterProgressState {
   isCompleted: boolean;

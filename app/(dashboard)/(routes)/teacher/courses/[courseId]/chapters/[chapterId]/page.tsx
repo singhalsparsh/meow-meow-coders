@@ -91,11 +91,10 @@ const ChapterIdPage = async (
         console.error("[TEACHER_CHAPTER_CODING_PROBLEMS]", error);
     }
 
-    // A chapter counts as having a video when it has a primary video OR at
-    // least one streaming URL.
+    // A video is NOT required to publish a chapter: a lesson can be purely a
+    // set of coding questions (or other content). Only the title is required.
     const requiredFields = [
         chapter.title,
-        chapter.videoUrl || chapter.videoSources.length > 0,
     ];
 
     // Assemble the playable streams and wrap each in a signed proxy URL so the

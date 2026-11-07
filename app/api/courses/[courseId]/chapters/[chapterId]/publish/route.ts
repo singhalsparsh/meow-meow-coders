@@ -32,7 +32,9 @@ export async function PATCH(
             }
         });
 
-        if (!chapter || !chapter.title || !chapter.videoUrl) {
+        // A video is not required to publish — a chapter may be purely coding
+        // questions (or other content). Only the title is required.
+        if (!chapter || !chapter.title) {
             return new NextResponse("Please fill in all required fields", { status: 400 });
         }
 

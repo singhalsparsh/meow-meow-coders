@@ -22,7 +22,6 @@ import { VideoPlayer } from "./video-player";
 import { CourseProgressButton } from "./course-progress-button";
 import { ChapterNav } from "./chapter-nav";
 import { Preview } from "@/components/preview";
-import { LeetcodeQuestions } from "@/components/leetcode-questions";
 import { PdfNotes } from "@/components/pdf-notes";
 import { VideoBlogViewer } from "@/components/video-blog-viewer";
 import { DifficultyBadge } from "@/components/coding-workspace/badges";
@@ -86,16 +85,32 @@ function LessonShellContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // A chapter "has a video" when it has a primary video OR at least one
+  // streaming source. Chapters without a video skip the video tab entirely and
+  // default to their coding questions instead.
+  const hasVideo = !!(
+    playbackId ||
+    videoUrl ||
+    (videoSources && videoSources.length > 0)
+  );
+
   // Allow deep-linking to a specific tab (e.g. `?tab=coding` from the "Back
   // to questions" link on the problem page).
   const tabParam = searchParams.get("tab");
-  const [mode, setMode] = useState<ViewMode>(() =>
-    VALID_TABS.includes(tabParam as ViewMode) ? (tabParam as ViewMode) : "video"
-  );
+  const [mode, setMode] = useState<ViewMode>(() => {
+    const requested = tabParam as ViewMode;
+    if (VALID_TABS.includes(requested) && (requested !== "video" || hasVideo)) {
+      return requested;
+    }
+    // No video → default to coding questions.
+    return hasVideo ? "video" : "coding";
+  });
   const [dockOpen, setDockOpen] = useState(false);
 
   const modes = [
-    { id: "video" as const, label: "Video", icon: Play, count: null },
+    ...(hasVideo
+      ? [{ id: "video" as const, label: "Video", icon: Play, count: null }]
+      : []),
     { id: "coding" as const, label: "Coding Questions", icon: Code2, count: codingProblems.length },
     { id: "practice" as const, label: "Extra Practice", icon: BrainCircuit, count: leetcodeQuestions.length },
     { id: "pdf" as const, label: "PDF Notes", icon: FileText, count: pdfNotes.length },
@@ -141,8 +156,9 @@ function LessonShellContent({
         )}
       </div>
 
-      {/* Back to lesson (visible whenever a non-video tab is open) */}
-      {mode !== "video" && (
+      {/* Back to lesson (visible whenever a non-video tab is open AND the
+          chapter actually has a video) */}
+      {mode !== "video" && hasVideo && (
         <button
           type="button"
           onClick={() => selectMode("video")}
@@ -221,15 +237,41 @@ function LessonShellContent({
         )}
 
         {mode === "practice" && (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {leetcodeQuestions.length === 0 ? (
-              <EmptyState
-                icon={BrainCircuit}
-                title="No extra practice yet"
-                hint="Extra practice questions for this chapter will appear here."
-              />
+              <div className="sm:col-span-2">
+                <EmptyState
+                  icon={BrainCircuit}
+                  title="No extra practice yet"
+                  hint="Extra practice questions for this chapter will appear here."
+                />
+              </div>
             ) : (
-              <LeetcodeQuestions questions={leetcodeQuestions} />
+              leetcodeQuestions.map((q) => (
+                <Link
+                  key={q.id}
+                  href={`/courses/${courseId}/chapters/${chapterId}/practice/${q.id}`}
+                  className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-primary/40 hover:bg-accent/40"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+                      <BrainCircuit className="h-4 w-4 text-primary" />
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                  <h3 className="mt-4 text-sm font-semibold text-foreground leading-snug">
+                    {q.title}
+                  </h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <DifficultyBadge difficulty={q.difficulty} />
+                    {q.tags && (
+                      <span className="truncate text-xs text-muted-foreground">
+                        {q.tags}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))
             )}
           </div>
         )}
