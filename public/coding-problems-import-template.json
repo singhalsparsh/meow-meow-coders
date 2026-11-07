@@ -1,0 +1,78 @@
+{
+  "problems": [
+    {
+      "title": "Two Sum",
+      "topic": "ARRAYS",
+      "difficulty": "EASY",
+      "timeLimitMs": 2000,
+      "description": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers such that they add up to `target`.\n\nYou may assume that each input has **exactly one solution**, and you may not use the same element twice.\n\nYou can return the answer in any order.",
+      "constraints": "- `2 <= nums.length <= 10^4`\n- `-10^9 <= nums[i] <= 10^9`\n- `-10^9 <= target <= 10^9`\n- **Only one valid answer exists.**",
+      "solution": "class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        unordered_map<int,int> seen;\n        for (int i = 0; i < nums.size(); i++) {\n            int need = target - nums[i];\n            if (seen.count(need)) return {seen[need], i};\n            seen[nums[i]] = i;\n        }\n        return {};\n    }\n};",
+      "starterCode": "class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        // Write your solution here\n    }\n};",
+      "driverCode": "int main() {\n    // calls Solution::twoSum with the test input\n    return 0;\n}",
+      "testCases": [
+        {
+          "input": "nums = [2,7,11,15], target = 9",
+          "expectedOutput": "[0,1]",
+          "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1].",
+          "hidden": false
+        },
+        {
+          "input": "nums = [3,2,4], target = 6",
+          "expectedOutput": "[1,2]",
+          "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2].",
+          "hidden": false
+        },
+        {
+          "input": "nums = [3,3], target = 6",
+          "expectedOutput": "[0,1]",
+          "explanation": "",
+          "hidden": false
+        },
+        {
+          "input": "nums = [0,4,3,0], target = 0",
+          "expectedOutput": "[0,3]",
+          "explanation": "Zeros can pair with each other.",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "title": "Valid Parentheses",
+      "topic": "STACKS",
+      "difficulty": "MEDIUM",
+      "timeLimitMs": 2000,
+      "description": "Given a string `s` containing just the characters `(`, `)`, `{`, `}`, `[` and `]`, determine if the input string is valid.\n\nAn input string is valid if:\n\n1. Open brackets must be closed by the same type of brackets.\n2. Open brackets must be closed in the correct order.\n3. Every close bracket has a corresponding open bracket of the same type.",
+      "constraints": "- `1 <= s.length <= 10^4`\n- `s` consists of parentheses only `()[]{}`.",
+      "solution": "class Solution {\npublic:\n    bool isValid(string s) {\n        stack<char> st;\n        for (char c : s) {\n            if (c == '(' || c == '[' || c == '{') {\n                st.push(c);\n            } else {\n                if (st.empty()) return false;\n                char top = st.top();\n                if ((c == ')' && top != '(') ||\n                    (c == ']' && top != '[') ||\n                    (c == '}' && top != '{')) return false;\n                st.pop();\n            }\n        }\n        return st.empty();\n    }\n};",
+      "starterCode": "class Solution {\npublic:\n    bool isValid(string s) {\n        // Write your solution here\n    }\n};",
+      "driverCode": null,
+      "testCases": [
+        {
+          "input": "s = \"()\"",
+          "expectedOutput": "true",
+          "explanation": "",
+          "hidden": false
+        },
+        {
+          "input": "s = \"()[]{}\"",
+          "expectedOutput": "true",
+          "explanation": "",
+          "hidden": false
+        },
+        {
+          "input": "s = \"(]\"",
+          "expectedOutput": "false",
+          "explanation": "The closing ']' does not match the opening '('.",
+          "hidden": false
+        },
+        {
+          "input": "s = \"([)]\"",
+          "expectedOutput": "false",
+          "explanation": "Brackets must close in the correct order.",
+          "hidden": true
+        }
+      ]
+    }
+  ]
+}

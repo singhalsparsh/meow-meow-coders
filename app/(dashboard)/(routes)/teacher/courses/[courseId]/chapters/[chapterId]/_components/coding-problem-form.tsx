@@ -30,6 +30,10 @@ import {
 } from "@/components/ui/select";
 import { CodeEditor } from "@/components/coding-workspace/code-editor";
 import {
+  QuestionImporter,
+  type ImportedProblem,
+} from "./question-importer";
+import {
   ALL_DIFFICULTIES,
   ALL_TOPICS,
   DIFFICULTY_LABEL,
@@ -167,6 +171,31 @@ export const CodingProblemForm = ({
     }
   };
 
+  const handleImported = (created: ImportedProblem[]) => {
+    setProblems((prev) => [
+      ...prev,
+      ...created.map((p) => ({
+        id: p.id,
+        title: p.title,
+        difficulty: p.difficulty as Difficulty,
+        topic: p.topic as DsaTopic,
+        description: p.description,
+        constraints: p.constraints ?? "",
+        solution: p.solution ?? "",
+        starterCode: p.starterCode,
+        driverCode: p.driverCode ?? "",
+        timeLimitMs: p.timeLimitMs,
+        testCases: p.testCases.map((tc) => ({
+          id: tc.id,
+          input: tc.input,
+          expectedOutput: tc.expectedOutput,
+          explanation: tc.explanation ?? "",
+          isHidden: tc.isHidden,
+        })),
+      })),
+    ]);
+  };
+
   const startNew = () => {
     // Give the draft a temporary client-side id so the editor can be keyed on it.
     draftCounter += 1;
@@ -216,16 +245,23 @@ export const CodingProblemForm = ({
               </span>
             )}
           </div>
-          <Button
-            type="button"
-            onClick={startNew}
-            variant="outline"
-            size="sm"
-            disabled={problems.some((p) => !p.id || p.id.startsWith("new-"))}
-          >
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Add question
-          </Button>
+          <div className="flex items-center gap-2">
+            <QuestionImporter
+              apiBase={apiBase}
+              onImported={handleImported}
+              onDone={refresh}
+            />
+            <Button
+              type="button"
+              onClick={startNew}
+              variant="outline"
+              size="sm"
+              disabled={problems.some((p) => !p.id || p.id.startsWith("new-"))}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add question
+            </Button>
+          </div>
         </div>
 
         {problems.length === 0 && editing === null && (
