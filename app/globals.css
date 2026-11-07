@@ -51,15 +51,17 @@ body,
 
     --lp-timeline-buffered-color: oklch(0.985 0 0 / 0.4);
 
-    /* Coding workspace (IDE) palette — always dark, high-end surface */
-    --ide-bg: #0e0e11;
-    --ide-bg-deep: #0a0a0d;
-    --ide-surface: #1a1a24;
-    --ide-surface-hover: #26262f;
-    --ide-border: rgba(255, 255, 255, 0.08);
-    --ide-foreground: #e4e4e7;
-    --ide-foreground-muted: #8e8e96;
-    --ide-active: #ffffff;
+    /* Coding workspace (IDE) palette — light mode, high-end surface */
+    --ide-bg: #f6f7f9;
+    --ide-bg-deep: #ffffff;
+    --ide-surface: #ffffff;
+    --ide-surface-hover: #eceef1;
+    --ide-border: rgba(15, 23, 42, 0.10);
+    --ide-foreground: #27272a;
+    --ide-foreground-muted: #71717a;
+    --ide-active: #111111;
+    --ide-overlay-weak: rgba(15, 23, 42, 0.04);
+    --ide-overlay-strong: rgba(15, 23, 42, 0.08);
   }
 
   .dark {
@@ -97,7 +99,7 @@ body,
     --lp-primary-foreground: oklch(0.985 0 0);
     --lp-timeline-buffered-color: oklch(0.985 0 0 / 0.4);
 
-    /* Coding workspace (IDE) palette — always dark, high-end surface */
+    /* Coding workspace (IDE) palette — dark mode, high-end surface */
     --ide-bg: #0e0e11;
     --ide-bg-deep: #0a0a0d;
     --ide-surface: #1a1a24;
@@ -106,6 +108,8 @@ body,
     --ide-foreground: #e4e4e7;
     --ide-foreground-muted: #8e8e96;
     --ide-active: #ffffff;
+    --ide-overlay-weak: rgba(255, 255, 255, 0.05);
+    --ide-overlay-strong: rgba(255, 255, 255, 0.10);
 
     /* System font stack (replaces Google-hosted DM Sans, which Next 16
        /Turbopack tries to fetch at build time). */

@@ -80,19 +80,19 @@ export function ResultsPanel({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header / verdict summary */}
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-[color:var(--ide-border)] px-3 py-2">
         <div className="flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-zinc-500" />
-          <span className="text-sm font-medium text-white">Console</span>
+          <Terminal className="h-4 w-4 text-[color:var(--ide-foreground-muted)]" />
+          <span className="text-sm font-medium text-[color:var(--ide-active)]">Console</span>
         </div>
         {result && (
           <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-[color:var(--ide-foreground-muted)]">
               {result.passedCount}/{result.totalCount} passed
             </span>
             <VerdictBadge verdict={result.verdict} />
             {result.runtimeMs != null && (
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-[color:var(--ide-foreground-muted)]">
                 {result.runtimeMs} ms
               </span>
             )}
@@ -101,17 +101,17 @@ export function ResultsPanel({
       </div>
 
       {busy ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-zinc-500">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-[color:var(--ide-foreground-muted)]">
           <Loader2 className="h-5 w-5 animate-spin" />
           <p className="text-sm">{statusMessage ?? "Working…"}</p>
         </div>
       ) : error ? (
         <div className="flex-1 overflow-y-auto p-4">
           <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3">
-            <p className="text-sm font-medium text-rose-300">
+            <p className="text-sm font-medium text-rose-700 dark:text-rose-300">
               Execution failed
             </p>
-            <pre className="mt-2 whitespace-pre-wrap text-xs text-rose-300">
+            <pre className="mt-2 whitespace-pre-wrap text-xs text-rose-700 dark:text-rose-300">
               {error}
             </pre>
           </div>
@@ -120,7 +120,7 @@ export function ResultsPanel({
         <>
           {/* Case tabs */}
           {tabs.length > 0 && (
-            <div className="flex items-center gap-1 overflow-x-auto border-b border-white/10 px-2 py-1">
+            <div className="flex items-center gap-1 overflow-x-auto border-b border-[color:var(--ide-border)] px-2 py-1">
               {tabs.map((tab) => {
                 const tabResult = result?.results.find((r) => r.id === tab.id);
                 return (
@@ -130,15 +130,15 @@ export function ResultsPanel({
                     className={cn(
                       "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                       activeId === tab.id
-                        ? "bg-white/10 text-white"
-                        : "text-zinc-500 hover:text-white"
+                        ? "bg-[color:var(--ide-overlay-strong)] text-[color:var(--ide-active)]"
+                        : "text-[color:var(--ide-foreground-muted)] hover:text-[color:var(--ide-active)]"
                     )}
                   >
                     {tabResult &&
                       (tabResult.passed ? (
-                        <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                        <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                       ) : (
-                        <XCircle className="h-3 w-3 text-rose-400" />
+                        <XCircle className="h-3 w-3 text-rose-600 dark:text-rose-400" />
                       ))}
                     {tab.label}
                   </button>
@@ -159,7 +159,7 @@ export function ResultsPanel({
             ) : result.compileError ? (
               <CompileError output={result.compileError} />
             ) : !activeResult ? (
-              <p className="text-sm text-zinc-500">No output.</p>
+              <p className="text-sm text-[color:var(--ide-foreground-muted)]">No output.</p>
             ) : (
               <CaseDetail
                 result={activeResult}
@@ -199,8 +199,8 @@ function SampleConsole({
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-medium text-white">Sample test case</p>
-          <p className="text-xs text-zinc-500">
+          <p className="text-sm font-medium text-[color:var(--ide-active)]">Sample test case</p>
+          <p className="text-xs text-[color:var(--ide-foreground-muted)]">
             Time limit: {problem.timeLimitMs} ms
           </p>
         </div>
@@ -208,7 +208,7 @@ function SampleConsole({
           type="button"
           onClick={onRun}
           size="sm"
-          className="h-7 border border-white/10 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white"
+          className="h-7 border border-[color:var(--ide-border)] bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white"
         >
           <Play className="h-3 w-3 mr-1" />
           Run
@@ -224,18 +224,18 @@ function SampleConsole({
             <Pre>{tc.expectedOutput || "(empty)"}</Pre>
           </Field>
           {tc.explanation && (
-            <p className="text-xs text-zinc-500">
-              <span className="font-medium text-white">Explanation: </span>
+            <p className="text-xs text-[color:var(--ide-foreground-muted)]">
+              <span className="font-medium text-[color:var(--ide-active)]">Explanation: </span>
               {tc.explanation}
             </p>
           )}
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-[color:var(--ide-foreground-muted)]">
             Edit the input after your first run, then press Run to test your
             solution against it.
           </p>
         </>
       ) : (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-[color:var(--ide-foreground-muted)]">
           No sample cases are provided for this problem.
         </p>
       )}
@@ -247,12 +247,12 @@ function CompileError({ output }: { output: string }) {
   return (
     <div>
       <div className="mb-2 flex items-center gap-2">
-        <XCircle className="h-4 w-4 text-rose-400" />
-        <span className="text-sm font-medium text-rose-300">
+        <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+        <span className="text-sm font-medium text-rose-700 dark:text-rose-300">
           Compilation error
         </span>
       </div>
-      <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-[#0e0e11] p-3 font-mono text-xs leading-relaxed text-zinc-300">
+      <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg border border-[color:var(--ide-border)] bg-[color:var(--ide-bg)] p-3 font-mono text-xs leading-relaxed text-[color:var(--ide-foreground)]">
         {output}
       </pre>
     </div>
@@ -273,8 +273,8 @@ function RuntimeErrorNotice({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 p-3">
-        <AlertTriangle className="h-4 w-4 text-rose-300" />
-        <span className="text-sm font-medium text-rose-300">
+        <AlertTriangle className="h-4 w-4 text-rose-700 dark:text-rose-300" />
+        <span className="text-sm font-medium text-rose-700 dark:text-rose-300">
           {timedOut ? (
             <>Time Limit Exceeded — exceeded {runtimeMs} ms</>
           ) : (
@@ -282,17 +282,17 @@ function RuntimeErrorNotice({
           )}
         </span>
         {!timedOut && (
-          <span className="ml-auto text-xs text-zinc-500">{runtimeMs} ms</span>
+          <span className="ml-auto text-xs text-[color:var(--ide-foreground-muted)]">{runtimeMs} ms</span>
         )}
       </div>
 
       {(stdout || stderr) && (
         <Field label={stderr ? "Error / stderr" : "Output"}>
-          <Pre className="text-rose-300">{stderr || stdout}</Pre>
+          <Pre className="text-rose-700 dark:text-rose-300">{stderr || stdout}</Pre>
         </Field>
       )}
 
-      <p className="text-xs text-zinc-500">
+      <p className="text-xs text-[color:var(--ide-foreground-muted)]">
         Your program crashed at runtime or was terminated by the sandbox. Check
         for null-pointer dereferences, out-of-bounds array access, division by
         zero, or overly long loops.
@@ -322,12 +322,12 @@ function CaseDetail({
         <div className="flex items-center gap-2">
           <VerdictBadge verdict={result.verdict} />
           {result.timedOut && (
-            <span className="text-xs text-orange-300">
+            <span className="text-xs text-orange-700 dark:text-orange-300">
               exceeded {result.runtimeMs} ms
             </span>
           )}
           {!result.timedOut && (
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-[color:var(--ide-foreground-muted)]">
               {result.runtimeMs} ms
             </span>
           )}
@@ -337,7 +337,7 @@ function CaseDetail({
             type="button"
             onClick={onRun}
             size="sm"
-            className="h-7 border border-white/10 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white"
+            className="h-7 border border-[color:var(--ide-border)] bg-zinc-800 text-zinc-200 hover:bg-zinc-700 hover:text-white"
           >
             <Play className="h-3 w-3 mr-1" />
             Run
@@ -346,12 +346,12 @@ function CaseDetail({
       </div>
 
       {result.hidden ? (
-        <div className="rounded-lg border border-white/10 bg-[#1a1a24] p-4 text-center">
-          <p className="text-sm text-zinc-500">
+        <div className="rounded-lg border border-[color:var(--ide-border)] bg-[color:var(--ide-surface)] p-4 text-center">
+          <p className="text-sm text-[color:var(--ide-foreground-muted)]">
             This is a hidden grading case — its input and expected output are
             not shown.
           </p>
-          <p className="mt-1 text-xs font-medium text-white">
+          <p className="mt-1 text-xs font-medium text-[color:var(--ide-active)]">
             {result.passed ? "Passed." : "Did not pass."}
           </p>
         </div>
@@ -369,7 +369,7 @@ function CaseDetail({
               <Textarea
                 value={input}
                 onChange={(e) => onInputChange(e.target.value)}
-                className="min-h-[64px] border-white/10 bg-[#0e0e11] font-mono text-xs text-zinc-200 focus-visible:ring-indigo-500/40"
+                className="min-h-[64px] border-[color:var(--ide-border)] bg-[color:var(--ide-bg)] font-mono text-xs text-[color:var(--ide-foreground)] focus-visible:ring-indigo-500/40"
                 spellCheck={false}
               />
             ) : (
@@ -385,7 +385,7 @@ function CaseDetail({
           ) : (
             <Field label="Expected Output">
               <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <Pre className="border-0 bg-transparent p-0">{result.expectedOutput ?? ""}</Pre>
               </div>
             </Field>
@@ -399,7 +399,7 @@ function CaseDetail({
           ) : (
             <Field label="Your Output">
               <div className="flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5">
-                <XCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-400" />
+                <XCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-600 dark:text-rose-400" />
                 <Pre className="border-0 bg-transparent p-0">{result.stdout || "(no output)"}</Pre>
               </div>
             </Field>
@@ -407,7 +407,7 @@ function CaseDetail({
 
           {result.stderr && (
             <Field label="stderr">
-              <Pre className="text-rose-300">{result.stderr}</Pre>
+              <Pre className="text-rose-700 dark:text-rose-300">{result.stderr}</Pre>
             </Field>
           )}
 
@@ -418,8 +418,8 @@ function CaseDetail({
           )}
 
           {explanation && !result.passed && (
-            <p className="text-xs text-zinc-500">
-              <span className="font-medium text-white">Explanation: </span>
+            <p className="text-xs text-[color:var(--ide-foreground-muted)]">
+              <span className="font-medium text-[color:var(--ide-active)]">Explanation: </span>
               {explanation}
             </p>
           )}
@@ -438,7 +438,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--ide-foreground-muted)]">
         {label}
       </span>
       {children}
@@ -456,7 +456,7 @@ function Pre({
   return (
     <pre
       className={cn(
-        "overflow-x-auto whitespace-pre-wrap rounded-lg border border-white/10 bg-[#0e0e11] p-2.5 font-mono text-xs leading-relaxed text-zinc-300",
+        "overflow-x-auto whitespace-pre-wrap rounded-lg border border-[color:var(--ide-border)] bg-[color:var(--ide-bg)] p-2.5 font-mono text-xs leading-relaxed text-[color:var(--ide-foreground)]",
         className
       )}
     >
