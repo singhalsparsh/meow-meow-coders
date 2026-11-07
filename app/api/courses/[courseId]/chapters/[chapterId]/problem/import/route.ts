@@ -18,6 +18,14 @@ interface TestCaseInput {
     isHidden?: boolean;
 }
 
+/** Canonical, validated test case used downstream. */
+interface NormalizedCase {
+    input: string;
+    expectedOutput: string;
+    explanation?: string | null;
+    isHidden: boolean;
+}
+
 interface ImportProblemInput {
     title?: unknown;
     difficulty?: unknown;
@@ -79,9 +87,25 @@ function normalizeProblem(raw: ImportProblemInput): {
     }
 
     const rawCases: TestCaseInput[] = Array.isArray(raw.testCases) ? raw.testCases : [];
-    const validCases = rawCases.filter(
-        (tc) => tc && typeof tc.input === "string" && typeof tc.expectedOutput === "string"
-    );
+    // Accept both `hidden` and `isHidden` keys so templates written either way
+    // behave identically. A case counts as valid when input + expectedOutput are
+    // present; anything else is dropped.
+    const validCases: NormalizedCase[] = rawCases
+        .filter(
+            (tc) =>
+                tc &&
+                typeof tc.input === "string" &&
+                typeof tc.expectedOutput === "string"
+        )
+        .map((tc) => ({
+            input: tc.input,
+            expectedOutput: tc.expectedOutput,
+            explanation:
+                typeof tc.explanation === "string" && tc.explanation
+                    ? tc.explanation
+                    : null,
+            isHidden: Boolean(tc.isHidden) || Boolean((tc as any).hidden),
+        }));
 
     if (!validCases.length) {
         return { error: `"${title}": at least one test case is required` };

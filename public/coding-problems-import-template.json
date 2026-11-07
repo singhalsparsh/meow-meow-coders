@@ -15,25 +15,25 @@
           "input": "nums = [2,7,11,15], target = 9",
           "expectedOutput": "[0,1]",
           "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1].",
-          "hidden": false
+          "isHidden": false
         },
         {
           "input": "nums = [3,2,4], target = 6",
           "expectedOutput": "[1,2]",
           "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2].",
-          "hidden": false
+          "isHidden": false
         },
         {
           "input": "nums = [3,3], target = 6",
           "expectedOutput": "[0,1]",
           "explanation": "",
-          "hidden": false
+          "isHidden": false
         },
         {
           "input": "nums = [0,4,3,0], target = 0",
           "expectedOutput": "[0,3]",
           "explanation": "Zeros can pair with each other.",
-          "hidden": true
+          "isHidden": true
         }
       ]
     },
@@ -52,25 +52,25 @@
           "input": "s = \"()\"",
           "expectedOutput": "true",
           "explanation": "",
-          "hidden": false
+          "isHidden": false
         },
         {
           "input": "s = \"()[]{}\"",
           "expectedOutput": "true",
           "explanation": "",
-          "hidden": false
+          "isHidden": false
         },
         {
           "input": "s = \"(]\"",
           "expectedOutput": "false",
           "explanation": "The closing ']' does not match the opening '('.",
-          "hidden": false
+          "isHidden": false
         },
         {
           "input": "s = \"([)]\"",
           "expectedOutput": "false",
           "explanation": "Brackets must close in the correct order.",
-          "hidden": true
+          "isHidden": true
         }
       ]
     }

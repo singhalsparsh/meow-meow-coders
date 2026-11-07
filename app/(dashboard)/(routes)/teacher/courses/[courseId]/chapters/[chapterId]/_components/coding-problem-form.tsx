@@ -250,6 +250,25 @@ export const CodingProblemForm = ({
               apiBase={apiBase}
               onImported={handleImported}
               onDone={refresh}
+              problems={problems.map((p) => ({
+                id: p.id ?? "",
+                title: p.title,
+                difficulty: p.difficulty,
+                topic: p.topic,
+                description: p.description,
+                constraints: p.constraints,
+                solution: p.solution,
+                starterCode: p.starterCode,
+                driverCode: p.driverCode,
+                timeLimitMs: p.timeLimitMs,
+                testCases: p.testCases.map((tc) => ({
+                  id: tc.id,
+                  input: tc.input,
+                  expectedOutput: tc.expectedOutput,
+                  explanation: tc.explanation,
+                  isHidden: tc.isHidden,
+                })),
+              }))}
             />
             <Button
               type="button"

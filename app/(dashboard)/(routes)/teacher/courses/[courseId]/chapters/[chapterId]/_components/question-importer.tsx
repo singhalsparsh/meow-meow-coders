@@ -41,14 +41,54 @@ interface QuestionImporterProps {
   onImported: (problems: ImportedProblem[]) => void;
   /** Called after the import request completes (created or not) to refetch. */
   onDone?: () => void;
+  /** The current problems, used to export them all back to a JSON file. */
+  problems?: ImportedProblem[];
 }
 
 export const TEMPLATE_URL = "/coding-problems-import-template.json";
 
-export function QuestionImporter({ apiBase, onImported, onDone }: QuestionImporterProps) {
+export function QuestionImporter({ apiBase, onImported, onDone, problems }: QuestionImporterProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleExport = () => {
+    if (!problems || !problems.length) {
+      toast.error("No questions to export yet");
+      return;
+    }
+    const payload = {
+      problems: problems.map((p) => ({
+        title: p.title,
+        topic: p.topic,
+        difficulty: p.difficulty,
+        timeLimitMs: p.timeLimitMs,
+        description: p.description,
+        constraints: p.constraints || null,
+        solution: p.solution || null,
+        starterCode: p.starterCode,
+        driverCode: p.driverCode || null,
+        testCases: p.testCases.map((tc) => ({
+          input: tc.input,
+          expectedOutput: tc.expectedOutput,
+          explanation: tc.explanation || null,
+          isHidden: tc.isHidden,
+        })),
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "coding-problems-export.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${problems.length} question${problems.length > 1 ? "s" : ""}`);
+  };
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -143,6 +183,16 @@ export function QuestionImporter({ apiBase, onImported, onDone }: QuestionImport
         )}
         Import questions
       </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={handleExport}
+        title="Download all current questions as a JSON file you can share or re-import"
+      >
+        <Download className="h-3.5 w-3.5 mr-1" />
+        Export all
+      </Button>
       <a
         href={TEMPLATE_URL}
         download
@@ -151,7 +201,7 @@ export function QuestionImporter({ apiBase, onImported, onDone }: QuestionImport
         className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
         title="Download an example file you can edit"
       >
-        <Download className="h-3.5 w-3.5" />
+        <FileJson className="h-3.5 w-3.5" />
         Example file
       </a>
       <input
